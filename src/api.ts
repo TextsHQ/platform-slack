@@ -1,10 +1,11 @@
 import { CookieJar } from 'tough-cookie'
 import mem from 'mem'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { texts, InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType } from '@textshq/platform-sdk'
 
 import SlackAPI from './network-api'
 
-import { mapThreads, mapCurrentUser, mapParticipant, SlackBootData } from './mappers'
+import { mapThreads, mapCurrentUser, mapParticipant } from './mappers'
 
 const { IS_DEV } = texts
 
@@ -25,9 +26,9 @@ export default class Slack implements PlatformAPI {
     if (!cookieJarJSON) return
     const cookieJar = CookieJar.fromJSON(cookieJarJSON)
     // TODO: remove this once double window problem is fixed
-    const newJsCodeResult = SlackBootData
-    await this.api.setLoginState(cookieJar, newJsCodeResult)
+    await this.api.setLoginState(cookieJar)
     await this.afterAuth()
+    // eslint-disable-next-line
     if (!this.currentUser?.id_str) throw new ReAuthError() // todo improve
   }
 
@@ -37,9 +38,7 @@ export default class Slack implements PlatformAPI {
   }
 
   login = async ({ cookieJarJSON }): Promise<LoginResult> => {
-    // TODO: remove this once double window problem is fixed
-    const newJsCodeResult = SlackBootData
-    await this.api.setLoginState(CookieJar.fromJSON(cookieJarJSON as any), newJsCodeResult)
+    await this.api.setLoginState(CookieJar.fromJSON(cookieJarJSON as any))
     await this.afterAuth()
     if (this.currentUser?.id_str) return { type: 'success' }
     const errorMessages = this.currentUser?.errors?.map(e => e.message)?.join('\n')
@@ -83,7 +82,7 @@ export default class Slack implements PlatformAPI {
       if (!this.userUpdatesCursor) this.userUpdatesCursor = json.cursor
     }
     return {
-      items: [], //mapThreads(json, this.currentUser, inboxType),
+      items: [], // mapThreads(json, this.currentUser, inboxType),
       hasMore: timeline.status !== 'AT_END',
       oldestCursor: timeline.min_entry_id,
       newestCursor: timeline.max_entry_id,
@@ -92,9 +91,9 @@ export default class Slack implements PlatformAPI {
 
   getMessages = async (threadID: string, { cursor, direction }: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Message>> => {
     const conversation_timeline = {
-      status: "AT_START",
-      min_entry_id: "abcd",
-      max_entry_id: "xyz"
+      status: 'AT_START',
+      min_entry_id: 'abcd',
+      max_entry_id: 'xyz',
     }
     // const { conversation_timeline } = await this.api.dm_conversation_thread(threadID, cursor ? { [direction === 'before' ? 'max_id' : 'min_id']: cursor } : {})
     // const entries = Object.values(conversation_timeline.entries || {})
@@ -115,13 +114,13 @@ export default class Slack implements PlatformAPI {
       const threadID = `${this.currentUser.id_str}-${userID}`
       // const { conversation_timeline } = await this.api.dm_conversation_thread(threadID, undefined)
       const conversation_timeline = {
-        status: "AT_START",
-        min_entry_id: "abcd",
-        max_entry_id: "xyz"
+        status: 'AT_START',
+        min_entry_id: 'abcd',
+        max_entry_id: 'xyz',
       }
       if (!conversation_timeline) return
       if (IS_DEV) console.log(conversation_timeline)
-      return  mapThreads(conversation_timeline, this.currentUser, 'trusted')[0]
+      return mapThreads(conversation_timeline, this.currentUser, 'trusted')[0]
     }
   }
 

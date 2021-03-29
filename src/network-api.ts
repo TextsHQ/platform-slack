@@ -3,6 +3,7 @@ import got from 'got'
 import crypto from 'crypto'
 import util from 'util'
 import { CookieJar, Cookie } from 'tough-cookie'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { texts, ReAuthError } from '@textshq/platform-sdk'
 
 const { constants, IS_DEV, Sentry } = texts
@@ -10,15 +11,15 @@ const { USER_AGENT } = constants
 
 const AUTHORIZATION = 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
 
-const token = process.env.SLACK_TOKEN;
+const token = process.env.SLACK_TOKEN
 
 function handleErrors(url: string, statusCode: number, json: any) {
   // { errors: [ { code: 32, message: 'Could not authenticate you.' } ] }
   const errors = json.errors as { code: number, message: string }[]
   const loggedOutError = errors.find(e => e.code === 32)
   if (loggedOutError) {
+    // eslint-disable-next-line
     throw new ReAuthError(loggedOutError!.message)
-    // todo track reauth event
   }
   console.log(url, statusCode, json.errors)
   // [ { code: 130, message: 'Over capacity' } ]
@@ -38,7 +39,6 @@ const CT0_MAX_AGE = 6 * 60 * 60
 const EXT = 'mediaColor,altText,mediaStats,highlightedLabel,cameraMoment'
 
 const randomBytes = util.promisify(crypto.randomBytes)
-
 
 const commonParams = {
   include_profile_interstitial_type: '1',
@@ -86,7 +86,7 @@ const genCSRFToken = () =>
   randomBytes(16).then(b => b.toString('hex'))
 
 export default class SlackAPI {
-  private web = new WebClient(token);
+  private web = new WebClient(token)
 
   private csrfToken: string = ''
 
@@ -155,17 +155,17 @@ export default class SlackAPI {
     })
 
   getThreads = async () => {
-    console.log("get threads");
+    console.log('get threads')
     try {
-      const result = await this.web.users.conversations();
-      console.log(result);
+      const result = await this.web.users.conversations()
+      console.log(result)
     } catch (e) {
-      console.log(e);
+      console.log(e)
     }
   }
 
   get_current_user = () => {
-    console.log("get current user");
+    console.log('get current user')
   }
 
   typeahead = (q: string) =>
@@ -221,5 +221,4 @@ export default class SlackAPI {
         last_read_event_id: messageID,
       },
     })
-
 }

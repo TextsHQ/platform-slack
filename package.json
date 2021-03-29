@@ -5,8 +5,7 @@
   "scripts": {
     "postinstall": "yarn tsc || true",
     "build": "yarn tsc",
-    "lint": "yarn eslint src --ext ts,tsx,js,jsx --cache",
-    "rebuild": "electron-rebuild -v 11.3.0"
+    "lint": "eslint src --ext ts,tsx,js,jsx --cache"
   },
   "husky": {
     "hooks": {
