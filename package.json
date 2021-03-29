@@ -27,7 +27,7 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "@textshq/eslint-config": "git@github.com:TextsHQ/eslint-config.git",
+    "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config",
     "@textshq/platform-sdk": "file:../platform-sdk",
     "eslint": "^7.13.0",
     "husky": "^4.3.0",

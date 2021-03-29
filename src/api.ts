@@ -21,11 +21,11 @@ export default class Slack implements PlatformAPI {
 
   private onServerEvent: OnServerEventCallback
 
-  init = async (cookieJarJSON: string, jsCodeResult: string) => {
+  init = async (cookieJarJSON: string) => {
     if (!cookieJarJSON) return
     const cookieJar = CookieJar.fromJSON(cookieJarJSON)
     // TODO: remove this once double window problem is fixed
-    const newJsCodeResult = SlackBootData;
+    const newJsCodeResult = SlackBootData
     await this.api.setLoginState(cookieJar, newJsCodeResult)
     await this.afterAuth()
     if (!this.currentUser?.id_str) throw new ReAuthError() // todo improve
@@ -36,9 +36,9 @@ export default class Slack implements PlatformAPI {
     this.currentUser = response
   }
 
-  login = async ({ cookieJarJSON, jsCodeResult }): Promise<LoginResult> => {
+  login = async ({ cookieJarJSON }): Promise<LoginResult> => {
     // TODO: remove this once double window problem is fixed
-    const newJsCodeResult = SlackBootData;
+    const newJsCodeResult = SlackBootData
     await this.api.setLoginState(CookieJar.fromJSON(cookieJarJSON as any), newJsCodeResult)
     await this.afterAuth()
     if (this.currentUser?.id_str) return { type: 'success' }

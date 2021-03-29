@@ -142,7 +142,7 @@ export default class SlackAPI {
     }
   }
 
-  setLoginState = async (cookieJar: CookieJar, jsCodeResult: JSCodeResult) => {
+  setLoginState = async (cookieJar: CookieJar) => {
     if (!cookieJar) throw TypeError()
     this.cookieJar = cookieJar
     await this.setCSRFTokenCookie()
