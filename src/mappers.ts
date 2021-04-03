@@ -22,11 +22,11 @@ export const mapMessage = (slackMessage: any, currentUserId: string): Message =>
   }
 }
 
-const mapParticipant = ({ profile }: any): Participant => ({
+export const mapParticipant = ({ profile }: any): Participant => ({
   id: profile.id,
   username: profile?.display_name,
   fullName: profile?.real_name || profile?.display_name,
-  imgURL: profile.image_192,
+  imgURL: profile.image_192 || undefined,
 })
 
 export const mapCurrentUser = ({ profile }: any): CurrentUser => ({
@@ -34,6 +34,13 @@ export const mapCurrentUser = ({ profile }: any): CurrentUser => ({
   fullName: profile.real_name,
   displayText: profile.display_name,
   imgURL: profile.image_192,
+})
+
+export const mapProfile = (user: any): Participant => ({
+  id: user.id,
+  username: user?.profile?.name || user.name,
+  fullName: user?.profile?.real_name || user?.profile?.display_name || user.name,
+  imgURL: user?.profile?.image_192 || '',
 })
 
 const mapThread = (slackChannel: any, currentUserId: string): Thread => {
@@ -45,7 +52,9 @@ const mapThread = (slackChannel: any, currentUserId: string): Thread => {
     id: slackChannel.id,
     type: 'single',
     title: participants[0].username || slackChannel?.user,
-    timestamp: messages[0]?.timestamp || new Date(),
+    // FIXME: Slack doesn't have the last activity date. So if the thread doesn't have the first message,
+    // it'll set 1970 as the timestamp.
+    timestamp: messages[0]?.timestamp || new Date(0),
     isUnread: false,
     isReadOnly: slackChannel?.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
