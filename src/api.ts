@@ -1,133 +1,98 @@
-import { CookieJar } from 'tough-cookie'
-import mem from 'mem'
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { texts, InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType } from '@textshq/platform-sdk'
+import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent } from '@textshq/platform-sdk'
+import { CookieJar } from 'tough-cookie'
 
-import SlackAPI from './network-api'
-
-import { mapThreads, mapCurrentUser, mapParticipant } from './mappers'
-
-const { IS_DEV } = texts
+import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
+import SlackAPI from './lib/slack'
 
 export default class Slack implements PlatformAPI {
   private readonly api = new SlackAPI()
 
-  private disposed = false
-
   private currentUser = null
 
-  private userUpdatesCursor = null
-
-  private pollTimeout: NodeJS.Timeout
+  private eventTimeout?: NodeJS.Timeout
 
   private onServerEvent: OnServerEventCallback
 
-  init = async (cookieJarJSON: string) => {
-    if (!cookieJarJSON) return
-    const cookieJar = CookieJar.fromJSON(cookieJarJSON)
-    // TODO: remove this once double window problem is fixed
-    await this.api.setLoginState(cookieJar)
+  init = async (serialized: { cookies: any; clientToken: string }) => {
+    const { cookies, clientToken } = serialized || {}
+    if (!cookies && !clientToken) return
+
+    const cookieJar = CookieJar.fromJSON(cookies) || null
+    await this.api.setLoginState(cookieJar, clientToken)
     await this.afterAuth()
     // eslint-disable-next-line
-    if (!this.currentUser?.id_str) throw new ReAuthError() // todo improve
+    if (!this.currentUser?.ok) throw new ReAuthError() // todo improve
   }
 
   afterAuth = async () => {
-    const response = await this.api.account_verify_credentials()
-    this.currentUser = response
+    const currentUser = await this.api.getCurrentUser()
+    this.currentUser = currentUser
   }
 
   login = async ({ cookieJarJSON }): Promise<LoginResult> => {
-    await this.api.setLoginState(CookieJar.fromJSON(cookieJarJSON as any))
+    const cookieJar = CookieJar.fromJSON(cookieJarJSON as any)
+    await this.api.setLoginState(cookieJar)
     await this.afterAuth()
-    if (this.currentUser?.id_str) return { type: 'success' }
-    const errorMessages = this.currentUser?.errors?.map(e => e.message)?.join('\n')
-    return { type: 'error', errorMessage: errorMessages }
+
+    if (this.currentUser.ok) return { type: 'success' }
+    // FIXME: Add error message
+    return { type: 'error', errorMessage: 'Error' }
   }
 
+  serializeSession = () => ({
+    cookies: this.api.cookieJar.toJSON(),
+    clientToken: this.api.userToken,
+  })
+
   dispose = () => {
-    // this.live.dispose()
-    this.disposed = true
-    clearTimeout(this.pollTimeout)
+    if (this.eventTimeout) clearInterval(this.eventTimeout)
   }
 
   getCurrentUser = () => mapCurrentUser(this.currentUser)
 
   subscribeToEvents = (onEvent: OnServerEventCallback): void => {
     this.onServerEvent = onEvent
-    // this.live.setup()
-    // this.pollUserUpdates()
   }
 
-  searchUsers = mem(async (typed: string) => {
-    const { users } = await this.api.typeahead(typed) || {}
-    return (users as any[] || []).map(u => mapParticipant(u, {}))
-  })
+  searchUsers = async (typed: string) => this.api.searchUsers(typed)
 
   getThreads = async (inboxName: InboxName, { cursor, direction }: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Thread>> => {
-    const inboxType = {
-      [InboxName.NORMAL]: 'trusted',
-      [InboxName.REQUESTS]: 'untrusted',
-    }[inboxName]
-    let json = null
-    let timeline = null
-    if (cursor) {
-      json = await this.api.dm_inbox_timeline(inboxType, { [direction === 'before' ? 'max_id' : 'min_id']: cursor })
-      json = json.inbox_timeline
-      timeline = json
-    } else {
-      json = await this.api.dm_inbox_initial_state()
-      json = json.inbox_initial_state
-      timeline = json.inbox_timelines[inboxType]
-      if (!this.userUpdatesCursor) this.userUpdatesCursor = json.cursor
-    }
+    const { channels } = await this.api.getThreads()
+    const currentUser = mapCurrentUser(this.currentUser)
+
+    const items = mapThreads(channels as any[], currentUser.id)
+
     return {
-      items: [], // mapThreads(json, this.currentUser, inboxType),
-      hasMore: timeline.status !== 'AT_END',
-      oldestCursor: timeline.min_entry_id,
-      newestCursor: timeline.max_entry_id,
+      items,
+      hasMore: false,
+      oldestCursor: '0',
+      newestCursor: '0',
     }
   }
 
   getMessages = async (threadID: string, { cursor, direction }: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Message>> => {
-    const conversation_timeline = {
-      status: 'AT_START',
-      min_entry_id: 'abcd',
-      max_entry_id: 'xyz',
-    }
-    // const { conversation_timeline } = await this.api.dm_conversation_thread(threadID, cursor ? { [direction === 'before' ? 'max_id' : 'min_id']: cursor } : {})
-    // const entries = Object.values(conversation_timeline.entries || {})
-    // const thread = conversation_timeline.conversations[threadID]
-    const items = [] // mapMessages(entries, thread, this.currentUser.id_str)
+    const { messages } = await this.api.getMessages(threadID)
+    const currentUser = mapCurrentUser(this.currentUser)
+    const items = (messages as any[]).map(message => mapMessage(message, currentUser.id))
+
     return {
       items,
-      hasMore: conversation_timeline.status !== 'AT_END',
-      oldestCursor: conversation_timeline.min_entry_id,
-      newestCursor: conversation_timeline.max_entry_id,
+      hasMore: false,
+      oldestCursor: '0',
+      newestCursor: '0',
     }
   }
 
-  createThread = async (userIDs: string[]) => {
-    if (userIDs.length === 0) return null
-    if (userIDs.length === 1) {
-      const [userID] = userIDs
-      const threadID = `${this.currentUser.id_str}-${userID}`
-      // const { conversation_timeline } = await this.api.dm_conversation_thread(threadID, undefined)
-      const conversation_timeline = {
-        status: 'AT_START',
-        min_entry_id: 'abcd',
-        max_entry_id: 'xyz',
-      }
-      if (!conversation_timeline) return
-      if (IS_DEV) console.log(conversation_timeline)
-      return mapThreads(conversation_timeline, this.currentUser, 'trusted')[0]
-    }
+  sendMessage = async (threadID: string, content: MessageContent) => {
+    const message = await this.api.sendMessage(threadID, content.text)
+    const currentUser = mapCurrentUser(this.currentUser)
+    return [mapMessage(message, currentUser.id)]
   }
 
-  sendActivityIndicator = async (type: ActivityType, threadID: string) => {
-    if (type === ActivityType.TYPING) await this.api.dm_conversation_typing(threadID)
-  }
+  createThread = async (userIDs: string[]) => null
 
-  sendReadReceipt = async (threadID: string, messageID: string) =>
-    this.api.dm_conversation_mark_read(threadID, messageID)
+  sendActivityIndicator = async (type: ActivityType, threadID: string) => null
+
+  sendReadReceipt = async (threadID: string, messageID: string) => null
 }
