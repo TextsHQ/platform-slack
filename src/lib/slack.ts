@@ -1,7 +1,9 @@
+import type { Thread } from '@textshq/platform-sdk'
 import { WebClient } from '@slack/web-api'
 import got from 'got'
 import type { CookieJar } from 'tough-cookie'
 
+import { mapParticipant, mapProfile } from '../mappers'
 import { NOT_USED_SLACK_URL } from './constants'
 
 export default class SlackAPI {
@@ -70,14 +72,35 @@ export default class SlackAPI {
   }
 
   searchUsers = async (typed: string) => {
-    const allUsers = await this.webClient.users.list()
+    const allUsers = await this.webClient.users.list({ limit: 100 })
     const { members } = allUsers
 
-    return (members as any).filter(member => member.name.toLowerCase().includes(typed.toLowerCase()))
+    return (members as any)
+      .filter(member => member.name.toLowerCase().includes(typed.toLowerCase()))
+      .map(mapProfile)
   }
 
   sendMessage = async (channel: string, text: string) => {
     const res = await this.webClient.chat.postMessage({ channel, text })
     return res.message
+  }
+
+  createThread = async (userIDs: string[]): Promise<Thread> => {
+    const res = await this.webClient.conversations.open({ users: userIDs.join(','), return_im: true })
+    const { channel } = res as any
+
+    const promises = userIDs.map(user => this.webClient.users.profile.get({ user }))
+    const profiles = (await Promise.all(promises)).map(mapParticipant)
+
+    return {
+      id: channel.id,
+      title: profiles.map(user => user.username).join(', '),
+      type: userIDs.length > 1 ? 'group' : 'single',
+      participants: { items: profiles, hasMore: false },
+      messages: { items: [], hasMore: false },
+      timestamp: new Date(channel?.created) || new Date(),
+      isUnread: false,
+      isReadOnly: false,
+    }
   }
 }

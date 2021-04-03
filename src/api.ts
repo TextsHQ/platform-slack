@@ -90,7 +90,7 @@ export default class Slack implements PlatformAPI {
     return [mapMessage(message, currentUser.id)]
   }
 
-  createThread = async (userIDs: string[]) => null
+  createThread = async (userIDs: string[]) => this.api.createThread(userIDs)
 
   sendActivityIndicator = async (type: ActivityType, threadID: string) => null
 
