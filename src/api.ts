@@ -71,7 +71,6 @@ export default class Slack implements PlatformAPI {
       items,
       hasMore: items.length > 0,
       oldestCursor: response_metadata?.next_cursor,
-      newestCursor: response_metadata?.next_cursor,
     }
   }
 
@@ -99,6 +98,11 @@ export default class Slack implements PlatformAPI {
   sendActivityIndicator = async (type: ActivityType, threadID: string) => null
 
   sendReadReceipt = async (threadID: string, messageID: string) => null
+
+  deleteMessage = async (threadID: string, messageID: string) => {
+    const res = await this.api.deleteMessage(threadID, messageID)
+    return res.ok
+  }
 
   getAsset = async (type: string, uri: string) => {
     if (type !== 'proxy') return

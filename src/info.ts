@@ -20,7 +20,7 @@ const info: PlatformInfo = {
   icon,
   tags: ['Beta'],
   typingDurationMs: 3000,
-  deletionMode: MessageDeletionMode.DELETE_FOR_SELF,
+  deletionMode: MessageDeletionMode.DELETE_FOR_EVERYONE,
   loginMode: 'browser',
   browserLogin: {
     loginURL: 'https://slack.com/signin#/signin',
