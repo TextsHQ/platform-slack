@@ -1,6 +1,7 @@
-import type { Thread } from '@textshq/platform-sdk'
+import type { MessageContent, Thread } from '@textshq/platform-sdk'
 import { WebClient } from '@slack/web-api'
 import got from 'got'
+import { promises as fs } from 'fs'
 import type { CookieJar } from 'tough-cookie'
 
 import { mapParticipant, mapProfile } from '../mappers'
@@ -49,7 +50,7 @@ export default class SlackAPI {
   getThreads = async (cursor = undefined) => {
     const response = await this.webClient.conversations.list({
       types: 'im',
-      limit: 10,
+      limit: 15,
       cursor: cursor || undefined,
     })
     const currentUser = await this.getCurrentUser()
@@ -86,8 +87,27 @@ export default class SlackAPI {
       .map(mapProfile)
   }
 
-  sendMessage = async (channel: string, text: string) => {
-    const res = await this.webClient.chat.postMessage({ channel, text })
+  sendMessage = async (channel: string, content: MessageContent) => {
+    const { text } = content
+
+    let buffer
+    let file
+    let attachments
+
+    if (content.mimeType) {
+      buffer = content.fileBuffer || await fs.readFile(content.filePath) || null
+
+      file = await this.webClient.files.upload({
+        file: buffer,
+        channels: channel,
+        title: content.fileName,
+        filename: content.fileName,
+      }) || {}
+
+      attachments = [(file as any).file] || []
+    }
+
+    const res = await this.webClient.chat.postMessage({ channel, text, attachments })
     return res.message
   }
 

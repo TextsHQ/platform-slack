@@ -60,11 +60,15 @@ export const mapMessage = (slackMessage: any, currentUserId: string): Message =>
     ...(mapBlocks(slackMessage.blocks).attachments || []),
   ]
 
+  const text = slackMessage.text
+    || slackMessage?.attachments?.map(attachment => attachment.title).join(' ')
+    || ''
+
   return {
     _original: JSON.stringify(slackMessage),
     id: slackMessage.ts,
     timestamp: date,
-    text: slackMessage.text,
+    text,
     isDeleted: false,
     attachments,
     links: [],

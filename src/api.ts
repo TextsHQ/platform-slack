@@ -70,6 +70,7 @@ export default class Slack implements PlatformAPI {
     return {
       items,
       hasMore: items.length > 0,
+      oldestCursor: response_metadata?.next_cursor,
       newestCursor: response_metadata?.next_cursor,
     }
   }
@@ -88,7 +89,7 @@ export default class Slack implements PlatformAPI {
   }
 
   sendMessage = async (threadID: string, content: MessageContent) => {
-    const message = await this.api.sendMessage(threadID, content.text)
+    const message = await this.api.sendMessage(threadID, content)
     const currentUser = mapCurrentUser(this.currentUser)
     return [mapMessage(message, currentUser.id)]
   }
