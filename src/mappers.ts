@@ -51,22 +51,22 @@ const mapBlocks = (slackBlocks: any[]) => {
 
 export const mapMessage = (slackMessage: any, currentUserId: string): Message => {
   const date = new Date(0)
-  date.setUTCSeconds(Number(slackMessage.ts))
+  date.setUTCSeconds(Number(slackMessage?.ts))
 
-  const senderID = slackMessage.user || slackMessage.bot_id
+  const senderID = slackMessage?.user || slackMessage?.bot_id
 
   const attachments = [
     ...(mapAttachments(slackMessage?.files) || []),
-    ...(mapBlocks(slackMessage.blocks).attachments || []),
+    ...(mapBlocks(slackMessage?.blocks).attachments || []),
   ]
 
-  const text = slackMessage.text
+  const text = slackMessage?.text
     || slackMessage?.attachments?.map(attachment => attachment.title).join(' ')
     || ''
 
   return {
     _original: JSON.stringify(slackMessage),
-    id: slackMessage.ts,
+    id: slackMessage?.ts,
     timestamp: date,
     text,
     isDeleted: false,
@@ -101,7 +101,7 @@ export const mapProfile = (user: any): Participant => ({
 })
 
 const mapThread = (slackChannel: any, currentUserId: string): Thread => {
-  const messages: Message[] = slackChannel.messages.messages.map(message => mapMessage(message, currentUserId)) || []
+  const messages: Message[] = slackChannel?.messages?.map(message => mapMessage(message, currentUserId)) || []
   const participants: Participant[] = slackChannel.participants.map(mapParticipant) || []
 
   return {
@@ -112,7 +112,7 @@ const mapThread = (slackChannel: any, currentUserId: string): Thread => {
     // FIXME: Slack doesn't have the last activity date. So if the thread doesn't have the first message,
     // it'll set 1970 as the timestamp.
     timestamp: messages[0]?.timestamp || new Date(0),
-    isUnread: false,
+    isUnread: slackChannel?.unread || false,
     isReadOnly: slackChannel?.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
     participants: { items: participants, hasMore: false },

@@ -58,8 +58,11 @@ export default class SlackAPI {
     for (const thread of response.channels as any[]) {
       const { id, user: userId } = thread
       const user = await this.getParticipantProfile(userId)
+      const threadInfo = await this.webClient.conversations.info({ channel: id })
+      const { channel } = threadInfo as any || {}
 
-      thread.messages = await this.getMessages(id, 1) || []
+      thread.unread = channel?.unread_count || undefined
+      thread.messages = [channel?.latest].filter(x => x?.ts) || []
       thread.participants = [user, currentUser] || []
     }
 
@@ -110,6 +113,8 @@ export default class SlackAPI {
     const res = await this.webClient.chat.postMessage({ channel, text, attachments })
     return res.message
   }
+
+  deleteMessage = async (channel: string, messageID: string) => this.webClient.chat.delete({ channel, ts: messageID })
 
   createThread = async (userIDs: string[]): Promise<Thread> => {
     const res = await this.webClient.conversations.open({ users: userIDs.join(','), return_im: true })
