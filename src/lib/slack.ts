@@ -46,9 +46,12 @@ export default class SlackAPI {
     return user
   }
 
-  getThreads = async () => {
-    // FIXME: use pagination instead of limit 1000
-    const response = await this.webClient.conversations.list({ types: 'im', limit: 20 })
+  getThreads = async (cursor = undefined) => {
+    const response = await this.webClient.conversations.list({
+      types: 'im',
+      limit: 10,
+      cursor: cursor || undefined,
+    })
     const currentUser = await this.getCurrentUser()
 
     for (const thread of response.channels as any[]) {
@@ -62,8 +65,11 @@ export default class SlackAPI {
     return response
   }
 
-  // FIXME: Use pagination instead of limit
-  getMessages = async (threadId: string, limit: number = 20) => this.webClient.conversations.history({ channel: threadId, limit })
+  getMessages = async (threadId: string, limit: number = 20, latest = undefined) => this.webClient.conversations.history({
+    channel: threadId,
+    limit,
+    latest,
+  })
 
   getParticipantProfile = async (userId: string) => {
     const user: any = await this.webClient.users.profile.get({ user: userId })
@@ -102,5 +108,15 @@ export default class SlackAPI {
       isUnread: false,
       isReadOnly: false,
     }
+  }
+
+  fetchStream = ({ headers = {}, ...rest }) => {
+    if (!this.cookieJar) throw new Error('Slack cookie jar not found')
+
+    return got.stream({
+      throwHttpErrors: false,
+      cookieJar: this.cookieJar,
+      ...rest,
+    })
   }
 }
