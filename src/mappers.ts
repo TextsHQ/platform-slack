@@ -1,4 +1,27 @@
-import type { CurrentUser, Message, Participant, Thread } from '@textshq/platform-sdk'
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { CurrentUser, Message, MessageAttachment, MessageAttachmentType, Participant, Thread } from '@textshq/platform-sdk'
+
+const mapAttachment = (slackAttachment: any): MessageAttachment => {
+  const type = (() => {
+    if (slackAttachment?.mimetype?.startsWith('image')) return MessageAttachmentType.IMG
+    if (slackAttachment?.mimetype?.startsWith('video')) return MessageAttachmentType.VIDEO
+    if (slackAttachment?.mimetype?.startsWith('audio')) return MessageAttachmentType.AUDIO
+    return MessageAttachmentType.UNKNOWN
+  })()
+
+  return {
+    id: slackAttachment?.id,
+    fileName: slackAttachment?.name,
+    type,
+    srcURL: 'asset://$accountID/proxy/' + Buffer.from(slackAttachment?.url_private).toString('hex'),
+    mimeType: slackAttachment?.mimetype,
+  }
+}
+
+const mapAttachments = (slackAttachments: any[]): MessageAttachment[] => {
+  if (!slackAttachments) return []
+  return slackAttachments.map(mapAttachment)
+}
 
 export const mapMessage = (slackMessage: any, currentUserId: string): Message => {
   const date = new Date(0)
@@ -9,11 +32,10 @@ export const mapMessage = (slackMessage: any, currentUserId: string): Message =>
   return {
     _original: JSON.stringify(slackMessage),
     id: slackMessage.ts,
-    cursor: slackMessage.ts,
     timestamp: date,
     text: slackMessage.text,
     isDeleted: false,
-    attachments: [],
+    attachments: mapAttachments(slackMessage?.files) || [],
     links: [],
     reactions: [],
     senderID,
