@@ -23,11 +23,42 @@ const mapAttachments = (slackAttachments: any[]): MessageAttachment[] => {
   return slackAttachments.map(mapAttachment)
 }
 
+const mapBlock = (slackBlock: any) => {
+  const { type: slackType } = slackBlock
+  if (slackType !== 'image') return
+
+  const type = (() => {
+    if (slackType?.startsWith('image')) return MessageAttachmentType.IMG
+    if (slackType?.startsWith('video')) return MessageAttachmentType.VIDEO
+    if (slackType?.startsWith('audio')) return MessageAttachmentType.AUDIO
+    return MessageAttachmentType.UNKNOWN
+  })()
+
+  return {
+    id: slackBlock.image_url,
+    type,
+    srcURL: 'asset://$accountID/proxy/' + Buffer.from(slackBlock.image_url).toString('hex'),
+  }
+}
+
+const mapBlocks = (slackBlocks: any[]) => {
+  const attachments = slackBlocks?.map(mapBlock).filter(x => Boolean(x))
+
+  return {
+    attachments,
+  }
+}
+
 export const mapMessage = (slackMessage: any, currentUserId: string): Message => {
   const date = new Date(0)
   date.setUTCSeconds(Number(slackMessage.ts))
 
   const senderID = slackMessage.user || slackMessage.bot_id
+
+  const attachments = [
+    ...(mapAttachments(slackMessage?.files) || []),
+    ...(mapBlocks(slackMessage.blocks).attachments || []),
+  ]
 
   return {
     _original: JSON.stringify(slackMessage),
@@ -35,7 +66,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string): Message =>
     timestamp: date,
     text: slackMessage.text,
     isDeleted: false,
-    attachments: mapAttachments(slackMessage?.files) || [],
+    attachments,
     links: [],
     reactions: [],
     senderID,
