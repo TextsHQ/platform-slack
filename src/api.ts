@@ -4,6 +4,7 @@ import { CookieJar } from 'tough-cookie'
 
 import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
 import SlackAPI from './lib/slack'
+import SlackRealTime from './lib/real-time'
 
 export default class Slack implements PlatformAPI {
   private readonly api = new SlackAPI()
@@ -12,7 +13,7 @@ export default class Slack implements PlatformAPI {
 
   private eventTimeout?: NodeJS.Timeout
 
-  private onServerEvent: OnServerEventCallback
+  private realTimeApi: null | SlackRealTime = null
 
   init = async (serialized: { cookies: any; clientToken: string }) => {
     const { cookies, clientToken } = serialized || {}
@@ -52,35 +53,37 @@ export default class Slack implements PlatformAPI {
   getCurrentUser = () => mapCurrentUser(this.currentUser)
 
   subscribeToEvents = (onEvent: OnServerEventCallback): void => {
-    this.onServerEvent = onEvent
+    this.realTimeApi = new SlackRealTime(this.api, onEvent)
+    this.realTimeApi.subscribeToEvents()
   }
 
   searchUsers = async (typed: string) => this.api.searchUsers(typed)
 
-  getThreads = async (inboxName: InboxName, { cursor, direction }: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Thread>> => {
-    const { channels } = await this.api.getThreads()
+  getThreads = async (inboxName: InboxName, pagination: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Thread>> => {
+    const { cursor } = pagination || {}
+
+    const { channels, response_metadata } = await this.api.getThreads(cursor)
     const currentUser = mapCurrentUser(this.currentUser)
 
     const items = mapThreads(channels as any[], currentUser.id)
 
     return {
       items,
-      hasMore: false,
-      oldestCursor: '0',
-      newestCursor: '0',
+      hasMore: items.length > 0,
+      newestCursor: response_metadata?.next_cursor,
     }
   }
 
-  getMessages = async (threadID: string, { cursor, direction }: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Message>> => {
-    const { messages } = await this.api.getMessages(threadID)
+  getMessages = async (threadID: string, pagination: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Message>> => {
+    const { cursor } = pagination || {}
+
+    const { messages } = await this.api.getMessages(threadID, 20, cursor)
     const currentUser = mapCurrentUser(this.currentUser)
     const items = (messages as any[]).map(message => mapMessage(message, currentUser.id))
 
     return {
       items,
-      hasMore: false,
-      oldestCursor: '0',
-      newestCursor: '0',
+      hasMore: items.length > 0,
     }
   }
 
@@ -95,4 +98,10 @@ export default class Slack implements PlatformAPI {
   sendActivityIndicator = async (type: ActivityType, threadID: string) => null
 
   sendReadReceipt = async (threadID: string, messageID: string) => null
+
+  getAsset = async (type: string, uri: string) => {
+    if (type !== 'proxy') return
+    const url = Buffer.from(uri, 'hex').toString()
+    return this.api.fetchStream({ url })
+  }
 }
