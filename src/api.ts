@@ -79,7 +79,9 @@ export default class Slack implements PlatformAPI {
 
     const { messages } = await this.api.getMessages(threadID, 20, cursor)
     const currentUser = mapCurrentUser(this.currentUser)
-    const items = (messages as any[]).map(message => mapMessage(message, currentUser.id))
+    const items = (messages as any[])
+      .map(message => mapMessage(message, currentUser.id))
+      .sort((a, b) => a.timestamp.valueOf() - b.timestamp.valueOf())
 
     return {
       items,
