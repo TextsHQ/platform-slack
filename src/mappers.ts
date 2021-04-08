@@ -50,9 +50,7 @@ const mapBlocks = (slackBlocks: any[]) => {
 }
 
 export const mapMessage = (slackMessage: any, currentUserId: string): Message => {
-  const date = new Date(0)
-  date.setUTCSeconds(Number(slackMessage?.ts))
-
+  const date = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id
 
   const attachments = [
