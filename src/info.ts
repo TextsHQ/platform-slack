@@ -27,11 +27,6 @@ const info: PlatformInfo = {
     authCookieName: 'd',
   },
   attributes: new Set([
-    Attribute.NO_SUPPORT_GROUP_THREAD_CREATION,
-    Attribute.NO_SUPPORT_GROUP_REMOVE_PARTICIPANT,
-    Attribute.SUBSCRIBE_TO_THREAD_SELECTION,
-    Attribute.SUPPORTS_REQUESTS_INBOX,
-    Attribute.SUPPORTS_GROUP_IMAGE_CHANGE,
     Attribute.SUPPORTS_DELETE_THREAD,
     Attribute.SORT_MESSAGES_ON_PUSH,
     Attribute.CAN_MESSAGE_USERNAME,
