@@ -144,4 +144,8 @@ export default class SlackAPI {
       ...rest,
     })
   }
+
+  sendReadReceipt = async (threadID: string, messageID: string) => {
+    await this.webClient.conversations.mark({ channel: threadID, ts: messageID })
+  }
 }

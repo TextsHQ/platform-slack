@@ -97,9 +97,11 @@ export default class Slack implements PlatformAPI {
 
   createThread = async (userIDs: string[]) => this.api.createThread(userIDs)
 
-  sendActivityIndicator = async (type: ActivityType, threadID: string) => null
+  sendActivityIndicator = async (type: ActivityType, threadID: string) => {
+    if (type === ActivityType.TYPING) console.log({ threadID })
+  }
 
-  sendReadReceipt = async (threadID: string, messageID: string) => null
+  sendReadReceipt = async (threadID: string, messageID: string) => this.api.sendReadReceipt(threadID, messageID)
 
   deleteMessage = async (threadID: string, messageID: string) => {
     const res = await this.api.deleteMessage(threadID, messageID)
