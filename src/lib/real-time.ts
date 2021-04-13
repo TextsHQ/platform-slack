@@ -5,6 +5,8 @@ import { RTMClient } from '@slack/rtm-api'
 import type SlackAPI from './slack'
 
 export default class SlackRealTime {
+  public rtm: RTMClient
+
   constructor(
     private api: SlackAPI,
     private onEvent: OnServerEventCallback,
@@ -12,15 +14,24 @@ export default class SlackRealTime {
 
   subscribeToEvents = async (): Promise<void> => {
     const token = this.api.userToken
-    const rtm = new RTMClient(token)
+    this.rtm = new RTMClient(token)
 
-    rtm.on('message', slackEvent => {
+    this.rtm.on('message', slackEvent => {
       this.onEvent([{
         type: ServerEventType.THREAD_MESSAGES_REFRESH,
         threadID: slackEvent?.channel,
       }])
     })
 
-    await rtm.start()
+    this.rtm.on('user_typing', slackEvent => {
+      this.onEvent([{
+        type: ServerEventType.PARTICIPANT_TYPING,
+        threadID: slackEvent?.channel,
+        participantID: slackEvent?.user,
+        typing: true,
+      }])
+    })
+
+    await this.rtm.start()
   }
 }
