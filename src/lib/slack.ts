@@ -6,6 +6,7 @@ import type { CookieJar } from 'tough-cookie'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { NOT_USED_SLACK_URL } from './constants'
+import { EMOTES } from '../emotes'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -191,5 +192,15 @@ export default class SlackAPI {
 
   sendReadReceipt = async (threadID: string, messageID: string) => {
     await this.webClient.conversations.mark({ channel: threadID, ts: messageID })
+  }
+
+  addReaction = async (threadID: string, messageID: string, reactionKey: string) => {
+    const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '')
+    await this.webClient.reactions.add({ name: emoji, channel: threadID, timestamp: messageID })
+  }
+
+  removeReaction = async (threadID: string, messageID: string, reactionKey: string) => {
+    const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '')
+    await this.webClient.reactions.remove({ name: emoji, channel: threadID, timestamp: messageID })
   }
 }

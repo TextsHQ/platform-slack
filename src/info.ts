@@ -26,6 +26,11 @@ const info: PlatformInfo = {
     loginURL: 'https://slack.com/signin#/signin',
     authCookieName: 'd',
   },
+  reactions: {
+    supported: {},
+    canReactWithAllEmojis: true,
+    allowsMultipleReactionsToSingleMessage: true,
+  },
   attributes: new Set([
     Attribute.SUPPORTS_DELETE_THREAD,
     Attribute.SORT_MESSAGES_ON_PUSH,

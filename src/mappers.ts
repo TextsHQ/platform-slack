@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, Participant, TextEntity, Thread } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageReaction, Participant, TextEntity, Thread } from '@textshq/platform-sdk'
 import { EMOTE_REGEX } from './constants'
 import { EMOTES } from './emotes'
 import { removeCharactersAfterAndBefore } from './util'
@@ -149,6 +149,22 @@ const mapNativeEmojis = (text: string): string => {
   return mappedText
 }
 
+const mapReactions = (
+  slackReactions: { name: string; users: string[]; count: number }[],
+  messageId: string,
+  emojis: any[],
+): MessageReaction[] => {
+  if (!slackReactions?.length) return []
+
+  const reactions = slackReactions?.flatMap(reaction => reaction.users.map(user => ({ ...reaction, user })))
+  return reactions.map(reaction => ({
+    id: `${messageId}-${reaction.name}-${reaction.user}`,
+    participantID: reaction.user,
+    reactionKey: emojis[reaction.name] || EMOTES.find(({ emoji }) => emoji === `:${reaction.name}:`)?.unicode || reaction.name,
+    emoji: Boolean(emojis[reaction.name]),
+  }))
+}
+
 export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any[] = []): Message => {
   const date = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id
@@ -172,7 +188,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
     isDeleted: false,
     attachments,
     links: [],
-    reactions: [],
+    reactions: mapReactions(slackMessage.reactions, slackMessage?.ts, emojis) || [],
     senderID,
     isSender: currentUserId === senderID,
     seen: {},

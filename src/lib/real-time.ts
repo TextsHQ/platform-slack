@@ -32,6 +32,20 @@ export default class SlackRealTime {
       }])
     })
 
+    this.rtm.on('reaction_added', slackEvent => {
+      this.onEvent([{
+        type: ServerEventType.THREAD_MESSAGES_REFRESH,
+        threadID: slackEvent?.item?.channel,
+      }])
+    })
+
+    this.rtm.on('reaction_removed', slackEvent => {
+      this.onEvent([{
+        type: ServerEventType.THREAD_MESSAGES_REFRESH,
+        threadID: slackEvent?.item?.channel,
+      }])
+    })
+
     await this.rtm.start()
   }
 }

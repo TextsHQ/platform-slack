@@ -114,4 +114,8 @@ export default class Slack implements PlatformAPI {
     const url = Buffer.from(uri, 'hex').toString()
     return this.api.fetchStream({ url })
   }
+
+  addReaction = this.api.addReaction
+
+  removeReaction = this.api.removeReaction
 }
