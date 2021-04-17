@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { CurrentUser, Message, MessageAttachment, MessageAttachmentType, Participant, Thread } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, Participant, TextEntity, Thread } from '@textshq/platform-sdk'
+import { removeCharactersAfterAndBefore } from './util'
 
 const mapAttachment = (slackAttachment: any): MessageAttachment => {
   const type = (() => {
@@ -23,7 +24,7 @@ const mapAttachments = (slackAttachments: any[]): MessageAttachment[] => {
   return slackAttachments.map(mapAttachment)
 }
 
-const mapBlock = (slackBlock: any) => {
+const mapAttachmentBlock = (slackBlock: any) => {
   const { type: slackType } = slackBlock
   if (slackType !== 'image') return
 
@@ -41,11 +42,78 @@ const mapBlock = (slackBlock: any) => {
   }
 }
 
-const mapBlocks = (slackBlocks: any[]) => {
-  const attachments = slackBlocks?.map(mapBlock).filter(x => Boolean(x))
+export const extractRichElements = (slackBlocks: any): any[] => {
+  const richTexts = slackBlocks?.filter(({ type }) => type === 'rich_text') || []
+  // Schema:
+  // "blocks": [
+  //   {
+  //     "type": "rich_text",
+  //     "block_id": "3FsSx",
+  //     "elements": [
+  //       {
+  //         "type": "rich_text_section",
+  //         "elements": [
+  //           {
+  //             "type": "user",
+  //             "user_id": "UHA5FTK1V"
+  //           },
+  //         ]
+  //       }
+  //     ]
+  //   }
+  // ],
+  const extractElements = ({ elements }) => elements || []
+  const richElements = richTexts?.flatMap(extractElements).flatMap(extractElements).filter(x => Boolean(x)) || []
+
+  return richElements
+}
+
+const mapBlocks = (slackBlocks: any[], text = '') => {
+  const attachments = slackBlocks?.map(mapAttachmentBlock).filter(x => Boolean(x))
+  const richElements = extractRichElements(slackBlocks)
+
+  const entities: TextEntity[] = []
+  let mappedText = text
+
+  for (const element of richElements) {
+    const { type = '', style, text: blockText, url: blockUrl, user_id: blockUser, profile: blockProfile } = element
+
+    if (type === 'text' && style && blockText) {
+      mappedText = removeCharactersAfterAndBefore(mappedText, blockText)
+      const from = mappedText.indexOf(blockText)
+      entities.push({ from, to: from + blockText.length, ...style })
+    }
+
+    if (type === 'link' && blockUrl) {
+      mappedText = removeCharactersAfterAndBefore(mappedText, blockUrl)
+      const from = mappedText.indexOf(blockUrl)
+      entities.push({ from, to: from + blockUrl.length, link: blockUrl })
+    }
+
+    if (type === 'user' && blockUser) {
+      const username = blockProfile?.display_name || blockUser
+
+      mappedText = mappedText.replace(blockUser, username)
+      mappedText = removeCharactersAfterAndBefore(mappedText, `@${username}`)
+      const from = mappedText.indexOf(username)
+      entities.push({ from, to: from + username.length, mentionedUser: { id: blockUser, username } })
+    }
+  }
 
   return {
     attachments,
+    textAttributes: { entities },
+    mappedText,
+  }
+}
+
+export const mapAction = (slackMessage: any): MessageAction => {
+  if (slackMessage?.subtype !== 'channel_join') return
+
+  return {
+    type: MessageActionType.THREAD_PARTICIPANTS_ADDED,
+    participantIDs: [slackMessage?.user],
+    actorParticipantID: slackMessage?.user,
   }
 }
 
@@ -53,20 +121,22 @@ export const mapMessage = (slackMessage: any, currentUserId: string): Message =>
   const date = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id
 
-  const attachments = [
-    ...(mapAttachments(slackMessage?.files) || []),
-    ...(mapBlocks(slackMessage?.blocks).attachments || []),
-  ]
-
   const text = slackMessage?.text
     || slackMessage?.attachments?.map(attachment => attachment.title).join(' ')
     || ''
 
+  const blocks = mapBlocks(slackMessage?.blocks, text)
+
+  const attachments = [
+    ...(mapAttachments(slackMessage?.files) || []),
+    ...(blocks.attachments || []),
+  ]
+
   return {
     _original: JSON.stringify(slackMessage),
     id: slackMessage?.ts,
+    text: blocks.mappedText || text,
     timestamp: date,
-    text,
     isDeleted: false,
     attachments,
     links: [],
@@ -74,6 +144,9 @@ export const mapMessage = (slackMessage: any, currentUserId: string): Message =>
     senderID,
     isSender: currentUserId === senderID,
     seen: {},
+    textAttributes: blocks.textAttributes || undefined,
+    isAction: Boolean(mapAction(slackMessage)),
+    action: mapAction(slackMessage) || undefined,
   }
 }
 
@@ -105,8 +178,8 @@ const mapThread = (slackChannel: any, currentUserId: string): Thread => {
   return {
     _original: JSON.stringify(slackChannel),
     id: slackChannel.id,
-    type: 'single',
-    title: participants[0].username || slackChannel?.user,
+    type: participants?.length > 2 ? 'group' : 'single',
+    title: slackChannel?.name || participants[0].username || slackChannel?.user,
     // FIXME: Slack doesn't have the last activity date. So if the thread doesn't have the first message,
     // it'll set 1970 as the timestamp.
     timestamp: messages[0]?.timestamp || new Date(0),
