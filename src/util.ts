@@ -1,5 +1,14 @@
 /**
- * Remove characters right before and after a given substring
+ * Remove characters right before and after a given substring.
+ *
+ * @description
+ * This is done because messages on slack comes with "special characters"
+ * after and before the block. For example: "<https://google.com>", so this
+ * function will remove the "<" and ">".
+ *
+ * @example
+ * removeCharactersAfterAndBefore('hi this is a link <https://google.com>', 'https://google.com')
+ * returns "hi this is a link https://google.com"
  *
  * @param text
  * @param substring
