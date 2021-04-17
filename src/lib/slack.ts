@@ -4,7 +4,7 @@ import got from 'got'
 import { promises as fs } from 'fs'
 import type { CookieJar } from 'tough-cookie'
 
-import { mapParticipant, mapProfile } from '../mappers'
+import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { NOT_USED_SLACK_URL } from './constants'
 
 export default class SlackAPI {
@@ -48,14 +48,35 @@ export default class SlackAPI {
   }
 
   getThreads = async (cursor = undefined) => {
-    const response = await this.webClient.conversations.list({
-      types: 'im',
-      limit: 15,
-      cursor: cursor || undefined,
-    })
     const currentUser = await this.getCurrentUser()
 
-    for (const thread of response.channels as any[]) {
+    const response = await this.webClient.conversations.list({
+      // This is done this way because if you're a guest on a workspace you won't
+      // be able to get public_channels and will raise an error. This should be
+      // refactored in a future version and maybe get the scopes available for the user.
+      types: currentUser?.profile?.guest_invited_by ? 'im' : 'im,public_channel',
+      limit: 10,
+      cursor: cursor || undefined,
+      exclude_archived: true,
+    })
+
+    const privateMessages = (response.channels as any[]).filter(({ is_im }: { is_im: boolean }) => is_im)
+    const publicChannels = (response.channels as any[]).filter(({ is_channel, is_member }: { is_channel: boolean; is_member: boolean }) => is_channel && is_member)
+
+    for (const channel of publicChannels) {
+      const { id } = channel
+      const threadInfo = await this.webClient.conversations.info({ channel: id })
+      const { channel: channelInfo } = threadInfo as any || {}
+      // TODO: Add pagination, this method by default limits the number of participants to 100
+      const participantsIds = await this.webClient.conversations.members({ channel: id }) || { members: [] }
+      const promises = (participantsIds?.members as any[]).map((userId: string) => this.getParticipantProfile(userId))
+
+      channel.unread = channelInfo?.unread_count || undefined
+      channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
+      channel.participants = await Promise.all(promises).catch(() => null) || []
+    }
+
+    for (const thread of privateMessages as any[]) {
       const { id, user: userId } = thread
       const user = await this.getParticipantProfile(userId)
       const threadInfo = await this.webClient.conversations.info({ channel: id })
@@ -66,14 +87,31 @@ export default class SlackAPI {
       thread.participants = [user, currentUser] || []
     }
 
+    response.channels = [...privateMessages, ...publicChannels]
     return response
   }
 
-  getMessages = async (threadId: string, limit: number = 20, latest = undefined) => this.webClient.conversations.history({
-    channel: threadId,
-    limit,
-    latest,
-  })
+  getMessages = async (threadId: string, limit: number = 20, latest = undefined) => {
+    const response = await this.webClient.conversations.history({
+      channel: threadId,
+      limit,
+      latest,
+    })
+
+    const { messages = [] } = response
+
+    for (const message of messages as any[]) {
+      const { blocks } = message
+      const richElements = extractRichElements(blocks)
+
+      for (const element of richElements) {
+        if (element.type === 'user') element.profile = (await this.getParticipantProfile(element.user_id))?.profile
+      }
+    }
+
+    response.messages = messages
+    return response
+  }
 
   getParticipantProfile = async (userId: string) => {
     const user: any = await this.webClient.users.profile.get({ user: userId })
