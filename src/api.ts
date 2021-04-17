@@ -29,6 +29,7 @@ export default class Slack implements PlatformAPI {
   afterAuth = async () => {
     const currentUser = await this.api.getCurrentUser()
     this.currentUser = currentUser
+    await this.api.setEmojis()
   }
 
   login = async ({ cookieJarJSON }): Promise<LoginResult> => {
@@ -80,7 +81,7 @@ export default class Slack implements PlatformAPI {
     const { messages } = await this.api.getMessages(threadID, 20, cursor)
     const currentUser = mapCurrentUser(this.currentUser)
     const items = (messages as any[])
-      .map(message => mapMessage(message, currentUser.id))
+      .map(message => mapMessage(message, currentUser.id, this.api.emojis))
       .sort((a, b) => a.timestamp.valueOf() - b.timestamp.valueOf())
 
     return {
@@ -92,7 +93,7 @@ export default class Slack implements PlatformAPI {
   sendMessage = async (threadID: string, content: MessageContent) => {
     const message = await this.api.sendMessage(threadID, content)
     const currentUser = mapCurrentUser(this.currentUser)
-    return [mapMessage(message, currentUser.id)]
+    return [mapMessage(message, currentUser.id, this.api.emojis)]
   }
 
   createThread = async (userIDs: string[]) => this.api.createThread(userIDs)

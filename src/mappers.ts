@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, Participant, TextEntity, Thread } from '@textshq/platform-sdk'
+import { EMOTE_REGEX } from './constants'
+import { EMOTES } from './emotes'
 import { removeCharactersAfterAndBefore } from './util'
 
 const mapAttachment = (slackAttachment: any): MessageAttachment => {
@@ -68,7 +70,7 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   return richElements
 }
 
-const mapBlocks = (slackBlocks: any[], text = '') => {
+const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
   const attachments = slackBlocks?.map(mapAttachmentBlock).filter(x => Boolean(x))
   const richElements = extractRichElements(slackBlocks)
 
@@ -76,7 +78,7 @@ const mapBlocks = (slackBlocks: any[], text = '') => {
   let mappedText = text
 
   for (const element of richElements) {
-    const { type = '', style, text: blockText, url: blockUrl, user_id: blockUser, profile: blockProfile } = element
+    const { type = '', style, text: blockText, url: blockUrl, user_id: blockUser, profile: blockProfile, name: blockEmojiName } = element
 
     if (type === 'text' && style && blockText) {
       mappedText = removeCharactersAfterAndBefore(mappedText, blockText)
@@ -98,6 +100,23 @@ const mapBlocks = (slackBlocks: any[], text = '') => {
       const from = mappedText.indexOf(username)
       entities.push({ from, to: from + username.length, mentionedUser: { id: blockUser, username } })
     }
+
+    if (type === 'emoji' && blockEmojiName && mappedText.includes(blockEmojiName)) {
+      mappedText = removeCharactersAfterAndBefore(mappedText, blockEmojiName)
+      const from = mappedText.indexOf(blockEmojiName)
+      entities.push({
+        from,
+        to: from + blockEmojiName.length,
+        replaceWithMedia: {
+          mediaType: 'img',
+          srcURL: emojis[blockEmojiName],
+          size: {
+            width: mappedText.length === blockEmojiName.length ? 64 : 16,
+            height: mappedText.length === blockEmojiName.length ? 64 : 16,
+          },
+        },
+      })
+    }
   }
 
   return {
@@ -117,15 +136,28 @@ export const mapAction = (slackMessage: any): MessageAction => {
   }
 }
 
-export const mapMessage = (slackMessage: any, currentUserId: string): Message => {
+const mapNativeEmojis = (text: string): string => {
+  const found = text.match(EMOTE_REGEX)
+  if (!found) return text
+
+  let mappedText = text
+  for (const emote of found) {
+    const emoteUnicode = EMOTES.find(({ emoji }) => emoji === emote)
+    if (emoteUnicode) mappedText = mappedText.replace(emote, emoteUnicode.unicode)
+  }
+
+  return mappedText
+}
+
+export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any[] = []): Message => {
   const date = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id
 
-  const text = slackMessage?.text
-    || slackMessage?.attachments?.map(attachment => attachment.title).join(' ')
+  const text = mapNativeEmojis(slackMessage?.text)
+    || mapNativeEmojis(slackMessage?.attachments?.map(attachment => attachment.title).join(' '))
     || ''
 
-  const blocks = mapBlocks(slackMessage?.blocks, text)
+  const blocks = mapBlocks(slackMessage?.blocks, text, emojis)
 
   const attachments = [
     ...(mapAttachments(slackMessage?.files) || []),

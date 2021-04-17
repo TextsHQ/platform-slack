@@ -14,6 +14,8 @@ export default class SlackAPI {
 
   webClient: WebClient
 
+  emojis: any[]
+
   setLoginState = async (cookieJar: CookieJar, clientToken: string = '') => {
     if (!cookieJar && !clientToken) throw TypeError()
     this.cookieJar = cookieJar || null
@@ -37,6 +39,10 @@ export default class SlackAPI {
     const token = emojisBody.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
 
     return token
+  }
+
+  setEmojis = async () => {
+    this.emojis = (await this.webClient.emoji.list()).emoji as any[]
   }
 
   getCurrentUser = async () => {
