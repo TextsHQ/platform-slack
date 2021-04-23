@@ -167,7 +167,7 @@ const mapReactions = (
 
 export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any[] = []): Message => {
   const date = new Date(Number(slackMessage?.ts) * 1000)
-  const senderID = slackMessage?.user || slackMessage?.bot_id
+  const senderID = slackMessage?.user || slackMessage?.bot_id || 'none'
 
   const text = mapNativeEmojis(slackMessage?.text)
     || mapNativeEmojis(slackMessage?.attachments?.map(attachment => attachment.title).join(' '))
@@ -189,12 +189,13 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
     attachments,
     links: [],
     reactions: mapReactions(slackMessage.reactions, slackMessage?.ts, emojis) || [],
-    senderID,
+    senderID: slackMessage?.thread_ts ? '$thread' : senderID,
     isSender: currentUserId === senderID,
     seen: {},
     textAttributes: blocks.textAttributes || undefined,
     isAction: Boolean(mapAction(slackMessage)),
     action: mapAction(slackMessage) || undefined,
+    linkedMessageID: !slackMessage?.reply_count ? (slackMessage?.thread_ts || undefined) : undefined,
   }
 }
 
