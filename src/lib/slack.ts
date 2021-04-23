@@ -98,6 +98,15 @@ export default class SlackAPI {
     return response
   }
 
+  messageReplies = async (threadId: string, messageId: string): Promise<unknown[]> => {
+    try {
+      const response = await this.webClient.conversations.replies({ channel: threadId, ts: messageId })
+      return response?.messages as unknown[] || []
+    } catch (error) {
+      return []
+    }
+  }
+
   getMessages = async (threadId: string, limit: number = 20, latest = undefined) => {
     const response = await this.webClient.conversations.history({
       channel: threadId,
@@ -106,17 +115,21 @@ export default class SlackAPI {
     })
 
     const { messages = [] } = response
+    let replies = []
 
     for (const message of messages as any[]) {
-      const { blocks } = message
+      const { blocks, ts, reply_count } = message
       const richElements = extractRichElements(blocks)
+
+      if (reply_count) replies = [...replies, ...(await this.messageReplies(threadId, ts) || [])]
 
       for (const element of richElements) {
         if (element.type === 'user') element.profile = (await this.getParticipantProfile(element.user_id))?.profile
       }
     }
 
-    response.messages = messages
+    const aux = [...(messages as any[]), ...replies]
+    response.messages = [...new Map(aux.map(item => [item.ts, item])).values()]
     return response
   }
 
