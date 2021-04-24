@@ -32,12 +32,12 @@ export default class SlackAPI {
   getClientToken = async () => {
     const { body: workspacesBody } = await got(NOT_USED_SLACK_URL, { cookieJar: this.cookieJar })
     const filteredSlackWorkspaces = [NOT_USED_SLACK_URL, 'dev.slack.com']
-    const alreadyConnectedUrls = workspacesBody.match(/([a-zA-Z0-9\-]+\.slack\.com)/g).filter((url: string) => !filteredSlackWorkspaces.includes(url)) || []
+    const alreadyConnectedUrls = workspacesBody?.match(/([a-zA-Z0-9\-]+\.slack\.com)/g).filter((url: string) => !filteredSlackWorkspaces.includes(url)) || []
     // FIXME: this needs to be fixed, we need to get the one the user has already selected
     // on the browser login
     const firstWorkspace = alreadyConnectedUrls[0] || ''
     const { body: emojisBody } = await got(`https://${firstWorkspace}/customize/emoji`, { cookieJar: this.cookieJar })
-    const token = emojisBody.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
+    const token = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
 
     return token
   }

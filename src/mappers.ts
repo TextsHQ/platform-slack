@@ -137,7 +137,9 @@ export const mapAction = (slackMessage: any): MessageAction => {
 }
 
 const mapNativeEmojis = (text: string): string => {
-  const found = text.match(EMOTE_REGEX)
+  if (!text) return
+
+  const found = text?.match(EMOTE_REGEX)
   if (!found) return text
 
   let mappedText = text
