@@ -8,6 +8,7 @@ import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { NOT_USED_SLACK_URL } from './constants'
 import { EMOTES } from '../emotes'
 import { MENTION_REGEX } from '../constants'
+import type { ThreadType } from '../api'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -90,7 +91,7 @@ export default class SlackAPI {
     thread.participants = [user, currentUser] || []
   }
 
-  getThreads = async (cursor = undefined) => {
+  getThreads = async (cursor = undefined, threadTypes: ThreadType[]) => {
     const currentUser = await this.getCurrentUser()
 
     const response = await this.webClient.conversations.list({
@@ -98,14 +99,14 @@ export default class SlackAPI {
       // be able to get public_channels and will raise an error. This should be
       // refactored in a future version and maybe get the scopes available for the user.
       // @ts-expect-error
-      types: currentUser?.profile?.guest_invited_by ? 'im' : 'im,public_channel',
+      types: currentUser?.profile?.guest_invited_by || !threadTypes.includes('channel') ? 'im' : 'im,public_channel',
       limit: 10,
       cursor: cursor || undefined,
       exclude_archived: true,
     })
 
-    const privateMessages = (response.channels as any[]).filter(({ is_im }: { is_im: boolean }) => is_im)
-    const publicChannels = (response.channels as any[]).filter(({ is_channel, is_member }: { is_channel: boolean; is_member: boolean }) => is_channel && is_member)
+    const privateMessages = threadTypes.includes('dm') ? (response.channels as any[]).filter(({ is_im }: { is_im: boolean }) => is_im) : []
+    const publicChannels = threadTypes.includes('channel') ? (response.channels as any[]).filter(({ is_channel, is_member }: { is_channel: boolean; is_member: boolean }) => is_channel && is_member) : []
 
     await bluebird.map(publicChannels, this.loadPublicChannel)
     await bluebird.map(privateMessages, t => this.loadPrivateMessage(t, currentUser))

@@ -6,6 +6,8 @@ import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
 import SlackAPI from './lib/slack'
 import SlackRealTime from './lib/real-time'
 
+export type ThreadType = 'channel' | 'dm'
+
 export default class Slack implements PlatformAPI {
   private readonly api = new SlackAPI()
 
@@ -15,6 +17,8 @@ export default class Slack implements PlatformAPI {
 
   private realTimeApi: null | SlackRealTime = null
 
+  private threadTypes: ThreadType[]
+
   init = async (serialized: { cookies: any; clientToken: string }) => {
     const { cookies, clientToken } = serialized || {}
     if (!cookies && !clientToken) return
@@ -23,7 +27,9 @@ export default class Slack implements PlatformAPI {
     await this.api.setLoginState(cookieJar, clientToken)
     await this.afterAuth()
     // eslint-disable-next-line
-    if (!this.currentUser?.ok) throw new ReAuthError() // todo improve
+    if (!this.currentUser?.ok) throw new ReAuthError()
+    // TODO: Connect it with the platform-sdk user preference
+    this.threadTypes = ['channel', 'dm']
   }
 
   afterAuth = async () => {
@@ -63,7 +69,7 @@ export default class Slack implements PlatformAPI {
   getThreads = async (inboxName: InboxName, pagination: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Thread>> => {
     const { cursor } = pagination || {}
 
-    const { channels, response_metadata } = await this.api.getThreads(cursor)
+    const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
     const currentUser = mapCurrentUser(this.currentUser)
 
     const items = mapThreads(channels as any[], currentUser.id)
