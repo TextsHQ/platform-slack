@@ -216,7 +216,7 @@ export const mapParticipant = ({ profile }: any): Participant => ({
 export const mapCurrentUser = ({ profile, team }: any): CurrentUser => ({
   id: profile.id,
   fullName: profile.real_name,
-  displayText: `${team?.name + ' - '}${profile.display_name || profile.real_name}`,
+  displayText: `${team?.name + ' - '}${profile.display_name || profile.real_name}`,
   imgURL: profile.image_192,
 })
 
