@@ -63,10 +63,13 @@ export default class SlackAPI {
 
   loadPublicChannel = async (channel: any) => {
     const { id } = channel
-    const threadInfo = await this.webClient.conversations.info({ channel: id })
-    // TODO: Add pagination, this method by default limits the number of participants to 100
-    const participantsIds = await this.webClient.conversations.members({ channel: id }) || { members: [] }
-    const participantPromises = (participantsIds?.members as any[]).map((userId: string) => this.getParticipantProfile(userId))
+    const [threadInfo, _participantsIds] = await Promise.all([
+      this.webClient.conversations.info({ channel: id }),
+      // TODO: Add pagination, this method by default limits the number of participants to 100
+      this.webClient.conversations.members({ channel: id }),
+    ])
+    const participantsIds = _participantsIds || { members: [] }
+    const participantPromises = (participantsIds?.members as string[]).map(userId => this.getParticipantProfile(userId))
 
     const { channel: channelInfo } = threadInfo as any || {}
     channel.unread = channelInfo?.unread_count || undefined
@@ -76,8 +79,10 @@ export default class SlackAPI {
 
   loadPrivateMessage = async (thread: any, currentUser: any) => {
     const { id, user: userId } = thread
-    const user = await this.getParticipantProfile(userId)
-    const threadInfo = await this.webClient.conversations.info({ channel: id })
+    const [user, threadInfo] = await Promise.all([
+      this.getParticipantProfile(userId),
+      this.webClient.conversations.info({ channel: id }),
+    ])
     const { channel } = threadInfo as any || {}
 
     thread.unread = channel?.unread_count || undefined
@@ -128,7 +133,7 @@ export default class SlackAPI {
     const { messages = [] } = response
     let replies = []
 
-    for (const message of messages as any[]) {
+    const loadMessage = async (message: any) => {
       const { blocks, ts, reply_count, text } = message
       const richElements = extractRichElements(blocks)
 
@@ -138,14 +143,16 @@ export default class SlackAPI {
         if (element.type === 'user') element.profile = (await this.getParticipantProfile(element.user_id))?.profile
       }
 
-      if (typeof text === 'string' && text?.match(MENTION_REGEX)) {
-        for (const mentionedUser of text?.match(MENTION_REGEX)) {
+      if (typeof text === 'string') {
+        const matches = text?.match(MENTION_REGEX)
+        for (const mentionedUser of matches || []) {
           const mentionedUserId = mentionedUser.replace('<@', '').replace('>', '')
           const foundUserProfile = (await this.getParticipantProfile(mentionedUserId))?.profile || { display_name: mentionedUser }
           message.text = message.text.replace(mentionedUser, foundUserProfile?.display_name || foundUserProfile?.real_name)
         }
       }
     }
+    await bluebird.map(messages, loadMessage)
 
     const aux = [...(messages as any[]), ...replies]
     response.messages = [...new Map(aux.map(item => [item.ts, item])).values()]
