@@ -1,0 +1,42 @@
+{
+  "type": "message",
+  "subtype": "bot_message",
+  "text": "This content can't be displayed.",
+  "ts": "1619482347.000100",
+  "username": "Typeform",
+  "icons": {
+    "image_48": "https://s3-us-west-2.amazonaws.com/slack-files2/bot_icons/2021-04-26/1996789254454_48.png"
+  },
+  "bot_id": "B0203NSQPBM",
+  "blocks": [
+    {
+      "type": "section",
+      "block_id": "ZQH",
+      "text": {
+        "type": "mrkdwn",
+        "text": ":wave: Hello, it’s Typeform. Whenever someone completes the *hey* typeform, I’ll share their answers with you here.",
+        "verbatim": false
+      }
+    },
+    {
+      "type": "context",
+      "block_id": "3HYIi",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "Thanks for hooking us up.",
+          "verbatim": false
+        }
+      ]
+    }
+  ],
+  "reactions": [
+    {
+      "name": "scream",
+      "users": [
+        "U01V98HKWA2"
+      ],
+      "count": 1
+    }
+  ]
+}

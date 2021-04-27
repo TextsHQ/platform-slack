@@ -1,0 +1,49 @@
+{
+  "bot_id": "B01E3KYTD6Y",
+  "type": "message",
+  "text": "",
+  "user": "U01DXM9GTEX",
+  "ts": "1617522961.000100",
+  "team": "T01DXLS8LU8",
+  "bot_profile": {
+    "id": "B01E3KYTD6Y",
+    "deleted": false,
+    "name": "Zoom",
+    "updated": 1604417628,
+    "app_id": "A5GE9BMQC",
+    "icons": {
+      "image_36": "https://slack-files2.s3-us-west-2.amazonaws.com/avatars/2017-09-21/245295805989_06e77af1bfb8e3c81d4d_36.png",
+      "image_48": "https://slack-files2.s3-us-west-2.amazonaws.com/avatars/2017-09-21/245295805989_06e77af1bfb8e3c81d4d_48.png",
+      "image_72": "https://slack-files2.s3-us-west-2.amazonaws.com/avatars/2017-09-21/245295805989_06e77af1bfb8e3c81d4d_72.png"
+    },
+    "team_id": "T01DXLS8LU8"
+  },
+  "attachments": [
+    {
+      "text": "`/zoom` Start a meeting\n `/zoom meeting [topic]` Start a meeting with topic\n `/zoom join [meeting id/personal link name]` Join a meeting using meeting ID/personal link name\n `/zoom join me` Join a meeting using your personal meeting ID\n `/zoom call [@contact/phone number]` Start a phone call with a contact or a phone number\n `/zoom config` Configure your settings for Zoom Meetings in Slack\n `/zoom logout` Logout from Zoom on all your Slack channels and direct messages",
+      "pretext": ":wave: Hi <@U01CT8ZL38F>, Welcome to the Zoom app on Slack. You can quickly start or join Zoom meetings here. These are the available commands:",
+      "id": 1,
+      "color": "2d8cff",
+      "mrkdwn_in": [
+        "text"
+      ],
+      "fallback": "`/zoom` Start a meeting\n `/zoom meeting [topic]` Start a meeting with topic\n `/zoom join [meeting id/personal link name]` Join a meeting using meeting ID/personal link name\n `/zoom join me` Join a meeting using your personal meeting ID\n `/zoom call [@contact/phone number]` Start a phone call with a contact or a phone number\n `/zoom config` Configure your settings for Zoom Meetings in Slack\n `/zoom logout` Logout from Zoom on all your Slack channels and direct messages"
+    },
+    {
+      "text": "If you haven't authorized yet, please click the button below to continue.",
+      "id": 2,
+      "color": "2d8cff",
+      "actions": [
+        {
+          "id": "1",
+          "text": "Authorize Zoom",
+          "type": "button",
+          "style": "primary",
+          "url": "https://zoom.us/oauth/authorize?client_id=lL24fJ3rQ3mEcAQPBeya1A&response_type=code&state=VkVSU046MDAwEGUjidB5SzaH33IdfKL5OhEXseq1Fmo8V09fKmHTN77tzqzLbBhOnDbqmX6x8ZwVqHTWH1IK9a6sLvSv&redirect_uri=https%3A%2F%2Fapplications.zoom.us%2Finstallation%2Fslack",
+          "name": "zoom-oauth"
+        }
+      ],
+      "fallback": "If you haven't authorized yet, please click the button below to continue."
+    }
+  ]
+}
