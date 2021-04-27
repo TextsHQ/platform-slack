@@ -1,5 +1,6 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent } from '@textshq/platform-sdk'
+import path from 'path'
+import fs from 'fs'
+import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
 
 import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
@@ -19,7 +20,7 @@ export default class Slack implements PlatformAPI {
 
   private threadTypes: ThreadType[]
 
-  init = async (serialized: { cookies: any; clientToken: string }) => {
+  init = async (serialized: { cookies: any; clientToken: string }, { dataDirPath }: AccountInfo) => {
     const { cookies, clientToken } = serialized || {}
     if (!cookies && !clientToken) return
 
@@ -28,8 +29,9 @@ export default class Slack implements PlatformAPI {
     await this.afterAuth()
     // eslint-disable-next-line
     if (!this.currentUser?.ok) throw new ReAuthError()
+    const onlyDMs = fs.existsSync(path.join(dataDirPath, '../slack-only-dms'))
     // TODO: Connect it with the platform-sdk user preference
-    this.threadTypes = ['channel', 'dm']
+    this.threadTypes = onlyDMs ? ['dm'] : ['channel', 'dm']
   }
 
   afterAuth = async () => {
