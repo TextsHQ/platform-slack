@@ -36,8 +36,8 @@ export default class SlackAPI {
     const workspacesBody = workspacesBodyBuffer.toString('utf-8')
     const filteredSlackWorkspaces = [NOT_USED_SLACK_URL, 'dev.slack.com']
     const alreadyConnectedUrls = workspacesBody?.match(/([a-zA-Z0-9-]+\.slack\.com)/g).filter((url: string) => !filteredSlackWorkspaces.includes(url)) || []
-    // FIXME: this needs to be fixed, we need to get the one the user has already selected
-    // on the browser login
+    // Since the browser is initialized with fresh and new cookies and cache, the wanted workspace would be
+    // in the first place
     const firstWorkspace = alreadyConnectedUrls[0] || ''
     const { body: emojisBodyBuffer } = await texts.fetch(`https://${firstWorkspace}/customize/emoji`, { cookieJar: this.cookieJar })
     const emojisBody = emojisBodyBuffer.toString('utf-8')
