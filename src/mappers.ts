@@ -179,8 +179,10 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
   const text = mapNativeEmojis(slackMessage?.text)
     || mapNativeEmojis(slackMessage?.attachments?.map(attachment => attachment.title).join(' '))
     || ''
-
-  const blocks = mapBlocks(slackMessage?.blocks, text, emojis)
+  // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
+  // we avoid to concatenate that to the real message (divided in sections).
+  const blocksText = slackMessage?.subtype !== 'bot_message' ? text : ''
+  const blocks = mapBlocks(slackMessage?.blocks, blocksText, emojis)
 
   const attachments = [
     ...(mapAttachments(slackMessage?.files) || []),
@@ -190,7 +192,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
   return {
     _original: JSON.stringify(slackMessage),
     id: slackMessage?.ts,
-    text: blocks.mappedText || text,
+    text: mapNativeEmojis(blocks.mappedText) || text,
     timestamp: date,
     isDeleted: false,
     attachments,
