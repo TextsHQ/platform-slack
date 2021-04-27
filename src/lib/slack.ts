@@ -93,13 +93,14 @@ export default class SlackAPI {
 
   getThreads = async (cursor = undefined, threadTypes: ThreadType[]) => {
     const currentUser = await this.getCurrentUser()
+    const types = `${threadTypes.includes('dm') ? 'im' : ''}${threadTypes.length > 1 ? ',' : ''}${threadTypes.includes('channel') ? 'public_channel' : ''}`
 
     const response = await this.webClient.conversations.list({
       // This is done this way because if you're a guest on a workspace you won't
       // be able to get public_channels and will raise an error. This should be
       // refactored in a future version and maybe get the scopes available for the user.
       // @ts-expect-error
-      types: currentUser?.profile?.guest_invited_by || !threadTypes.includes('channel') ? 'im' : 'im,public_channel',
+      types: currentUser?.profile?.guest_invited_by ? 'im' : types,
       limit: 10,
       cursor: cursor || undefined,
       exclude_archived: true,
