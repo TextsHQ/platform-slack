@@ -208,10 +208,10 @@ export const mapParticipant = ({ profile }: any): Participant => ({
   imgURL: profile.image_192 || undefined,
 })
 
-export const mapCurrentUser = ({ profile }: any): CurrentUser => ({
+export const mapCurrentUser = ({ profile, team }: any): CurrentUser => ({
   id: profile.id,
   fullName: profile.real_name,
-  displayText: profile.display_name,
+  displayText: `${team?.name + ' - '}${profile.display_name}`,
   imgURL: profile.image_192,
 })
 

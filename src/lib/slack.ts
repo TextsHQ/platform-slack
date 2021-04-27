@@ -49,9 +49,11 @@ export default class SlackAPI {
   getCurrentUser = async () => {
     const auth: any = await this.webClient.auth.test()
     const user: any = await this.webClient.users.profile.get()
+    const team = await this.webClient.team.info()
+
     user.profile.id = auth.user_id
 
-    return user
+    return { ...user, ...(team || {}) }
   }
 
   getThreads = async (cursor = undefined) => {
