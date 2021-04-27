@@ -96,23 +96,23 @@ export default class Slack implements PlatformAPI {
     return [mapMessage(message, currentUser.id, this.api.emojis)]
   }
 
-  createThread = async (userIDs: string[]) => this.api.createThread(userIDs)
+  createThread = (userIDs: string[]) => this.api.createThread(userIDs)
 
   sendActivityIndicator = async (type: ActivityType, threadID: string) => {
     if (type === ActivityType.TYPING) await this.realTimeApi.rtm.sendTyping(threadID)
   }
 
-  sendReadReceipt = async (threadID: string, messageID: string) => this.api.sendReadReceipt(threadID, messageID)
+  sendReadReceipt = (threadID: string, messageID: string) => this.api.sendReadReceipt(threadID, messageID)
 
   deleteMessage = async (threadID: string, messageID: string) => {
     const res = await this.api.deleteMessage(threadID, messageID)
     return res.ok
   }
 
-  getAsset = async (type: string, uri: string) => {
+  getAsset = (type: string, uri: string) => {
     if (type !== 'proxy') return
     const url = Buffer.from(uri, 'hex').toString()
-    return this.api.fetchStream({ url })
+    return this.api.fetchStream(url)
   }
 
   addReaction = this.api.addReaction
