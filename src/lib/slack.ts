@@ -73,6 +73,8 @@ export default class SlackAPI {
     const participantPromises = (participantsIds?.members as string[]).map(userId => this.getParticipantProfile(userId))
 
     const { channel: channelInfo } = threadInfo as any || {}
+    if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo?.latest?.text)
+
     channel.unread = channelInfo?.unread_count || undefined
     channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
     channel.participants = await Promise.all(participantPromises).catch(() => null) || []
@@ -84,7 +86,9 @@ export default class SlackAPI {
       this.getParticipantProfile(userId),
       this.webClient.conversations.info({ channel: id }),
     ])
+
     const { channel } = threadInfo as any || {}
+    if (channel?.latest?.text) channel.latest.text = await this.loadMentions(channel?.latest?.text)
 
     thread.unread = channel?.unread_count || undefined
     thread.messages = [channel?.latest].filter(x => x?.ts) || []
@@ -125,6 +129,21 @@ export default class SlackAPI {
     }
   }
 
+  loadMentions = async (text: string): Promise<string> => {
+    const matches = text?.match(MENTION_REGEX)
+    if (!matches) return text
+
+    let finalText = text
+
+    for (const mentionedUser of matches || []) {
+      const mentionedUserId = mentionedUser.replace('<@', '').replace('>', '')
+      const foundUserProfile = (await this.getParticipantProfile(mentionedUserId))?.profile || { display_name: mentionedUser }
+      finalText = finalText.replace(mentionedUser, foundUserProfile?.display_name || foundUserProfile?.real_name)
+    }
+
+    return finalText
+  }
+
   getMessages = async (threadId: string, limit: number = 20, latest = undefined) => {
     const response = await this.webClient.conversations.history({
       channel: threadId,
@@ -145,15 +164,9 @@ export default class SlackAPI {
         if (element.type === 'user') element.profile = (await this.getParticipantProfile(element.user_id))?.profile
       }
 
-      if (typeof text === 'string') {
-        const matches = text?.match(MENTION_REGEX)
-        for (const mentionedUser of matches || []) {
-          const mentionedUserId = mentionedUser.replace('<@', '').replace('>', '')
-          const foundUserProfile = (await this.getParticipantProfile(mentionedUserId))?.profile || { display_name: mentionedUser }
-          message.text = message.text.replace(mentionedUser, foundUserProfile?.display_name || foundUserProfile?.real_name)
-        }
-      }
+      if (typeof text === 'string') message.text = await this.loadMentions(text)
     }
+
     await bluebird.map(messages, loadMessage)
 
     const aux = [...(messages as any[]), ...replies]
