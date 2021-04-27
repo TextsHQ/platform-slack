@@ -7,6 +7,7 @@ import type { CookieJar } from 'tough-cookie'
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { NOT_USED_SLACK_URL } from './constants'
 import { EMOTES } from '../emotes'
+import { MENTION_REGEX } from '../constants'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -120,13 +121,21 @@ export default class SlackAPI {
     let replies = []
 
     for (const message of messages as any[]) {
-      const { blocks, ts, reply_count } = message
+      const { blocks, ts, reply_count, text } = message
       const richElements = extractRichElements(blocks)
 
       if (reply_count) replies = [...replies, ...(await this.messageReplies(threadId, ts) || [])]
 
       for (const element of richElements) {
         if (element.type === 'user') element.profile = (await this.getParticipantProfile(element.user_id))?.profile
+      }
+
+      if (typeof text === 'string' && text?.match(MENTION_REGEX)) {
+        for (const mentionedUser of text?.match(MENTION_REGEX)) {
+          const mentionedUserId = mentionedUser.replace('<@', '').replace('>', '')
+          const foundUserProfile = (await this.getParticipantProfile(mentionedUserId))?.profile || { display_name: mentionedUser }
+          message.text = message.text.replace(mentionedUser, foundUserProfile?.display_name || foundUserProfile?.real_name)
+        }
       }
     }
 

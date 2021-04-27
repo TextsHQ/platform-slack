@@ -45,7 +45,9 @@ const mapAttachmentBlock = (slackBlock: any) => {
 }
 
 export const extractRichElements = (slackBlocks: any): any[] => {
-  const richTexts = slackBlocks?.filter(({ type }) => type === 'rich_text') || []
+  const validTypes = ['rich_text', 'context']
+  const richTexts = slackBlocks?.filter(({ type }) => validTypes.includes(type)) || []
+  const sectionTexts = slackBlocks?.filter(({ type, text }) => type === 'section' && text) || []
   // Schema:
   // "blocks": [
   //   {
@@ -66,8 +68,9 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   // ],
   const extractElements = ({ elements }) => elements || []
   const richElements = richTexts?.flatMap(extractElements).flatMap(extractElements).filter(x => Boolean(x)) || []
+  const sectionElements = sectionTexts?.map(({ text }) => text) || []
 
-  return richElements
+  return [...richElements, ...sectionElements]
 }
 
 const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
@@ -85,6 +88,8 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
       const from = mappedText.indexOf(blockText)
       entities.push({ from, to: from + blockText.length, ...style })
     }
+
+    if (type === 'mrkdwn' && blockText) mappedText = `${mappedText}\n${blockText}`
 
     if (type === 'link' && blockUrl) {
       mappedText = removeCharactersAfterAndBefore(mappedText, blockUrl)
@@ -211,7 +216,7 @@ export const mapParticipant = ({ profile }: any): Participant => ({
 export const mapCurrentUser = ({ profile, team }: any): CurrentUser => ({
   id: profile.id,
   fullName: profile.real_name,
-  displayText: `${team?.name + ' - '}${profile.display_name}`,
+  displayText: `${team?.name + ' - '}${profile.display_name || profile.real_name}`,
   imgURL: profile.image_192,
 })
 
