@@ -92,9 +92,14 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
     if (type === 'mrkdwn' && blockText) mappedText = `${mappedText}\n${blockText}`
 
     if (type === 'link' && blockUrl) {
-      mappedText = removeCharactersAfterAndBefore(mappedText, blockUrl)
-      const from = mappedText.indexOf(blockUrl)
-      entities.push({ from, to: from + blockUrl.length, link: blockUrl })
+      const linkAndText = blockText ? `${blockUrl}|${blockText}` : blockUrl
+      mappedText = removeCharactersAfterAndBefore(mappedText, linkAndText)
+
+      const linkText = blockText || blockUrl
+      if (blockText) mappedText = mappedText.replace(`${blockUrl}|`, '')
+
+      const from = mappedText.indexOf(linkText)
+      entities.push({ from, to: from + linkText.length, link: blockUrl })
     }
 
     if (type === 'user' && blockUser) {
