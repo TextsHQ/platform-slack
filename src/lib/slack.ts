@@ -95,9 +95,13 @@ export default class SlackAPI {
     thread.participants = [user, currentUser] || []
   }
 
-  getThreads = async (cursor = undefined, threadTypes: ThreadType[]) => {
+  getThreads = async (cursor = undefined, threadTypes: ThreadType[] = []) => {
     const currentUser = await this.getCurrentUser()
-    const types = `${threadTypes.includes('dm') ? 'im' : ''}${threadTypes.length > 1 ? ',' : ''}${threadTypes.includes('channel') ? 'public_channel' : ''}`
+    const types = threadTypes.map(t => {
+      if (t === 'dm') return 'im'
+      if (t === 'channel') return 'public_channel'
+      return undefined
+    }).join(',')
 
     const response = await this.webClient.conversations.list({
       // This is done this way because if you're a guest on a workspace you won't
