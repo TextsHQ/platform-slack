@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageReaction, Participant, TextEntity, Thread } from '@textshq/platform-sdk'
-import { EMOTE_REGEX } from './constants'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
+import { EMOTE_REGEX, LINK_REGEX } from './constants'
 import { EMOTES } from './emotes'
 import { removeCharactersAfterAndBefore } from './util'
 
@@ -48,6 +48,7 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   const validTypes = ['rich_text', 'context']
   const richTexts = slackBlocks?.filter(({ type }) => validTypes.includes(type)) || []
   const sectionTexts = slackBlocks?.filter(({ type, text }) => type === 'section' && text) || []
+  const calls = slackBlocks?.filter(({ type }) => type === 'call') || []
   // Schema:
   // "blocks": [
   //   {
@@ -70,7 +71,7 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   const richElements = richTexts?.flatMap(extractElements).flatMap(extractElements).filter(x => Boolean(x)) || []
   const sectionElements = sectionTexts?.map(({ text }) => text) || []
 
-  return [...richElements, ...sectionElements]
+  return [...richElements, ...sectionElements, ...calls]
 }
 
 const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
@@ -79,6 +80,7 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
 
   const entities: TextEntity[] = []
   let mappedText = text
+  const buttons: MessageButton[] = []
 
   for (const element of richElements) {
     const { type = '', style, text: blockText, url: blockUrl, user_id: blockUser, profile: blockProfile, name: blockEmojiName } = element
@@ -127,12 +129,18 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
         },
       })
     }
+    // This is added for some apps like "Zoom" or "Meet".
+    if (type === 'call' && element?.call?.v1) {
+      const { join_url } = element?.call?.v1
+      buttons.push({ linkURL: join_url, label: 'Join' })
+    }
   }
 
   return {
     attachments,
     textAttributes: { entities },
     mappedText,
+    buttons,
   }
 }
 
@@ -159,6 +167,48 @@ const mapNativeEmojis = (text: string): string => {
   }
 
   return mappedText
+}
+
+const mapTextWithLinkEntities = (slackText: string): TextAttributes => {
+  const found = slackText?.match(LINK_REGEX)
+  if (!found) return {}
+
+  const entities: TextEntity[] = []
+  let finalText = slackText
+
+  for (const linkFound of found) {
+    const linkAndText = linkFound.slice(1, linkFound.length - 1)
+    finalText = removeCharactersAfterAndBefore(finalText, linkAndText)
+
+    const text = linkAndText.includes('|') ? linkAndText.split('|').pop() : ''
+    const link = linkAndText.includes('|') ? linkAndText.split('|')[0] : linkAndText
+
+    if (text) finalText = finalText.replace(`${link}|`, '')
+
+    const from = text ? finalText.indexOf(text) : finalText.indexOf(link)
+    const to = from + (text ? text.length : link.length)
+    entities.push({ from, to, link })
+  }
+
+  return { entities }
+}
+
+const replaceLinks = (slackText: string): string => {
+  const found = slackText?.match(LINK_REGEX)
+  if (!found) return slackText
+  let finalText = slackText
+
+  for (const linkFound of found) {
+    const linkAndText = linkFound.slice(1, linkFound.length - 1)
+    finalText = removeCharactersAfterAndBefore(finalText, linkAndText)
+
+    const text = linkAndText.includes('|') ? linkAndText.split('|').pop() : ''
+    const link = linkAndText.includes('|') ? linkAndText.split('|')[0] : linkAndText
+
+    if (text) finalText = finalText.replace(`${link}|`, '')
+  }
+
+  return finalText
 }
 
 const mapReactions = (
@@ -194,10 +244,16 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
     ...(blocks.attachments || []),
   ]
 
+  const mappedText = replaceLinks(mapNativeEmojis(blocks.mappedText) || text)
+  const textAttributes: TextAttributes = { entities: [
+    ...(blocks.textAttributes.entities || []),
+    ...(mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text).entities || []),
+  ] }
+
   return {
     _original: JSON.stringify(slackMessage),
     id: slackMessage?.ts,
-    text: mapNativeEmojis(blocks.mappedText) || text,
+    text: mappedText,
     timestamp: date,
     isDeleted: false,
     attachments,
@@ -206,7 +262,8 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
     senderID: slackMessage?.thread_ts ? '$thread' : senderID,
     isSender: currentUserId === senderID,
     seen: {},
-    textAttributes: blocks.textAttributes || undefined,
+    textAttributes: textAttributes || undefined,
+    buttons: blocks.buttons || undefined,
     isAction: Boolean(mapAction(slackMessage)),
     action: mapAction(slackMessage) || undefined,
     linkedMessageID: !slackMessage?.reply_count ? (slackMessage?.thread_ts || undefined) : undefined,

@@ -183,6 +183,7 @@ export default class SlackAPI {
   getParticipantProfile = async (userId: string) => {
     const user: any = await this.webClient.users.profile.get({ user: userId })
     user.profile.id = userId
+
     return user
   }
 
