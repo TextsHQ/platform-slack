@@ -74,7 +74,8 @@ export default class SlackAPI {
 
     const { channel: channelInfo } = threadInfo as any || {}
     if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo?.latest?.text)
-
+    // As we don't have the latest activity, we can use different fields to get the thread timestamp
+    channel.timestamp = new Date(Number(channelInfo?.last_read) * 1000) || new Date(channelInfo?.created) || undefined
     channel.unread = channelInfo?.unread_count || undefined
     channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
     channel.participants = await Promise.all(participantPromises).catch(() => null) || []
@@ -90,6 +91,7 @@ export default class SlackAPI {
     const { channel } = threadInfo as any || {}
     if (channel?.latest?.text) channel.latest.text = await this.loadMentions(channel?.latest?.text)
 
+    thread.timestamp = new Date(Number(channel?.last_read) * 1000) || new Date(channel?.created) || undefined
     thread.unread = channel?.unread_count || undefined
     thread.messages = [channel?.latest].filter(x => x?.ts) || []
     thread.participants = [user, currentUser] || []

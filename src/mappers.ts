@@ -245,7 +245,7 @@ const mapThread = (slackChannel: any, currentUserId: string): Thread => {
     title: slackChannel?.name || participants[0].username || slackChannel?.user,
     // FIXME: Slack doesn't have the last activity date. So if the thread doesn't have the first message,
     // it'll set 1970 as the timestamp.
-    timestamp: messages[0]?.timestamp || new Date(0),
+    timestamp: messages[0]?.timestamp || slackChannel?.timestamp || new Date(0),
     isUnread: slackChannel?.unread || false,
     isReadOnly: slackChannel?.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
