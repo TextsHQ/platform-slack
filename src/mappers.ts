@@ -105,10 +105,12 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
     }
 
     if (type === 'user' && blockUser) {
-      const username = blockProfile?.display_name || blockUser
+      const username = blockProfile?.display_name || blockProfile?.real_name || blockUser
 
-      mappedText = mappedText.replace(blockUser, username)
-      mappedText = removeCharactersAfterAndBefore(mappedText, `@${username}`)
+      if (!mappedText.includes(username)) mappedText = mappedText.replace(blockUser, username)
+      if (mappedText.includes('<@')) mappedText = removeCharactersAfterAndBefore(mappedText, `@${username}`)
+      else mappedText = mappedText.replace(username, `@${username}`)
+
       const from = mappedText.indexOf(username)
       entities.push({ from, to: from + username.length, mentionedUser: { id: blockUser, username } })
     }
@@ -246,7 +248,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
 
   const mappedText = replaceLinks(mapNativeEmojis(blocks.mappedText) || text)
   const textAttributes: TextAttributes = { entities: [
-    ...(blocks.textAttributes.entities || []),
+    ...(blocks.textAttributes.entities || []),
     ...(mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text).entities || []),
   ] }
 
