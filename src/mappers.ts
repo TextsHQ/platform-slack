@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
-import { EMOTE_REGEX, LINK_REGEX } from './constants'
+import { EMOTE_REGEX, LINK_REGEX, SLACK_THREAD_REGEX } from './constants'
 import { EMOTES } from './emotes'
 import { removeCharactersAfterAndBefore } from './util'
 
@@ -115,6 +115,22 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
       entities.push({ from, to: from + username.length, mentionedUser: { id: blockUser, username } })
     }
 
+    if (type === 'channel' && element?.channel_id) {
+      const initialIndex = mappedText.indexOf(`<#${element?.channel_id}`)
+      const finalIndex = mappedText.indexOf('>', initialIndex)
+      const channelLinkAndName = mappedText.slice(initialIndex + 1, finalIndex)
+      const channelName = channelLinkAndName.split('|').pop()
+
+      mappedText = removeCharactersAfterAndBefore(mappedText, channelLinkAndName)
+      mappedText = mappedText.replace(`#${element?.channel_id}`, '')
+      mappedText = mappedText.replace(`|${channelName}`, `#${channelName}`)
+
+      const from = mappedText.indexOf(channelName) - 1
+      const to = from + channelName.length
+
+      entities.push({ from, to, link: `texts://select-thread/slack/${element?.channel_id}` })
+    }
+
     if (type === 'emoji' && blockEmojiName && mappedText.includes(blockEmojiName)) {
       mappedText = removeCharactersAfterAndBefore(mappedText, blockEmojiName)
       const from = mappedText.indexOf(blockEmojiName)
@@ -196,8 +212,8 @@ const mapTextWithLinkEntities = (slackText: string): TextAttributes => {
 }
 
 const replaceLinks = (slackText: string): string => {
-  const found = slackText?.match(LINK_REGEX)
-  if (!found) return slackText
+  const found = [...(slackText?.match(LINK_REGEX) || []), ...(slackText?.match(SLACK_THREAD_REGEX) || [])]
+  if (!found?.length) return slackText
   let finalText = slackText
 
   for (const linkFound of found) {
@@ -207,7 +223,7 @@ const replaceLinks = (slackText: string): string => {
     const text = linkAndText.includes('|') ? linkAndText.split('|').pop() : ''
     const link = linkAndText.includes('|') ? linkAndText.split('|')[0] : linkAndText
 
-    if (text) finalText = finalText.replace(`${link}|`, '')
+    if (text) finalText = finalText.replace(`${link}|`, link.includes('#') ? '#' : '')
   }
 
   return finalText
