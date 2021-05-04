@@ -64,6 +64,7 @@ export default class Slack implements PlatformAPI {
   subscribeToEvents = (onEvent: OnServerEventCallback): void => {
     this.realTimeApi = new SlackRealTime(this.api, onEvent)
     this.realTimeApi.subscribeToEvents()
+    this.api.setOnEvent(onEvent)
   }
 
   searchUsers = async (typed: string) => this.api.searchUsers(typed)
