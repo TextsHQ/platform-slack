@@ -1,7 +1,7 @@
 import { WebClient } from '@slack/web-api'
 import bluebird from 'bluebird'
 import { promises as fs } from 'fs'
-import { MessageContent, Thread, texts, FetchOptions } from '@textshq/platform-sdk'
+import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType } from '@textshq/platform-sdk'
 import type { CookieJar } from 'tough-cookie'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
@@ -13,11 +13,15 @@ import type { ThreadType } from '../api'
 export default class SlackAPI {
   cookieJar: CookieJar
 
+  onEvent: OnServerEventCallback
+
   userToken: string
 
   webClient: WebClient
 
   emojis: any[]
+
+  workspaceUsers: Record<string, unknown> = {}
 
   setLoginState = async (cookieJar: CookieJar, clientToken: string = '') => {
     if (!cookieJar && !clientToken) throw TypeError()
@@ -29,6 +33,10 @@ export default class SlackAPI {
 
     this.userToken = token
     this.webClient = client
+  }
+
+  setOnEvent = (onEvent: OnServerEventCallback) => {
+    this.onEvent = onEvent
   }
 
   getClientToken = async () => {
@@ -64,13 +72,7 @@ export default class SlackAPI {
 
   loadPublicChannel = async (channel: any) => {
     const { id } = channel
-    const [threadInfo, _participantsIds] = await Promise.all([
-      this.webClient.conversations.info({ channel: id }),
-      // TODO: Add pagination, this method by default limits the number of participants to 100
-      this.webClient.conversations.members({ channel: id }),
-    ])
-    const participantsIds = _participantsIds || { members: [] }
-    const participantPromises = (participantsIds?.members as string[]).map(userId => this.getParticipantProfile(userId))
+    const threadInfo = await this.webClient.conversations.info({ channel: id })
 
     const { channel: channelInfo } = threadInfo as any || {}
     if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo?.latest?.text)
@@ -78,7 +80,7 @@ export default class SlackAPI {
     channel.timestamp = new Date(Number(channelInfo?.last_read) * 1000) || new Date(channelInfo?.created) || undefined
     channel.unread = channelInfo?.unread_count || undefined
     channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
-    channel.participants = await Promise.all(participantPromises).catch(() => null) || []
+    channel.participants = []
   }
 
   loadPrivateMessage = async (thread: any, currentUser: any) => {
@@ -161,7 +163,7 @@ export default class SlackAPI {
     let replies = []
 
     const loadMessage = async (message: any) => {
-      const { blocks, ts, reply_count, text } = message
+      const { blocks, ts, reply_count, text, user: messageUser } = message
       const richElements = extractRichElements(blocks)
 
       if (reply_count) replies = [...replies, ...(await this.messageReplies(threadId, ts) || [])]
@@ -171,6 +173,17 @@ export default class SlackAPI {
       }
 
       if (typeof text === 'string') message.text = await this.loadMentions(text)
+
+      const user = await this.getParticipantProfile(messageUser)
+      if (!user?.profile?.id) return
+
+      this.onEvent([{
+        type: ServerEventType.STATE_SYNC,
+        mutationType: 'upsert',
+        objectName: 'participant',
+        objectIDs: { threadID: threadId },
+        entries: [mapParticipant(user)],
+      }])
     }
 
     await bluebird.map(messages, loadMessage)
@@ -181,9 +194,12 @@ export default class SlackAPI {
   }
 
   getParticipantProfile = async (userId: string) => {
+    if (this.workspaceUsers[userId]) return this.workspaceUsers[userId]
+
     const user: any = await this.webClient.users.profile.get({ user: userId })
     user.profile.id = userId
 
+    this.workspaceUsers[userId] = user
     return user
   }
 
