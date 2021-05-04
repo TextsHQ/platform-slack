@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { MessageDeletionMode, Attribute, PlatformInfo } from '@textshq/platform-sdk'
 
 const icon = `

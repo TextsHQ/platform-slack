@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { OnServerEventCallback, ServerEventType } from '@textshq/platform-sdk'
 import { RTMClient } from '@slack/rtm-api'
 
