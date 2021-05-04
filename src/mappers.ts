@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
 import { EMOTE_REGEX, LINK_REGEX, SLACK_THREAD_REGEX } from './constants'
 import { EMOTES } from './emotes'
@@ -126,7 +125,7 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
       mappedText = mappedText.replace(`|${channelName}`, `#${channelName}`)
 
       const from = mappedText.indexOf(channelName) - 1
-      const to = from + channelName.length
+      const to = from + channelName.length + 1
 
       entities.push({ from, to, link: `texts://select-thread/slack/${element?.channel_id}` })
     }
@@ -316,7 +315,7 @@ const mapThread = (slackChannel: any, currentUserId: string): Thread => {
   return {
     _original: JSON.stringify(slackChannel),
     id: slackChannel.id,
-    type: participants?.length > 2 ? 'group' : 'single',
+    type: slackChannel.is_group || slackChannel.is_channel ? 'group' : 'single',
     title: slackChannel?.name || participants[0].username || slackChannel?.user,
     // FIXME: Slack doesn't have the last activity date. So if the thread doesn't have the first message,
     // it'll set 1970 as the timestamp.
