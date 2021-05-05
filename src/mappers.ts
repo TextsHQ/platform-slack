@@ -275,6 +275,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
     isDeleted: false,
     attachments,
     links: [],
+    editedTimestamp: slackMessage.edited?.ts ? new Date(Number(slackMessage.edited?.ts) * 1000) : undefined,
     reactions: mapReactions(slackMessage.reactions, slackMessage?.ts, emojis) || [],
     senderID: slackMessage?.thread_ts ? '$thread' : senderID,
     isSender: currentUserId === senderID,
