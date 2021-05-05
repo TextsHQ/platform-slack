@@ -14,8 +14,6 @@ export default class Slack implements PlatformAPI {
 
   private currentUser = null
 
-  private eventTimeout?: NodeJS.Timeout
-
   private realTimeApi: null | SlackRealTime = null
 
   private threadTypes: ThreadType[]
@@ -55,9 +53,7 @@ export default class Slack implements PlatformAPI {
     clientToken: this.api.userToken,
   })
 
-  dispose = () => {
-    if (this.eventTimeout) clearInterval(this.eventTimeout)
-  }
+  dispose = () => this.realTimeApi.dispose()
 
   getCurrentUser = () => mapCurrentUser(this.currentUser)
 
