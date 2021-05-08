@@ -79,7 +79,7 @@ export default class Slack implements PlatformAPI {
 
     return {
       items,
-      hasMore: items.length > 0,
+      hasMore: items.length > 0 && Boolean(response_metadata?.next_cursor),
       oldestCursor: response_metadata?.next_cursor,
     }
   }
@@ -87,7 +87,7 @@ export default class Slack implements PlatformAPI {
   getMessages = async (threadID: string, pagination: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Message>> => {
     const { cursor } = pagination || {}
 
-    const { messages } = await this.api.getMessages(threadID, 20, cursor)
+    const { messages, response_metadata } = await this.api.getMessages(threadID, 20, cursor)
     const currentUser = mapCurrentUser(this.currentUser)
     const items = (messages as any[])
       .map(message => mapMessage(message, currentUser.id, this.api.emojis))
@@ -95,7 +95,7 @@ export default class Slack implements PlatformAPI {
 
     return {
       items,
-      hasMore: items.length > 0,
+      hasMore: items.length > 0 && Boolean(response_metadata?.next_cursor),
     }
   }
 
