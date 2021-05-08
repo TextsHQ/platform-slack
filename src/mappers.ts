@@ -110,8 +110,8 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
       if (mappedText.includes('<@')) mappedText = removeCharactersAfterAndBefore(mappedText, `@${username}`)
       else mappedText = mappedText.replace(username, `@${username}`)
 
-      const from = mappedText.indexOf(username)
-      entities.push({ from, to: from + username.length, mentionedUser: { id: blockUser, username } })
+      const from = mappedText.indexOf(`@${username}`)
+      entities.push({ from, to: from + username.length + 1, mentionedUser: { id: blockUser, username } })
     }
 
     if (type === 'channel' && element?.channel_id) {
