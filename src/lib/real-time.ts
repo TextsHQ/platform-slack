@@ -47,4 +47,8 @@ export default class SlackRealTime {
 
     await this.rtm.start()
   }
+
+  dispose() {
+    return this.rtm.disconnect()
+  }
 }
