@@ -174,8 +174,9 @@ export default class SlackAPI {
 
       if (typeof text === 'string') message.text = await this.loadMentions(text)
 
-      const user = await this.getParticipantProfile(messageUser)
+      const user = message?.bot_id ? await this.getParticipantBot(message.bot_id) : await this.getParticipantProfile(messageUser)
       if (!user?.profile?.id) return
+      if (message.bot_id) message.user = user.profile.id
 
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
@@ -201,6 +202,20 @@ export default class SlackAPI {
 
     this.workspaceUsers[userId] = user
     return user
+  }
+
+  getParticipantBot = async (botId: string) => {
+    if (this.workspaceUsers[botId]) return this.workspaceUsers[botId]
+
+    const bot: any = await this.webClient.bots.info({ bot: botId })
+
+    const keys = Object.keys(this.workspaceUsers)
+    const foundKey = keys.find(key => (this.workspaceUsers[key] as any)?.profile?.api_app_id === bot.bot.app_id)
+    const user: any = this.workspaceUsers[foundKey] || {}
+
+    const participant = { profile: { ...bot.bot, ...(user?.profile || {}), id: bot.bot.app_id } }
+    this.workspaceUsers[botId] = participant
+    return participant
   }
 
   searchUsers = async (typed: string) => {
