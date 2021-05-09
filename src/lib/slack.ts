@@ -174,7 +174,9 @@ export default class SlackAPI {
 
       if (typeof text === 'string') message.text = await this.loadMentions(text)
 
-      const user = message?.bot_id ? await this.getParticipantBot(message.bot_id) : await this.getParticipantProfile(messageUser)
+      const sharedParticipant = message?.user_profile ? { profile: { ...message.user_profile, id: `${message.user_profile?.team}-${message.user_profile?.avatar_hash}` } } : undefined
+      const user = sharedParticipant || (message?.bot_id ? await this.getParticipantBot(message.bot_id) : await this.getParticipantProfile(messageUser))
+
       if (!user?.profile?.id) return
       if (message.bot_id) message.user = user.profile.id
 
@@ -196,10 +198,11 @@ export default class SlackAPI {
 
   getParticipantProfile = async (userId: string) => {
     if (this.workspaceUsers[userId]) return this.workspaceUsers[userId]
+    // TODO: Handle error when user is from a different team
+    const user: any = await this.webClient.users.profile.get({ user: userId }).catch(_ => ({}))
+    if (!user.profile) return {}
 
-    const user: any = await this.webClient.users.profile.get({ user: userId })
     user.profile.id = userId
-
     this.workspaceUsers[userId] = user
     return user
   }
