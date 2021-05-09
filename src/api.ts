@@ -24,18 +24,19 @@ export default class Slack implements PlatformAPI {
 
     const cookieJar = CookieJar.fromJSON(cookies) || null
     await this.api.setLoginState(cookieJar, clientToken)
-    await this.afterAuth()
+    await this.afterAuth(dataDirPath)
     // eslint-disable-next-line
     if (!this.currentUser?.ok) throw new ReAuthError()
-    const onlyDMs = fs.existsSync(path.join(dataDirPath, '../slack-only-dms'))
-    // TODO: Connect it with the platform-sdk user preference
-    this.threadTypes = onlyDMs ? ['dm'] : ['channel', 'dm']
   }
 
-  afterAuth = async () => {
+  afterAuth = async (dataDirPath = '') => {
     const currentUser = await this.api.getCurrentUser()
     this.currentUser = currentUser
     await this.api.setEmojis()
+
+    const onlyDMs = fs.existsSync(path.join(dataDirPath, '../slack-only-dms'))
+    // TODO: Connect it with the platform-sdk user preference
+    this.threadTypes = onlyDMs ? ['dm'] : ['channel', 'dm']
   }
 
   login = async ({ cookieJarJSON }): Promise<LoginResult> => {
