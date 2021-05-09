@@ -289,8 +289,8 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
 }
 
 export const mapParticipant = ({ profile }: any): Participant => ({
-  id: profile.id,
-  username: profile?.display_name || profile?.real_name,
+  id: profile?.api_app_id || profile.id,
+  username: profile?.name || profile?.display_name || profile?.real_name,
   fullName: profile?.real_name || profile?.display_name,
   imgURL: profile.image_192 || undefined,
 })
