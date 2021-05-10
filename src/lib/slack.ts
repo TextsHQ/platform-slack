@@ -3,6 +3,7 @@ import bluebird from 'bluebird'
 import { promises as fs } from 'fs'
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType } from '@textshq/platform-sdk'
 import type { CookieJar } from 'tough-cookie'
+import * as _ from 'lodash'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { NOT_USED_SLACK_URL } from './constants'
@@ -168,9 +169,10 @@ export default class SlackAPI {
 
       if (reply_count) replies = [...replies, ...(await this.messageReplies(threadId, ts) || [])]
 
-      for (const element of richElements) {
-        if (element.type === 'user') element.profile = (await this.getParticipantProfile(element.user_id))?.profile
-      }
+      const userTypeElements = richElements.filter(({ type }) => type === 'user')
+      await bluebird.map(userTypeElements, async element => {
+        element.profile = (await this.getParticipantProfile(element.user_id))?.profile
+      })
 
       if (typeof text === 'string') message.text = await this.loadMentions(text)
 
@@ -192,7 +194,7 @@ export default class SlackAPI {
     await bluebird.map(messages, loadMessage)
 
     const aux = [...(messages as any[]), ...replies]
-    response.messages = [...new Map(aux.map(item => [item.ts, item])).values()]
+    response.messages = _.uniqBy(aux, 'ts')
     return response
   }
 
