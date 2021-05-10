@@ -169,8 +169,8 @@ export default class SlackAPI {
 
       if (reply_count) replies = [...replies, ...(await this.messageReplies(threadId, ts) || [])]
 
-      const userTypeElements = richElements.filter(({ type }) => type === 'user')
-      await bluebird.map(userTypeElements, async element => {
+      await bluebird.map(richElements, async element => {
+        if (element.type !== 'user') return
         element.profile = (await this.getParticipantProfile(element.user_id))?.profile
       })
 
