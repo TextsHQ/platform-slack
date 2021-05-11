@@ -1,4 +1,5 @@
 // @see https://raw.githubusercontent.com/nulab/emoji-data-ts/master/src/emoji.json
+// @see https://raw.githubusercontent.com/paragbhadoria/emoji.json/master/emoji.js
 export const EMOTES = [
   {
     unicode: '🌍',
@@ -6972,4 +6973,1669 @@ export const EMOTES = [
     unicode: '👣',
     emoji: ':footprints:',
   },
+  {
+    unicode: '👌🏿',
+    emoji: ':ok_hand::skin-tone-6:',
+  },
+  {
+    unicode: '👌🏾',
+    emoji: ':ok_hand::skin-tone-5:',
+  },
+  {
+    unicode: '👌🏽',
+    emoji: ':ok_hand::skin-tone-4:',
+  },
+  {
+    unicode: '👌🏼',
+    emoji: ':ok_hand::skin-tone-3:',
+  },
+  {
+    unicode: '👌🏻',
+    emoji: ':ok_hand::skin-tone-2:',
+  },
+  {
+    unicode: '👍🏿',
+    emoji: ':thumbsup::skin-tone-6:',
+  },
+  {
+    unicode: '👍🏾',
+    emoji: ':thumbsup::skin-tone-5:',
+  },
+  {
+    unicode: '👍🏽',
+    emoji: ':thumbsup::skin-tone-4:',
+  },
+  {
+    unicode: '👍🏼',
+    emoji: ':thumbsup::skin-tone-3:',
+  },
+  {
+    unicode: '👍🏻',
+    emoji: ':thumbsup::skin-tone-2:',
+  },
+  {
+    unicode: '🙏🏿',
+    emoji: ':pray::skin-tone-6:',
+  },
+  {
+    unicode: '🙏🏾',
+    emoji: ':pray::skin-tone-5:',
+  },
+  {
+    unicode: '🙌🏾',
+    emoji: ':raised_hands::skin-tone-5:',
+  },
+  {
+    unicode: '🙌🏽',
+    emoji: ':raised_hands::skin-tone-4:',
+  },
+  {
+    unicode: '🙌🏼',
+    emoji: ':raised_hands::skin-tone-3:',
+  },
+  {
+    unicode: '🙌🏻',
+    emoji: ':raised_hands::skin-tone-2:',
+  },
+  {
+    unicode: '✌🏿',
+    emoji: ':v::skin-tone-6:',
+  },
+  {
+    unicode: '✌🏾',
+    emoji: ':v::skin-tone-5:',
+  },
+  {
+    unicode: '✌🏽',
+    emoji: ':v::skin-tone-4:',
+  },
+  {
+    unicode: '✌🏼',
+    emoji: ':v::skin-tone-3:',
+  },
+  {
+    unicode: '✌🏻',
+    emoji: ':v::skin-tone-2:',
+  },
+  {
+    unicode: '💁🏿‍♂',
+    emoji: ':man_tip_hand::skin-tone-6:',
+  },
+  {
+    unicode: '💁🏾‍♂',
+    emoji: ':man_tip_hand::skin-tone-5:',
+  },
+  {
+    unicode: '💁🏽‍♂',
+    emoji: ':man_tip_hand::skin-tone-4:',
+  },
+  {
+    unicode: '💁🏼‍♂',
+    emoji: ':man_tip_hand::skin-tone-3:',
+  },
+  {
+    unicode: '💁🏻‍♂',
+    emoji: ':man_tip_hand::skin-tone-2:',
+  },
+  {
+    unicode: '💁🏿',
+    emoji: ':information_desk_person::skin-tone-6:',
+  },
+  {
+    unicode: '💁🏾',
+    emoji: ':information_desk_person::skin-tone-5:',
+  },
+  {
+    unicode: '💁🏽',
+    emoji: ':information_desk_person::skin-tone-4:',
+  },
+  {
+    unicode: '💁🏼',
+    emoji: ':information_desk_person::skin-tone-3:',
+  },
+  {
+    unicode: '💁🏻',
+    emoji: ':information_desk_person::skin-tone-2:',
+  },
+  {
+    unicode: '👏🏿',
+    emoji: ':clap::skin-tone-6:',
+  },
+  {
+    unicode: '👏🏾',
+    emoji: ':clap::skin-tone-5:',
+  },
+  {
+    unicode: '👏🏽',
+    emoji: ':clap::skin-tone-4:',
+  },
+  {
+    unicode: '👏🏼',
+    emoji: ':clap::skin-tone-3:',
+  },
+  {
+    unicode: '👏🏻',
+    emoji: ':clap::skin-tone-2:',
+  },
+  {
+    unicode: '✋🏿',
+    emoji: ':raised_hand::skin-tone-6:',
+  },
+  {
+    unicode: '✋🏾',
+    emoji: ':raised_hand::skin-tone-5:',
+  },
+  {
+    unicode: '✋🏽',
+    emoji: ':raised_hand::skin-tone-4:',
+  },
+  {
+    unicode: '✋🏼',
+    emoji: ':raised_hand::skin-tone-3:',
+  },
+  {
+    unicode: '✋🏻',
+    emoji: ':raised_hand::skin-tone-2:',
+  },
+  {
+    unicode: '👉🏿',
+    emoji: ':point_right::skin-tone-6:',
+  },
+  {
+    unicode: '👉🏾',
+    emoji: ':point_right::skin-tone-5:',
+  },
+  {
+    unicode: '👉🏽',
+    emoji: ':point_right::skin-tone-4:',
+  },
+  {
+    unicode: '👉🏼',
+    emoji: ':point_right::skin-tone-3:',
+  },
+  {
+    unicode: '👉🏻',
+    emoji: ':point_right::skin-tone-2:',
+  },
+  {
+    unicode: '👊🏿',
+    emoji: ':punch::skin-tone-6:',
+  },
+  {
+    unicode: '👊🏾',
+    emoji: ':punch::skin-tone-5:',
+  },
+  {
+    unicode: '👊🏽',
+    emoji: ':punch::skin-tone-4:',
+  },
+  {
+    unicode: '👊🏼',
+    emoji: ':punch::skin-tone-3:',
+  },
+  {
+    unicode: '👊🏻',
+    emoji: ':punch::skin-tone-2:',
+  },
+  {
+    unicode: '💪🏿',
+    emoji: ':muscle::skin-tone-6:',
+  },
+  {
+    unicode: '💪🏾',
+    emoji: ':muscle::skin-tone-5:',
+  },
+  {
+    unicode: '💪🏽',
+    emoji: ':muscle::skin-tone-4:',
+  },
+  {
+    unicode: '💪🏼',
+    emoji: ':muscle::skin-tone-3:',
+  },
+  {
+    unicode: '💪🏻',
+    emoji: ':muscle::skin-tone-2:',
+  },
+  {
+    unicode: '👈🏿',
+    emoji: ':point_left::skin-tone-6:',
+  },
+  {
+    unicode: '👈🏾',
+    emoji: ':point_left::skin-tone-5:',
+  },
+  {
+    unicode: '👈🏽',
+    emoji: ':point_left::skin-tone-4:',
+  },
+  {
+    unicode: '👈🏼',
+    emoji: ':point_left::skin-tone-3:',
+  },
+  {
+    unicode: '👈🏻',
+    emoji: ':point_left::skin-tone-2:',
+  },
+  {
+    unicode: '👋🏿',
+    emoji: ':wave::skin-tone-6:',
+  },
+  {
+    unicode: '👋🏾',
+    emoji: ':wave::skin-tone-5:',
+  },
+  {
+    unicode: '👋🏽',
+    emoji: ':wave::skin-tone-4:',
+  },
+  {
+    unicode: '👋🏼',
+    emoji: ':wave::skin-tone-3:',
+  },
+  {
+    unicode: '👋🏻',
+    emoji: ':wave::skin-tone-2:',
+  },
+  {
+    unicode: '🙋🏿‍♂',
+    emoji: ':man_raising_hand::skin-tone-6:',
+  },
+  {
+    unicode: '🙋🏾‍♂',
+    emoji: ':man_raising_hand::skin-tone-5:',
+  },
+  {
+    unicode: '🙋🏽‍♂',
+    emoji: ':man_raising_hand::skin-tone-4:',
+  },
+  {
+    unicode: '🙋🏼‍♂',
+    emoji: ':man_raising_hand::skin-tone-3:',
+  },
+  {
+    unicode: '🙋🏻‍♂',
+    emoji: ':man_raising_hand::skin-tone-2:',
+  },
+  {
+    unicode: '🙋🏿',
+    emoji: ':person_raising_hand::skin-tone-6:',
+  },
+  {
+    unicode: '🙋🏾',
+    emoji: ':person_raising_hand::skin-tone-5:',
+  },
+  {
+    unicode: '🙋🏽',
+    emoji: ':person_raising_hand::skin-tone-4:',
+  },
+  {
+    unicode: '🙋🏼',
+    emoji: ':person_raising_hand::skin-tone-3:',
+  },
+  {
+    unicode: '🙋🏻',
+    emoji: ':person_raising_hand::skin-tone-2:',
+  },
+  {
+    unicode: '👎🏿',
+    emoji: ':thumbsdown::skin-tone-6:',
+  },
+  {
+    unicode: '👎🏾',
+    emoji: ':thumbsdown::skin-tone-5:',
+  },
+  {
+    unicode: '👎🏽',
+    emoji: ':thumbsdown::skin-tone-4:',
+  },
+  {
+    unicode: '👎🏼',
+    emoji: ':thumbsdown::skin-tone-3:',
+  },
+  {
+    unicode: '👎🏻',
+    emoji: ':thumbsdown::skin-tone-2:',
+  },
+  {
+    unicode: '💃🏿',
+    emoji: ':dancer::skin-tone-6:',
+  },
+  {
+    unicode: '💃🏾',
+    emoji: ':dancer::skin-tone-5:',
+  },
+  {
+    unicode: '💃🏽',
+    emoji: ':dancer::skin-tone-4:',
+  },
+  {
+    unicode: '💃🏼',
+    emoji: ':dancer::skin-tone-3:',
+  },
+  {
+    unicode: '💃🏻',
+    emoji: ':dancer::skin-tone-2:',
+  },
+  {
+    unicode: '✊🏿',
+    emoji: ':fist::skin-tone-6:',
+  },
+  {
+    unicode: '✊🏾',
+    emoji: ':fist::skin-tone-5:',
+  },
+  {
+    unicode: '✊🏽',
+    emoji: ':fist::skin-tone-4:',
+  },
+  {
+    unicode: '✊🏼',
+    emoji: ':fist::skin-tone-3:',
+  },
+  {
+    unicode: '✊🏻',
+    emoji: ':fist::skin-tone-2:',
+  },
+  {
+    unicode: '👇🏿',
+    emoji: ':point_down::skin-tone-6:',
+  },
+  {
+    unicode: '👇🏾',
+    emoji: ':point_down::skin-tone-5:',
+  },
+  {
+    unicode: '👇🏽',
+    emoji: ':point_down::skin-tone-4:',
+  },
+  {
+    unicode: '👇🏼',
+    emoji: ':point_down::skin-tone-3:',
+  },
+  {
+    unicode: '👇🏻',
+    emoji: ':point_down::skin-tone-2:',
+  },
+  {
+    unicode: '🙅🏿‍♂',
+    emoji: ':man_no_good::skin-tone-6:',
+  },
+  {
+    unicode: '🙅🏾‍♂',
+    emoji: ':man_no_good::skin-tone-5:',
+  },
+  {
+    unicode: '🙅🏽‍♂',
+    emoji: ':man_no_good::skin-tone-4:',
+  },
+  {
+    unicode: '🙅🏼‍♂',
+    emoji: ':man_no_good::skin-tone-3:',
+  },
+  {
+    unicode: '🙅🏻‍♂',
+    emoji: ':man_no_good::skin-tone-2:',
+  },
+  {
+    unicode: '🙅🏿',
+    emoji: ':no_good::skin-tone-6:',
+  },
+  {
+    unicode: '🙅🏾',
+    emoji: ':no_good::skin-tone-5:',
+  },
+  {
+    unicode: '🙅🏽',
+    emoji: ':no_good::skin-tone-4:',
+  },
+  {
+    unicode: '🙅🏼',
+    emoji: ':no_good::skin-tone-3:',
+  },
+  {
+    unicode: '🙅🏻',
+    emoji: ':no_good::skin-tone-2:',
+  },
+  {
+    unicode: '🙆🏿‍♂',
+    emoji: ':ok_man::skin-tone-6:',
+  },
+  {
+    unicode: '🙆🏾‍♂',
+    emoji: ':ok_man::skin-tone-5:',
+  },
+  {
+    unicode: '🙆🏽‍♂',
+    emoji: ':ok_man::skin-tone-4:',
+  },
+  {
+    unicode: '🙆🏼‍♂',
+    emoji: ':ok_man::skin-tone-3:',
+  },
+  {
+    unicode: '🙆🏻‍♂',
+    emoji: ':ok_man::skin-tone-2:',
+  },
+  {
+    unicode: '🙆🏿',
+    emoji: ':ok_woman::skin-tone-6:',
+  },
+  {
+    unicode: '🙆🏾',
+    emoji: ':ok_woman::skin-tone-5:',
+  },
+  {
+    unicode: '🙆🏽',
+    emoji: ':ok_woman::skin-tone-4:',
+  },
+  {
+    unicode: '🙆🏼',
+    emoji: ':ok_woman::skin-tone-3:',
+  },
+  {
+    unicode: '🙆🏻',
+    emoji: ':ok_woman::skin-tone-2:',
+  },
+  {
+    unicode: '🚶🏿‍♀',
+    emoji: ':woman_walking::skin-tone-6:',
+  },
+  {
+    unicode: '🚶🏾‍♀',
+    emoji: ':woman_walking::skin-tone-5:',
+  },
+  {
+    unicode: '🚶🏽‍♀',
+    emoji: ':woman_walking::skin-tone-4:',
+  },
+  {
+    unicode: '🚶🏼‍♀',
+    emoji: ':woman_walking::skin-tone-3:',
+  },
+  {
+    unicode: '🚶🏻‍♀',
+    emoji: ':woman_walking::skin-tone-2:',
+  },
+  {
+    unicode: '🚶🏿',
+    emoji: ':walking::skin-tone-6:',
+  },
+  {
+    unicode: '🚶🏾',
+    emoji: ':walking::skin-tone-5:',
+  },
+  {
+    unicode: '🚶🏽',
+    emoji: ':walking::skin-tone-4:',
+  },
+  {
+    unicode: '🚶🏼',
+    emoji: ':walking::skin-tone-3:',
+  },
+  {
+    unicode: '🚶🏻',
+    emoji: ':walking::skin-tone-2:',
+  },
+  {
+    unicode: '👐🏿',
+    emoji: ':open_hands::skin-tone-6:',
+  },
+  {
+    unicode: '👐🏾',
+    emoji: ':open_hands::skin-tone-5:',
+  },
+  {
+    unicode: '👐🏽',
+    emoji: ':open_hands::skin-tone-4:',
+  },
+  {
+    unicode: '👐🏼',
+    emoji: ':open_hands::skin-tone-3:',
+  },
+  {
+    unicode: '👐🏻',
+    emoji: ':open_hands::skin-tone-2:',
+  },
+  {
+    unicode: '💅🏿',
+    emoji: ':nail_care::skin-tone-6:',
+  },
+  {
+    unicode: '💅🏾',
+    emoji: ':nail_care::skin-tone-5:',
+  },
+  {
+    unicode: '💅🏽',
+    emoji: ':nail_care::skin-tone-4:',
+  },
+  {
+    unicode: '💅🏼',
+    emoji: ':nail_care::skin-tone-3:',
+  },
+  {
+    unicode: '💅🏻',
+    emoji: ':nail_care::skin-tone-2:',
+  },
+  {
+    unicode: '🙇🏿‍♀',
+    emoji: ':bow::skin-tone-6:',
+  },
+  {
+    unicode: '🙇🏾‍♀',
+    emoji: ':bow::skin-tone-5:',
+  },
+  {
+    unicode: '🙇🏽‍♀',
+    emoji: ':bow::skin-tone-4:',
+  },
+  {
+    unicode: '🙇🏼‍♀',
+    emoji: ':bow::skin-tone-3:',
+  },
+  {
+    unicode: '🙇🏻‍♀',
+    emoji: ':bow::skin-tone-2:',
+  },
+  {
+    unicode: '🙇🏿',
+    emoji: ':bow::skin-tone-6:',
+  },
+  {
+    unicode: '🙇🏾',
+    emoji: ':bow::skin-tone-5:',
+  },
+  {
+    unicode: '🙇🏽',
+    emoji: ':bow::skin-tone-4:',
+  },
+  {
+    unicode: '🙇🏼',
+    emoji: ':bow::skin-tone-3:',
+  },
+  {
+    unicode: '🙇🏻',
+    emoji: ':bow::skin-tone-2:',
+  },
+  {
+    unicode: '👼🏿',
+    emoji: ':angel::skin-tone-6:',
+  },
+  {
+    unicode: '👼🏾',
+    emoji: ':angel::skin-tone-5:',
+  },
+  {
+    unicode: '👼🏽',
+    emoji: ':angel::skin-tone-4:',
+  },
+  {
+    unicode: '👼🏼',
+    emoji: ':angel::skin-tone-3:',
+  },
+  {
+    unicode: '👼🏻',
+    emoji: ':angel::skin-tone-2:',
+  },
+  {
+    unicode: '☝🏿',
+    emoji: ':point_up::skin-tone-6:',
+  },
+  {
+    unicode: '☝🏾',
+    emoji: ':point_up::skin-tone-5:',
+  },
+  {
+    unicode: '☝🏽',
+    emoji: ':point_up::skin-tone-4:',
+  },
+  {
+    unicode: '☝🏼',
+    emoji: ':point_up::skin-tone-3:',
+  },
+  {
+    unicode: '☝🏻',
+    emoji: ':point_up::skin-tone-2:',
+  },
+  {
+    unicode: '🏃🏿‍♀',
+    emoji: ':woman_runner::skin-tone-6:',
+  },
+  {
+    unicode: '🏃🏾‍♀',
+    emoji: ':woman_runner::skin-tone-5:',
+  },
+  {
+    unicode: '🏃🏽‍♀',
+    emoji: ':woman_runner::skin-tone-4:',
+  },
+  {
+    unicode: '🏃🏼‍♀',
+    emoji: ':woman_runner::skin-tone-3:',
+  },
+  {
+    unicode: '🏃🏻‍♀',
+    emoji: ':woman_runner::skin-tone-2:',
+  },
+  {
+    unicode: '🏃🏿',
+    emoji: ':runner::skin-tone-6:',
+  },
+  {
+    unicode: '🏃🏾',
+    emoji: ':runner::skin-tone-5:',
+  },
+  {
+    unicode: '🏃🏽',
+    emoji: ':runner::skin-tone-4:',
+  },
+  {
+    unicode: '🏃🏼',
+    emoji: ':runner::skin-tone-3:',
+  },
+  {
+    unicode: '🏃🏻',
+    emoji: ':runner::skin-tone-2:',
+  },
+  {
+    unicode: '👆🏿',
+    emoji: ':point_up2::skin-tone-6:',
+  },
+  {
+    unicode: '👆🏾',
+    emoji: ':point_up2::skin-tone-5:',
+  },
+  {
+    unicode: '👆🏽',
+    emoji: ':point_up2::skin-tone-4:',
+  },
+  {
+    unicode: '👆🏼',
+    emoji: ':point_up2::skin-tone-3:',
+  },
+  {
+    unicode: '👆🏻',
+    emoji: ':point_up2::skin-tone-2:',
+  },
+  {
+    unicode: '👸🏿',
+    emoji: ':princess::skin-tone-6:',
+  },
+  {
+    unicode: '👸🏾',
+    emoji: ':princess::skin-tone-5:',
+  },
+  {
+    unicode: '👸🏽',
+    emoji: ':princess::skin-tone-4:',
+  },
+  {
+    unicode: '👸🏼',
+    emoji: ':princess::skin-tone-3:',
+  },
+  {
+    unicode: '👸🏻',
+    emoji: ':princess::skin-tone-4:',
+  },
+  {
+    unicode: '💆🏿‍♂',
+    emoji: ':man_massage::skin-tone-6:',
+  },
+  {
+    unicode: '💆🏾‍♂',
+    emoji: ':man_massage::skin-tone-5:',
+  },
+  {
+    unicode: '💆🏽‍♂',
+    emoji: ':man_massage::skin-tone-4:',
+  },
+  {
+    unicode: '💆🏼‍♂',
+    emoji: ':man_massage::skin-tone-3:',
+  },
+  {
+    unicode: '💆🏻‍♂',
+    emoji: ':man_massage::skin-tone-4:',
+  },
+  {
+    unicode: '💆🏿',
+    emoji: ':massage::skin-tone-6:',
+  },
+  {
+    unicode: '💆🏾',
+    emoji: ':massage::skin-tone-5:',
+  },
+  {
+    unicode: '💆🏽',
+    emoji: ':massage::skin-tone-4:',
+  },
+  {
+    unicode: '💆🏼',
+    emoji: ':massage::skin-tone-3:',
+  },
+  {
+    unicode: '💆🏻',
+    emoji: ':massage::skin-tone-4:',
+  },
+  {
+    unicode: '🙍🏿‍♂',
+    emoji: ':man_frowning::skin-tone-6:',
+  },
+  {
+    unicode: '🙍🏾‍♂',
+    emoji: ':man_frowning::skin-tone-5:',
+  },
+  {
+    unicode: '🙍🏽‍♂',
+    emoji: ':man_frowning::skin-tone-4:',
+  },
+  {
+    unicode: '🙍🏼‍♂',
+    emoji: ':man_frowning::skin-tone-3:',
+  },
+  {
+    unicode: '🙍🏻‍♂',
+    emoji: ':man_frowning::skin-tone-2:',
+  },
+  {
+    unicode: '🙍🏿',
+    emoji: ':person_frowning::skin-tone-6:',
+  },
+  {
+    unicode: '🙍🏾',
+    emoji: ':person_frowning::skin-tone-5:',
+  },
+  {
+    unicode: '🙍🏽',
+    emoji: ':person_frowning::skin-tone-4:',
+  },
+  {
+    unicode: '🙍🏼',
+    emoji: ':person_frowning::skin-tone-3:',
+  },
+  {
+    unicode: '🙍🏻',
+    emoji: ':person_frowning::skin-tone-2:',
+  },
+  {
+    unicode: '🎅🏿',
+    emoji: ':santa::skin-tone-6:',
+  },
+  {
+    unicode: '🎅🏾',
+    emoji: ':santa::skin-tone-5:',
+  },
+  {
+    unicode: '🎅🏽',
+    emoji: ':santa::skin-tone-4:',
+  },
+  {
+    unicode: '🎅🏼',
+    emoji: ':santa::skin-tone-3:',
+  },
+  {
+    unicode: '🎅🏻',
+    emoji: ':santa::skin-tone-2:',
+  },
+  {
+    unicode: '👶🏿',
+    emoji: ':baby::skin-tone-6:',
+  },
+  {
+    unicode: '👶🏾',
+    emoji: ':baby::skin-tone-5:',
+  },
+  {
+    unicode: '👶🏽',
+    emoji: ':baby::skin-tone-4:',
+  },
+  {
+    unicode: '👶🏼',
+    emoji: ':baby::skin-tone-3:',
+  },
+  {
+    unicode: '👶🏻',
+    emoji: ':baby::skin-tone-2:',
+  },
+  {
+    unicode: '👨🏿',
+    emoji: ':man::skin-tone-6:',
+  },
+  {
+    unicode: '👨🏾',
+    emoji: ':man::skin-tone-5:',
+  },
+  {
+    unicode: '👨🏽',
+    emoji: ':man::skin-tone-4:',
+  },
+  {
+    unicode: '👨🏼',
+    emoji: ':man::skin-tone-3:',
+  },
+  {
+    unicode: '👨🏻',
+    emoji: ':man::skin-tone-2:',
+  },
+  {
+    unicode: '💂🏿‍♀',
+    emoji: ':woman_guardsman::skin-tone-6:',
+  },
+  {
+    unicode: '💂🏾‍♀',
+    emoji: ':woman_guardsman::skin-tone-5:',
+  },
+  {
+    unicode: '💂🏽‍♀',
+    emoji: ':woman_guardsman::skin-tone-4:',
+  },
+  {
+    unicode: '💂🏼‍♀',
+    emoji: ':woman_guardsman::skin-tone-3:',
+  },
+  {
+    unicode: '💂🏻‍♀',
+    emoji: ':woman_guardsman::skin-tone-2:',
+  },
+  {
+    unicode: '💂🏿',
+    emoji: ':guardsman::skin-tone-6:',
+  },
+  {
+    unicode: '💂🏾',
+    emoji: ':guardsman::skin-tone-5:',
+  },
+  {
+    unicode: '💂🏽',
+    emoji: ':guardsman::skin-tone-4:',
+  },
+  {
+    unicode: '💂🏼',
+    emoji: ':guardsman::skin-tone-3:',
+  },
+  {
+    unicode: '💂🏻',
+    emoji: ':guardsman::skin-tone-2:',
+  },
+  {
+    unicode: '👧🏿',
+    emoji: ':girl::skin-tone-6:',
+  },
+  {
+    unicode: '👧🏾',
+    emoji: ':girl::skin-tone-5:',
+  },
+  {
+    unicode: '👧🏽',
+    emoji: ':girl::skin-tone-4:',
+  },
+  {
+    unicode: '👧🏼',
+    emoji: ':girl::skin-tone-3:',
+  },
+  {
+    unicode: '👧🏻',
+    emoji: ':girl::skin-tone-2:',
+  },
+  {
+    unicode: '👩🏿',
+    emoji: ':woman::skin-tone-6:',
+  },
+  {
+    unicode: '👩🏾',
+    emoji: ':woman::skin-tone-5:',
+  },
+  {
+    unicode: '👩🏽',
+    emoji: ':woman::skin-tone-4:',
+  },
+  {
+    unicode: '👩🏼',
+    emoji: ':woman::skin-tone-3:',
+  },
+  {
+    unicode: '👩🏻',
+    emoji: ':woman::skin-tone-2:',
+  },
+  {
+    unicode: '🏊🏿‍♀',
+    emoji: ':man_swimmer::skin-tone-6:',
+  },
+  {
+    unicode: '🏊🏾‍♀',
+    emoji: ':man_swimmer::skin-tone-5:',
+  },
+  {
+    unicode: '🏊🏽‍♀',
+    emoji: ':woman_swimmer::skin-tone-4:',
+  },
+  {
+    unicode: '🏊🏼‍♀',
+    emoji: ':woman_swimmer::skin-tone-3:',
+  },
+  {
+    unicode: '🏊🏻‍♀',
+    emoji: ':woman_swimmer::skin-tone-2:',
+  },
+  {
+    unicode: '🏊🏿',
+    emoji: ':swimmer::skin-tone-6:',
+  },
+  {
+    unicode: '🏊🏾',
+    emoji: ':swimmer::skin-tone-5:',
+  },
+  {
+    unicode: '🏊🏽',
+    emoji: ':swimmer::skin-tone-4:',
+  },
+  {
+    unicode: '🏊🏼',
+    emoji: ':swimmer::skin-tone-3:',
+  },
+  {
+    unicode: '🏊🏻',
+    emoji: ':swimmer::skin-tone-2:',
+  },
+  {
+    unicode: '💇🏿‍♂',
+    emoji: ':man_haircut::skin-tone-6:',
+  },
+  {
+    unicode: '💇🏾‍♂',
+    emoji: ':man_haircut::skin-tone-5:',
+  },
+  {
+    unicode: '💇🏽‍♂',
+    emoji: ':man_haircut::skin-tone-4:',
+  },
+  {
+    unicode: '💇🏼‍♂',
+    emoji: ':man_haircut::skin-tone-3:',
+  },
+  {
+    unicode: '💇🏻‍♂',
+    emoji: ':man_haircut::skin-tone-2:',
+  },
+  {
+    unicode: '💇🏿',
+    emoji: ':haircut::skin-tone-6:',
+  },
+  {
+    unicode: '💇🏾',
+    emoji: ':haircut::skin-tone-5:',
+  },
+  {
+    unicode: '💇🏽',
+    emoji: ':haircut::skin-tone-4:',
+  },
+  {
+    unicode: '💇🏼',
+    emoji: ':haircut::skin-tone-3:',
+  },
+  {
+    unicode: '💇🏻',
+    emoji: ':haircut::skin-tone-2:',
+  },
+  {
+    unicode: '👦🏿',
+    emoji: ':boy::skin-tone-6:',
+  },
+  {
+    unicode: '👦🏾',
+    emoji: ':boy::skin-tone-5:',
+  },
+  {
+    unicode: '👦🏽',
+    emoji: ':boy::skin-tone-4:',
+  },
+  {
+    unicode: '👦🏼',
+    emoji: ':boy::skin-tone-3:',
+  },
+  {
+    unicode: '👦🏻',
+    emoji: ':boy::skin-tone-2:',
+  },
+  {
+    unicode: '🙎🏿‍♂',
+    emoji: ':man_pouting::skin-tone-6:',
+  },
+  {
+    unicode: '🙎🏾‍♂',
+    emoji: ':man_pouting::skin-tone-5:',
+  },
+  {
+    unicode: '🙎🏽‍♂',
+    emoji: ':man_pouting::skin-tone-4:',
+  },
+  {
+    unicode: '🙎🏼‍♂',
+    emoji: ':man_pouting::skin-tone-3:',
+  },
+  {
+    unicode: '🙎🏻‍♂',
+    emoji: ':man_pouting::skin-tone-2:',
+  },
+  {
+    unicode: '🙎🏿',
+    emoji: ':pouting::skin-tone-6:',
+  },
+  {
+    unicode: '🙎🏾',
+    emoji: ':pouting::skin-tone-5:',
+  },
+  {
+    unicode: '🙎🏽',
+    emoji: ':pouting::skin-tone-4:',
+  },
+  {
+    unicode: '🙎🏼',
+    emoji: ':pouting::skin-tone-3:',
+  },
+  {
+    unicode: '🙎🏻',
+    emoji: ':pouting::skin-tone-2:',
+  },
+  {
+    unicode: '👵🏿',
+    emoji: ':older_woman::skin-tone-6:',
+  },
+  {
+    unicode: '👵🏾',
+    emoji: ':older_woman::skin-tone-5:',
+  },
+  {
+    unicode: '👵🏽',
+    emoji: ':older_woman::skin-tone-4:',
+  },
+  {
+    unicode: '👵🏼',
+    emoji: ':older_woman::skin-tone-3:',
+  },
+  {
+    unicode: '👵🏻',
+    emoji: ':older_woman::skin-tone-2:',
+  },
+  {
+    unicode: '👃🏿',
+    emoji: ':nose::skin-tone-6:',
+  },
+  {
+    unicode: '👃🏾',
+    emoji: ':nose::skin-tone-5:',
+  },
+  {
+    unicode: '👃🏽',
+    emoji: ':nose::skin-tone-4:',
+  },
+  {
+    unicode: '👃🏼',
+    emoji: ':nose::skin-tone-3:',
+  },
+  {
+    unicode: '👃🏻',
+    emoji: ':nose::skin-tone-2:',
+  },
+  {
+    unicode: '👳🏿‍♀',
+    emoji: ':woman_with_turban::skin-tone-6:',
+  },
+  {
+    unicode: '👳🏾‍♀',
+    emoji: ':woman_with_turban::skin-tone-5:',
+  },
+  {
+    unicode: '👳🏽‍♀',
+    emoji: ':woman_with_turban::skin-tone-4:',
+  },
+  {
+    unicode: '👳🏼‍♀',
+    emoji: ':woman_with_turban::skin-tone-3:',
+  },
+  {
+    unicode: '👳🏻‍♀',
+    emoji: ':woman_with_turban::skin-tone-2:',
+  },
+  {
+    unicode: '👳🏿',
+    emoji: ':person_with_turban::skin-tone-6:',
+  },
+  {
+    unicode: '👳🏾',
+    emoji: ':person_with_turban::skin-tone-5:',
+  },
+  {
+    unicode: '👳🏽',
+    emoji: ':person_with_turban::skin-tone-4:',
+  },
+  {
+    unicode: '👳🏼',
+    emoji: ':person_with_turban::skin-tone-3:',
+  },
+  {
+    unicode: '👳🏻',
+    emoji: ':person_with_turban::skin-tone-2:',
+  },
+  {
+    unicode: '👂🏿',
+    emoji: ':ear::skin-tone-6:',
+  },
+  {
+    unicode: '👂🏾',
+    emoji: ':ear::skin-tone-5:',
+  },
+  {
+    unicode: '👂🏽',
+    emoji: ':ear::skin-tone-4:',
+  },
+  {
+    unicode: '👂🏼',
+    emoji: ':ear::skin-tone-3:',
+  },
+  {
+    unicode: '👂🏻',
+    emoji: ':ear::skin-tone-2:',
+  },
+  {
+    unicode: '👰🏿',
+    emoji: ':bride_with_veil::skin-tone-6:',
+  },
+  {
+    unicode: '👰🏾',
+    emoji: ':bride_with_veil::skin-tone-5:',
+  },
+  {
+    unicode: '👰🏽',
+    emoji: ':bride_with_veil::skin-tone-4:',
+  },
+  {
+    unicode: '👰🏼',
+    emoji: ':bride_with_veil::skin-tone-3:',
+  },
+  {
+    unicode: '👰🏻',
+    emoji: ':bride_with_veil::skin-tone-2:',
+  },
+  {
+    unicode: '👴🏿',
+    emoji: ':older_man::skin-tone-6:',
+  },
+  {
+    unicode: '👴🏾',
+    emoji: ':older_man::skin-tone-5:',
+  },
+  {
+    unicode: '👴🏽',
+    emoji: ':older_man::skin-tone-4:',
+  },
+  {
+    unicode: '👴🏼',
+    emoji: ':older_man::skin-tone-3:',
+  },
+  {
+    unicode: '👴🏻',
+    emoji: ':older_man::skin-tone-2:',
+  },
+  {
+    unicode: '🏄🏿‍♀',
+    emoji: ':woman_surfer::skin-tone-6:',
+  },
+  {
+    unicode: '🏄🏾‍♀',
+    emoji: ':woman_surfer::skin-tone-5:',
+  },
+  {
+    unicode: '🏄🏽‍♀',
+    emoji: ':woman_surfer::skin-tone-4:',
+  },
+  {
+    unicode: '🏄🏼‍♀',
+    emoji: ':woman_surfer::skin-tone-3:',
+  },
+  {
+    unicode: '🏄🏻‍♀',
+    emoji: ':woman_surfer::skin-tone-2:',
+  },
+  {
+    unicode: '🏄🏿',
+    emoji: ':surfer::skin-tone-6:',
+  },
+  {
+    unicode: '🏄🏾',
+    emoji: ':surfer::skin-tone-5:',
+  },
+  {
+    unicode: '🏄🏽',
+    emoji: ':surfer::skin-tone-4:',
+  },
+  {
+    unicode: '🏄🏼',
+    emoji: ':surfer::skin-tone-3:',
+  },
+  {
+    unicode: '🏄🏻',
+    emoji: ':surfer::skin-tone-2:',
+  },
+  {
+    unicode: '👮🏿‍♀',
+    emoji: ':woman_cop::skin-tone-6:',
+  },
+  {
+    unicode: '👮🏾‍♀',
+    emoji: ':woman_cop::skin-tone-5:',
+  },
+  {
+    unicode: '👮🏽‍♀',
+    emoji: ':woman_cop::skin-tone-4:',
+  },
+  {
+    unicode: '👮🏼‍♀',
+    emoji: ':woman_cop::skin-tone-3:',
+  },
+  {
+    unicode: '👮🏻‍♀',
+    emoji: ':woman_cop::skin-tone-2:',
+  },
+  {
+    unicode: '👮🏿',
+    emoji: ':cop::skin-tone-6:',
+  },
+  {
+    unicode: '👮🏾',
+    emoji: ':cop::skin-tone-5:',
+  },
+  {
+    unicode: '👮🏽',
+    emoji: ':cop::skin-tone-4:',
+  },
+  {
+    unicode: '👮🏼',
+    emoji: ':cop::skin-tone-3:',
+  },
+  {
+    unicode: '👮🏻',
+    emoji: ':cop::skin-tone-2:',
+  },
+  {
+    unicode: '👱🏿‍♀',
+    emoji: ':woman_blond_hair::skin-tone-6:',
+  },
+  {
+    unicode: '👱🏾‍♀',
+    emoji: ':woman_blond_hair::skin-tone-5:',
+  },
+  {
+    unicode: '👱🏽‍♀',
+    emoji: ':woman_blond_hair::skin-tone-4:',
+  },
+  {
+    unicode: '👱🏼‍♀',
+    emoji: ':woman_blond_hair::skin-tone-3:',
+  },
+  {
+    unicode: '👱🏻‍♀',
+    emoji: ':woman_blond_hair::skin-tone-2:',
+  },
+  {
+    unicode: '👱🏿',
+    emoji: ':blond_hair::skin-tone-6:',
+  },
+  {
+    unicode: '👱🏾',
+    emoji: ':blond_hair::skin-tone-5:',
+  },
+  {
+    unicode: '👱🏽',
+    emoji: ':blond_hair::skin-tone-4:',
+  },
+  {
+    unicode: '👱🏼',
+    emoji: ':blond_hair::skin-tone-3:',
+  },
+  {
+    unicode: '👱🏻',
+    emoji: ':blond_hair::skin-tone-2:',
+  },
+  {
+    unicode: '👲🏿',
+    emoji: ':man_with_gua_pi_mao::skin-tone-6:',
+  },
+  {
+    unicode: '👲🏾',
+    emoji: ':man_with_gua_pi_mao::skin-tone-5:',
+  },
+  {
+    unicode: '👲🏽',
+    emoji: ':man_with_gua_pi_mao::skin-tone-4:',
+  },
+  {
+    unicode: '👲🏼',
+    emoji: ':man_with_gua_pi_mao::skin-tone-3:',
+  },
+  {
+    unicode: '👲🏻',
+    emoji: ':man_with_gua_pi_mao::skin-tone-2:',
+  },
+  {
+    unicode: '🛀🏿',
+    emoji: ':bath::skin-tone-6:',
+  },
+  {
+    unicode: '🛀🏾',
+    emoji: ':bath::skin-tone-5:',
+  },
+  {
+    unicode: '🛀🏽',
+    emoji: ':bath::skin-tone-4:',
+  },
+  {
+    unicode: '🛀🏼',
+    emoji: ':bath::skin-tone-3:',
+  },
+  {
+    unicode: '🛀🏻',
+    emoji: ':bath::skin-tone-2:',
+  },
+  {
+    unicode: '🚴🏿‍♀',
+    emoji: ':woman_bicyclist::skin-tone-6:',
+  },
+  {
+    unicode: '🚴🏾‍♀',
+    emoji: ':woman_bicyclist::skin-tone-5:',
+  },
+  {
+    unicode: '🚴🏽‍♀',
+    emoji: ':woman_bicyclist::skin-tone-4:',
+  },
+  {
+    unicode: '🚴🏼‍♀',
+    emoji: ':woman_bicyclist::skin-tone-3:',
+  },
+  {
+    unicode: '🚴🏻‍♀',
+    emoji: ':woman_bicyclist::skin-tone-2:',
+  },
+  {
+    unicode: '🚴🏿',
+    emoji: ':bicyclist::skin-tone-6:',
+  },
+  {
+    unicode: '🚴🏾',
+    emoji: ':bicyclist::skin-tone-5:',
+  },
+  {
+    unicode: '🚴🏽',
+    emoji: ':bicyclist::skin-tone-4:',
+  },
+  {
+    unicode: '🚴🏼',
+    emoji: ':bicyclist::skin-tone-3:',
+  },
+  {
+    unicode: '🚴🏻',
+    emoji: ':bicyclist::skin-tone-2:',
+  },
+  {
+    unicode: '🚣🏿‍♀',
+    emoji: ':woman_rowboat::skin-tone-6:',
+  },
+  {
+    unicode: '🚣🏾‍♀',
+    emoji: ':woman_rowboat::skin-tone-5:',
+  },
+  {
+    unicode: '🚣🏽‍♀',
+    emoji: ':woman_rowboat::skin-tone-4:',
+  },
+  {
+    unicode: '🚣🏼‍♀',
+    emoji: ':woman_rowboat::skin-tone-3:',
+  },
+  {
+    unicode: '🚣🏻‍♀',
+    emoji: ':woman_rowboat::skin-tone-2:',
+  },
+  {
+    unicode: '🚣🏿',
+    emoji: ':rowboat::skin-tone-6:',
+  },
+  {
+    unicode: '🚣🏾',
+    emoji: ':rowboat::skin-tone-5:',
+  },
+  {
+    unicode: '🚣🏽',
+    emoji: ':rowboat::skin-tone-4:',
+  },
+  {
+    unicode: '🚣🏼',
+    emoji: ':rowboat::skin-tone-3:',
+  },
+  {
+    unicode: '🚣🏻',
+    emoji: ':rowboat::skin-tone-2:',
+  },
+  {
+    unicode: '👷🏿‍♀',
+    emoji: ':woman_construction_worker::skin-tone-6:',
+  },
+  {
+    unicode: '👷🏾‍♀',
+    emoji: ':woman_construction_worker::skin-tone-5:',
+  },
+  {
+    unicode: '👷🏽‍♀',
+    emoji: ':woman_construction_worker::skin-tone-4:',
+  },
+  {
+    unicode: '👷🏼‍♀',
+    emoji: ':woman_construction_worker::skin-tone-3:',
+  },
+  {
+    unicode: '👷🏻‍♀',
+    emoji: ':woman_construction_worker::skin-tone-2:',
+  },
+  {
+    unicode: '👷🏿',
+    emoji: ':construction_worker::skin-tone-6:',
+  },
+  {
+    unicode: '👷🏾',
+    emoji: ':construction_worker::skin-tone-5:',
+  },
+  {
+    unicode: '👷🏽',
+    emoji: ':construction_worker::skin-tone-4:',
+  },
+  {
+    unicode: '👷🏼',
+    emoji: ':construction_worker::skin-tone-3:',
+  },
+  {
+    unicode: '👷🏻',
+    emoji: ':construction_worker::skin-tone-2:',
+  },
+  {
+    unicode: '🚵🏿‍♀',
+    emoji: ':woman_mountain_bicyclist::skin-tone-6:',
+  },
+  {
+    unicode: '🚵🏾‍♀',
+    emoji: ':woman_mountain_bicyclist::skin-tone-5:',
+  },
+  {
+    unicode: '🚵🏽‍♀',
+    emoji: ':woman_mountain_bicyclist::skin-tone-4:',
+  },
+  {
+    unicode: '🚵🏼‍♀',
+    emoji: ':woman_mountain_bicyclist::skin-tone-3:',
+  },
+  {
+    unicode: '🚵🏻‍♀',
+    emoji: ':woman_mountain_bicyclist::skin-tone-2:',
+  },
+  {
+    unicode: '🚵🏿',
+    emoji: ':mountain_bicyclist::skin-tone-6:',
+  },
+  {
+    unicode: '🚵🏾',
+    emoji: ':mountain_bicyclist::skin-tone-5:',
+  },
+  {
+    unicode: '🚵🏽',
+    emoji: ':mountain_bicyclist::skin-tone-4:',
+  },
+  {
+    unicode: '🚵🏼',
+    emoji: ':mountain_bicyclist::skin-tone-3:',
+  },
+  {
+    unicode: '🚵🏻',
+    emoji: ':mountain_bicyclist::skin-tone-2:',
+  },
+  {
+    unicode: '🕵🏿‍♀',
+    emoji: ':woman_detective::skin-tone-6:',
+  },
+  {
+    unicode: '🕵🏾‍♀',
+    emoji: ':woman_detective::skin-tone-5:',
+  },
+  {
+    unicode: '🕵🏽‍♀',
+    emoji: ':woman_detective::skin-tone-4:',
+  },
+  {
+    unicode: '🕵🏼‍♀',
+    emoji: ':woman_detective::skin-tone-3:',
+  },
+  {
+    unicode: '🕵🏻‍♀',
+    emoji: ':woman_detective::skin-tone-2:',
+  },
+  {
+    unicode: '🕵🏿',
+    emoji: ':detective::skin-tone-6:',
+  },
+  {
+    unicode: '🕵🏾',
+    emoji: ':detective::skin-tone-5:',
+  },
+  {
+    unicode: '🕵🏽',
+    emoji: ':detective::skin-tone-4:',
+  },
+  {
+    unicode: '🕵🏼',
+    emoji: ':detective::skin-tone-3:',
+  },
+  {
+    unicode: '🕵🏻',
+    emoji: ':detective::skin-tone-2:',
+  },
+  {
+    unicode: '🤘🏿',
+    emoji: ':sign_of_the_horns::skin-tone-6:',
+  },
+  {
+    unicode: '🤘🏾',
+    emoji: ':sign_of_the_horns::skin-tone-5:',
+  },
+  {
+    unicode: '🤘🏽',
+    emoji: ':sign_of_the_horns::skin-tone-4:',
+  },
+  {
+    unicode: '🤘🏼',
+    emoji: ':sign_of_the_horns::skin-tone-3:',
+  },
+  {
+    unicode: '🤘🏻',
+    emoji: ':sign_of_the_horns::skin-tone-2:',
+  },
+  {
+    unicode: '🖖🏿',
+    emoji: ':spock_hand::skin-tone-6:',
+  },
+  {
+    unicode: '🖖🏾',
+    emoji: ':spock_hand::skin-tone-5:',
+  },
+  {
+    unicode: '🖖🏽',
+    emoji: ':spock_hand::skin-tone-4:',
+  },
+  {
+    unicode: '🖖🏼',
+    emoji: ':spock_hand::skin-tone-3:',
+  },
+  {
+    unicode: '🖖🏻',
+    emoji: ':spock_hand::skin-tone-2:',
+  },
+  {
+    unicode: '🖕🏿',
+    emoji: ':middle_finger::skin-tone-6:',
+  },
+  {
+    unicode: '🖕🏾',
+    emoji: ':middle_finger::skin-tone-5:',
+  },
+  {
+    unicode: '🖕🏽',
+    emoji: ':middle_finger::skin-tone-4:',
+  },
+  {
+    unicode: '🖕🏼',
+    emoji: ':middle_finger::skin-tone-3:',
+  },
+  {
+    unicode: '🖕🏻',
+    emoji: ':middle_finger::skin-tone-2:',
+  },
+  {
+    unicode: '🖐🏿',
+    emoji: ':raised_hand_with_fingers_splayed::skin-tone-6:',
+  },
+  {
+    unicode: '🖐🏾',
+    emoji: ':raised_hand_with_fingers_splayed::skin-tone-5:',
+  },
+  {
+    unicode: '🖐🏽',
+    emoji: ':raised_hand_with_fingers_splayed::skin-tone-4:',
+  },
+  {
+    unicode: '🖐🏼',
+    emoji: ':raised_hand_with_fingers_splayed::skin-tone-3:',
+  },
+  {
+    unicode: '🖐🏻',
+    emoji: ':raised_hand_with_fingers_splayed::skin-tone-2:',
+  },
+  {
+    unicode: '✍🏿',
+    emoji: ':writing_hand::skin-tone-6:',
+  },
+  {
+    unicode: '✍🏾',
+    emoji: ':writing_hand::skin-tone-5:',
+  },
+  {
+    unicode: '✍🏽',
+    emoji: ':writing_hand::skin-tone-4:',
+  },
+  {
+    unicode: '✍🏼',
+    emoji: ':writing_hand::skin-tone-3:',
+  },
+  {
+    unicode: '✍🏻',
+    emoji: ':writing_hand::skin-tone-2:',
+  },
+
 ]
