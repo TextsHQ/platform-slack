@@ -236,10 +236,15 @@ const mapReactions = (
   if (!slackReactions?.length) return []
 
   const reactions = slackReactions?.flatMap(reaction => reaction.users.map(user => ({ ...reaction, user })))
+
   return reactions.map(reaction => ({
     id: `${messageId}-${reaction.name}-${reaction.user}`,
     participantID: reaction.user,
-    reactionKey: emojis[reaction.name] || EMOTES.find(({ emoji }) => emoji === `:${reaction.name}:`)?.unicode || reaction.name,
+    // Fallback without skin tone support. On slack reactions skin-tone will come like 'reaction-name::skin-tone-N'
+    // so a fallback without the skin tone support is added, since we don't have every emoji unicode displayed in
+    // Slack's reaction emoji picker.
+    // TODO: Add more emojis with skin tone support
+    reactionKey: emojis[reaction.name] || EMOTES.find(({ emoji }) => emoji === `:${reaction.name}:`)?.unicode || EMOTES.find(({ emoji }) => emoji === `:${reaction.name?.split('::')[0]}:`)?.unicode || reaction.name,
     emoji: Boolean(emojis[reaction.name]),
   }))
 }
