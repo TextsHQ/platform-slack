@@ -225,9 +225,11 @@ export default class SlackAPI {
 
   searchUsers = async (typed: string) => {
     const allUsers = await this.webClient.users.list({ limit: 100 })
-    const { members } = allUsers
+    const { members: _members } = allUsers
+    const members = _members as any[]
 
-    return (members as any)
+    if (!typed) return members.map(mapProfile)
+    return members
       .filter(member => member.name.toLowerCase().includes(typed.toLowerCase()))
       .map(mapProfile)
   }
