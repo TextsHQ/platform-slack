@@ -66,8 +66,8 @@ export default class Slack implements PlatformAPI {
 
   searchUsers = async (typed: string) => this.api.searchUsers(typed)
 
-  getThreads = async (inboxName: InboxName, pagination: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Thread>> => {
-    const { cursor } = pagination || {}
+  getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
+    const { cursor } = pagination || { cursor: null }
 
     const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
     const currentUser = mapCurrentUser(this.currentUser)
@@ -81,8 +81,8 @@ export default class Slack implements PlatformAPI {
     }
   }
 
-  getMessages = async (threadID: string, pagination: PaginationArg = { cursor: null, direction: null }): Promise<Paginated<Message>> => {
-    const { cursor } = pagination || {}
+  getMessages = async (threadID: string, pagination: PaginationArg): Promise<Paginated<Message>> => {
+    const { cursor } = pagination || { cursor: null }
 
     const { messages, response_metadata } = await this.api.getMessages(threadID, 20, cursor)
     const currentUser = mapCurrentUser(this.currentUser)
