@@ -293,12 +293,12 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
   }
 }
 
-export const mapParticipant = ({ profile }: any): Participant => ({
-  id: profile?.api_app_id || profile.id,
-  username: profile?.display_name || profile?.real_name || profile?.name,
-  fullName: profile?.real_name || profile?.display_name,
-  imgURL: profile.image_192 || profile?.image_72 || undefined,
-})
+export const mapParticipant = ({ profile }: any): Participant => profile && {
+  id: profile.api_app_id || profile.id,
+  username: profile.display_name || profile.real_name || profile.name,
+  fullName: profile.real_name || profile.display_name,
+  imgURL: profile.image_192 || profile.image_72,
+}
 
 export const mapCurrentUser = ({ profile, team }: any): CurrentUser => ({
   id: profile.id,
@@ -316,7 +316,7 @@ export const mapProfile = (user: any): Participant => ({
 
 const mapThread = (slackChannel: any, currentUserId: string): Thread => {
   const messages: Message[] = slackChannel?.messages?.map(message => mapMessage(message, currentUserId)) || []
-  const participants: Participant[] = slackChannel.participants.map(mapParticipant) || []
+  const participants = slackChannel.participants.map(mapParticipant).filter(Boolean) || []
 
   const getType = () => {
     if (slackChannel.is_group) return 'group'

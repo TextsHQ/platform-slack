@@ -1,9 +1,9 @@
 import { WebClient } from '@slack/web-api'
 import bluebird from 'bluebird'
 import { promises as fs } from 'fs'
-import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType } from '@textshq/platform-sdk'
+import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant } from '@textshq/platform-sdk'
+import { uniqBy } from 'lodash'
 import type { CookieJar } from 'tough-cookie'
-import * as _ from 'lodash'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { NOT_USED_SLACK_URL } from './constants'
@@ -163,6 +163,7 @@ export default class SlackAPI {
     const { messages = [] } = response
     let replies = []
 
+    const participants: Participant[] = []
     const loadMessage = async (message: any) => {
       const { blocks, ts, reply_count, text, user: messageUser } = message
       const richElements = extractRichElements(blocks)
@@ -182,19 +183,23 @@ export default class SlackAPI {
       if (!user?.profile?.id) return
       if (message.bot_id) message.user = user.profile.id
 
+      const p = mapParticipant(user)
+      if (p) participants.push(p)
+    }
+    if (participants.length > 0) {
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
         mutationType: 'upsert',
         objectName: 'participant',
         objectIDs: { threadID: threadId },
-        entries: [mapParticipant(user)],
+        entries: participants,
       }])
     }
 
     await bluebird.map(messages, loadMessage)
 
     const aux = [...(messages as any[]), ...replies]
-    response.messages = _.uniqBy(aux, 'ts')
+    response.messages = uniqBy(aux, 'ts')
     return response
   }
 
