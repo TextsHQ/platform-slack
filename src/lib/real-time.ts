@@ -45,6 +45,34 @@ export default class SlackRealTime {
       }])
     })
 
+    this.rtm.on('channel_marked', slackEvent => {
+      const { num_mentions_display, unread_count_display } = slackEvent
+
+      this.onEvent([{
+        type: ServerEventType.STATE_SYNC,
+        objectIDs: {
+          threadID: slackEvent.channel,
+        },
+        mutationType: 'update',
+        objectName: 'thread',
+        entries: [{ isUnread: Boolean(unread_count_display > 0 || num_mentions_display > 0) }],
+      }])
+    })
+
+    this.rtm.on('im_marked', slackEvent => {
+      const { num_mentions_display, unread_count_display } = slackEvent
+
+      this.onEvent([{
+        type: ServerEventType.STATE_SYNC,
+        objectIDs: {
+          threadID: slackEvent.channel,
+        },
+        mutationType: 'update',
+        objectName: 'thread',
+        entries: [{ isUnread: Boolean(unread_count_display > 0 || num_mentions_display > 0) }],
+      }])
+    })
+
     await this.rtm.start()
   }
 
