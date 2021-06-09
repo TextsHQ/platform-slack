@@ -31,6 +31,7 @@ const info: PlatformInfo = {
     Attribute.SUPPORTS_DELETE_THREAD,
     Attribute.SORT_MESSAGES_ON_PUSH,
     Attribute.CAN_MESSAGE_USERNAME,
+    Attribute.SUPPORTS_EDIT_MESSAGE,
   ]),
 }
 
