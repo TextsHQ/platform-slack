@@ -74,6 +74,10 @@ export default class Slack implements PlatformAPI {
 
     const items = mapThreads(channels as any[], currentUser.id)
 
+    const participants = items.filter(item => ['group', 'single'].includes(item.type)).flatMap(item => item.participants.items) || []
+    const participantsIDs = participants.flatMap(item => item.id) || []
+    await this.realTimeApi.subscribeToPresence(participantsIDs)
+
     return {
       items,
       hasMore: items.length > 0 && Boolean(response_metadata?.next_cursor),
@@ -126,4 +130,6 @@ export default class Slack implements PlatformAPI {
   removeReaction = this.api.removeReaction
 
   editMessage = this.api.editMessage
+
+  getPresence = async () => this.realTimeApi.userPresence
 }
