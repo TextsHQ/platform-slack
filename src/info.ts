@@ -32,6 +32,7 @@ const info: PlatformInfo = {
     Attribute.SORT_MESSAGES_ON_PUSH,
     Attribute.CAN_MESSAGE_USERNAME,
     Attribute.SUPPORTS_EDIT_MESSAGE,
+    Attribute.SUPPORTS_PRESENCE,
   ]),
 }
 
