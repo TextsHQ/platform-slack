@@ -310,4 +310,28 @@ export default class SlackAPI {
     const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '')
     await this.webClient.reactions.remove({ name: emoji, channel: threadID, timestamp: messageID })
   }
+
+  editMessage = async (threadID: string, messageID: string, content: MessageContent): Promise<boolean> => {
+    let buffer: Buffer
+    let attachments: any[]
+    let file
+
+    if (content.mimeType) {
+      buffer = content.fileBuffer || await fs.readFile(content.filePath)
+
+      if (buffer) {
+        file = await this.webClient.files.upload({
+          file: buffer,
+          channels: threadID,
+          title: content.fileName,
+          filename: content.fileName,
+        }) || {}
+      }
+
+      attachments = [file.file] || []
+    }
+
+    await this.webClient.chat.update({ channel: threadID, ts: messageID, text: content.text, attachments })
+    return true
+  }
 }

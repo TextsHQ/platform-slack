@@ -124,4 +124,6 @@ export default class Slack implements PlatformAPI {
   addReaction = this.api.addReaction
 
   removeReaction = this.api.removeReaction
+
+  editMessage = this.api.editMessage
 }
