@@ -131,5 +131,5 @@ export default class Slack implements PlatformAPI {
 
   editMessage = this.api.editMessage
 
-  getPresence = async () => this.realTimeApi.userPresence
+  getPresence = () => this.realTimeApi.userPresence
 }

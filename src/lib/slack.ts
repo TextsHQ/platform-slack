@@ -134,6 +134,7 @@ export default class SlackAPI {
       const response = await this.webClient.conversations.replies({ channel: threadId, ts: messageId })
       return response?.messages as unknown[] || []
     } catch (error) {
+      texts.error(error)
       return []
     }
   }
