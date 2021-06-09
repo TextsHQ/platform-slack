@@ -52,12 +52,10 @@ export default class SlackRealTime {
 
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
-        objectIDs: {
-          threadID: slackEvent.channel,
-        },
+        objectIDs: {},
         mutationType: 'update',
         objectName: 'thread',
-        entries: [{ isUnread: Boolean(unread_count_display > 0 || num_mentions_display > 0) }],
+        entries: [{ id: slackEvent.channel, isUnread: Boolean(unread_count_display > 0 || num_mentions_display > 0) }],
       }])
     })
 
@@ -66,12 +64,10 @@ export default class SlackRealTime {
 
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
-        objectIDs: {
-          threadID: slackEvent.channel,
-        },
+        objectIDs: {},
         mutationType: 'update',
         objectName: 'thread',
-        entries: [{ isUnread: Boolean(unread_count_display > 0 || num_mentions_display > 0) }],
+        entries: [{ id: slackEvent.channel, isUnread: Boolean(unread_count_display > 0 || num_mentions_display > 0) }],
       }])
     })
 
