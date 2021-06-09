@@ -1,10 +1,12 @@
-import { OnServerEventCallback, ServerEventType } from '@textshq/platform-sdk'
+import { OnServerEventCallback, PresenceMap, ServerEventType } from '@textshq/platform-sdk'
 import { RTMClient } from '@slack/rtm-api'
 
 import type SlackAPI from './slack'
 
 export default class SlackRealTime {
   public rtm: RTMClient
+
+  public userPresence: PresenceMap = {}
 
   constructor(
     private api: SlackAPI,
@@ -73,7 +75,28 @@ export default class SlackRealTime {
       }])
     })
 
-    await this.rtm.start()
+    this.rtm.on('presence_change', slackEvent => {
+      const { user, presence } = slackEvent
+
+      this.onEvent([{
+        type: ServerEventType.USER_PRESENCE_UPDATED,
+        presence: {
+          userID: user,
+          isActive: presence === 'active',
+          lastActive: undefined,
+        },
+      }])
+    })
+
+    // This is added because Slack has changed their policies and now you'll need to subscribe for each user
+    // @see https://api.slack.com/changelog/2017-10-making-rtm-presence-subscription-only
+    // @ts-expect-error
+    await this.rtm.start({ batch_presence_aware: 1 })
+  }
+
+  subscribeToPresence = async (users: string[]): Promise<void> => {
+    const alreadySubscribed = Object.keys(this.userPresence)
+    await this.rtm.subscribePresence(users.filter(id => !alreadySubscribed.includes(id)))
   }
 
   dispose() {
