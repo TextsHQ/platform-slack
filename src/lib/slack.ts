@@ -163,13 +163,14 @@ export default class SlackAPI {
 
     const { messages = [] } = response
     let replies = []
-
     const participants: Participant[] = []
+
     const loadMessage = async (message: any) => {
       const { blocks, ts, reply_count, text, user: messageUser } = message
       const richElements = extractRichElements(blocks)
 
-      if (reply_count) replies = [...replies, ...(await this.messageReplies(threadId, ts) || [])]
+      const newReplies = await this.messageReplies(threadId, ts) || []
+      if (reply_count) replies = [...replies, ...newReplies]
 
       await bluebird.map(richElements, async element => {
         if (element.type !== 'user') return
@@ -188,6 +189,12 @@ export default class SlackAPI {
       const p = mapParticipant(user)
       if (p) participants.push(p)
     }
+
+    await bluebird.map(messages, loadMessage)
+
+    const aux = [...(messages as any[]), ...replies]
+    response.messages = uniqBy(aux, 'ts')
+
     if (participants.length > 0) {
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
@@ -198,10 +205,6 @@ export default class SlackAPI {
       }])
     }
 
-    await bluebird.map(messages, loadMessage)
-
-    const aux = [...(messages as any[]), ...replies]
-    response.messages = uniqBy(aux, 'ts')
     return response
   }
 
