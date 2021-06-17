@@ -316,7 +316,7 @@ export const mapProfile = (user: any): Participant => ({
 
 const mapThread = (slackChannel: any, currentUserId: string): Thread => {
   const messages: Message[] = slackChannel?.messages?.map(message => mapMessage(message, currentUserId)) || []
-  const participants = slackChannel.participants.map(mapParticipant).filter(Boolean) || []
+  const participants = slackChannel?.participants?.map(mapParticipant).filter(Boolean) || []
 
   const getType = () => {
     if (slackChannel.is_group) return 'group'
@@ -327,7 +327,7 @@ const mapThread = (slackChannel: any, currentUserId: string): Thread => {
     _original: JSON.stringify(slackChannel),
     id: slackChannel.id,
     type: getType(),
-    title: slackChannel?.name || participants[0].username || slackChannel?.user,
+    title: slackChannel?.name || participants[0]?.username || slackChannel?.user,
     // FIXME: Slack doesn't have the last activity date. So if the thread doesn't have the first message,
     // it'll set 1970 as the timestamp.
     timestamp: messages[0]?.timestamp || slackChannel?.timestamp || new Date(0),
