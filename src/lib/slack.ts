@@ -1,4 +1,4 @@
-import { WebClient } from '@slack/web-api'
+import { WebAPICallResult, WebClient } from '@slack/web-api'
 import bluebird from 'bluebird'
 import { promises as fs } from 'fs'
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant } from '@textshq/platform-sdk'
@@ -86,6 +86,7 @@ export default class SlackAPI {
 
   loadPrivateMessage = async (thread: any, currentUser: any) => {
     const { id, user: userId } = thread
+
     const [user, threadInfo] = await Promise.all([
       this.getParticipantProfile(userId),
       this.webClient.conversations.info({ channel: id }),
@@ -97,33 +98,61 @@ export default class SlackAPI {
     thread.timestamp = new Date(Number(channel?.last_read) * 1000) || new Date(channel?.created) || undefined
     thread.unread = channel?.unread_count || undefined
     thread.messages = [channel?.latest].filter(x => x?.ts) || []
-    thread.participants = [user, currentUser] || []
+    thread.participants = (thread?.is_im || thread?.is_shared) ? [user] : []
+    // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
+    thread.name = thread?.is_mpim ? thread?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
   }
 
   getThreads = async (cursor = undefined, threadTypes: ThreadType[] = []) => {
     const currentUser = await this.getCurrentUser()
-    const types = threadTypes.map(t => {
-      if (t === 'dm') return 'im'
-      if (t === 'channel') return 'public_channel'
-      return undefined
-    }).join(',')
+    let response: any = { channels: [] }
+    // This is done this way because Slack's API doesn't support all requests for guests
+    // for those cases we'll use some deprecated endpoints (such as im, mpim and channels)
+    // but this will allow us to retrieve all the data for guest users.
+    // In case user is not a guest we'll use the latest method suggested by Slack team
+    // conversation
+    // We cannot use users.conversations neither (this could change in a future)
+    // @see https://api.slack.com/docs/conversations-api
+    // @see https://api.slack.com/methods/channels.list
+    // @ts-expect-error
+    if (currentUser?.profile?.guest_invited_by) {
+      if (threadTypes.includes('dm')) {
+        const { ims = [], response_metadata: imMetadata } = (await this.webClient.im.list()) as any
+        const { groups = [], response_metadata: groupsMetadata } = (await this.webClient.mpim.list()) as any
+        response.channels = [...response.channels, ...groups, ...ims]
+        response.response_metadata = groupsMetadata || imMetadata || {}
+      }
 
-    const response = await this.webClient.conversations.list({
-      // This is done this way because if you're a guest on a workspace you won't
-      // be able to get public_channels and will raise an error. This should be
-      // refactored in a future version and maybe get the scopes available for the user.
-      // @ts-expect-error
-      types: currentUser?.profile?.guest_invited_by ? 'im' : types,
-      limit: 10,
-      cursor: cursor || undefined,
-      exclude_archived: true,
-    })
+      if (threadTypes.includes('channel')) {
+        const { channels = [], response_metadata: channelsMetadata } = (await this.webClient.channels.list()) as any
+        response.channels = [...response.channels, ...channels]
+        response.response_metadata = channelsMetadata || response.response_metadata || {}
+      }
+    } else {
+      const types = threadTypes.map(t => {
+        if (t === 'dm') return ['mpim', 'im'].join(',')
+        if (t === 'channel') return ['public_channel', 'private_channel'].join(',')
+        return undefined
+      }).join(',')
 
-    const privateMessages = threadTypes.includes('dm') ? (response.channels as any[]).filter(({ is_im }: { is_im: boolean }) => is_im) : []
-    const publicChannels = threadTypes.includes('channel') ? (response.channels as any[]).filter(({ is_channel, is_member }: { is_channel: boolean; is_member: boolean }) => is_channel && is_member) : []
+      response = await this.webClient.conversations.list({
+        types,
+        limit: 10,
+        cursor: cursor || undefined,
+        exclude_archived: true,
+      })
+    }
+
+    const privateMessages = threadTypes.includes('dm')
+      ? (response.channels as any[]).filter(({ is_im, is_mpim }: { is_im: boolean; is_mpim?: boolean }) => is_im || is_mpim)
+      : []
+
+    const publicChannels = threadTypes.includes('channel')
+      ? (response.channels as any[]).filter(({ is_channel, is_member }: { is_channel: boolean; is_member: boolean }) => is_channel && is_member)
+      : []
 
     await bluebird.map(publicChannels, this.loadPublicChannel)
-    await bluebird.map(privateMessages, t => this.loadPrivateMessage(t, currentUser))
+    await bluebird.map(privateMessages, this.loadPrivateMessage)
 
     response.channels = [...privateMessages, ...publicChannels]
     return response
@@ -179,9 +208,10 @@ export default class SlackAPI {
 
       if (typeof text === 'string') message.text = await this.loadMentions(text)
 
+      // if (message?.user && !message?.user_profile) message.user_profile = await this.getParticipantProfile(message.user)
       const sharedParticipant = message?.user_profile ? { profile: { ...message.user_profile, id: `${message.user_profile?.team}-${message.user_profile?.avatar_hash}` } } : undefined
       // B01 === "Slackbot" but slack bot isn't a bot on slack so normal profile needs to be fetched instead the bot
-      const user = sharedParticipant || (message?.bot_id && message?.bot_id !== 'B01' ? await this.getParticipantBot(message.bot_id) : await this.getParticipantProfile(messageUser))
+      const user = sharedParticipant || (message?.bot_id && message?.bot_id !== 'B01' && !message?.user ? await this.getParticipantBot(message.bot_id) : await this.getParticipantProfile(messageUser))
 
       if (!user?.profile?.id) return
       if (message.bot_id) message.user = user.profile.id
@@ -210,8 +240,17 @@ export default class SlackAPI {
 
   getParticipantProfile = async (userId: string) => {
     if (this.workspaceUsers[userId]) return this.workspaceUsers[userId]
-    // TODO: Handle error when user is from a different team
-    const user: any = await this.webClient.users.profile.get({ user: userId }).catch(_ => ({}))
+
+    const user: any = await this.webClient.users.profile
+      .get({ user: userId })
+      .catch(async () => {
+        // Usually this is when the user is from another team, but this returns the user information
+        // instead of the full profile
+        // @see https://api.slack.com/methods/users.info
+        const info = await this.webClient.users.info({ user: userId })
+        return info.user
+      })
+
     if (!user.profile) return {}
 
     user.profile.id = userId
