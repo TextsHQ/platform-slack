@@ -68,6 +68,8 @@ export default class SlackAPI {
     // @ts-expect-error
     user.profile.id = auth.user_id
 
+    console.log({ ...user, ...(team || {}) })
+
     return { ...user, ...(team || {}) }
   }
 
