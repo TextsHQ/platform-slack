@@ -267,10 +267,14 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
   ]
 
   const mappedText = replaceLinks(mapNativeEmojis(blocks.mappedText) || text)
-  const textAttributes: TextAttributes = { entities: [
-    ...(blocks.textAttributes.entities || []),
-    ...(mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text).entities || []),
-  ] }
+
+  const textAttributes: TextAttributes = {
+    entities: [
+      ...(blocks.textAttributes.entities || []),
+      ...(mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text).entities || []),
+    ],
+    heDecode: true,
+  }
 
   return {
     _original: JSON.stringify(slackMessage),
