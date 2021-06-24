@@ -1,4 +1,4 @@
-import { WebAPICallResult, WebClient } from '@slack/web-api'
+import { WebClient } from '@slack/web-api'
 import bluebird from 'bluebird'
 import { promises as fs } from 'fs'
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant } from '@textshq/platform-sdk'
