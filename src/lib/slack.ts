@@ -125,7 +125,8 @@ export default class SlackAPI {
 
       if (threadTypes.includes('channel')) {
         const { channels = [], response_metadata: channelsMetadata } = (await this.webClient.channels.list()) as any
-        response.channels = [...response.channels, ...channels]
+        const { channels: privateChannels = [] } = (await this.webClient.conversations.list()) as any
+        response.channels = [...response.channels, ...channels, ...privateChannels]
         response.response_metadata = channelsMetadata || response.response_metadata || {}
       }
     } else {
