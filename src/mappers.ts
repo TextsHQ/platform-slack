@@ -73,6 +73,38 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   return [...richElements, ...sectionElements, ...calls]
 }
 
+const getQuotesEntities = (text: string): TextEntity[] => {
+  if (!text.includes('&gt;')) return []
+
+  const quotesEntities: TextEntity[] = []
+
+  if (text.slice(0, 4) === '&gt;') {
+    quotesEntities.push({
+      from: 4,
+      to: text.includes('\n') ? text.indexOf('\n') : text.length - 1,
+      quote: true,
+    })
+  }
+
+  const newLineQuotes = text.match(/(\n&gt;)/g) || []
+  let previousFrom = 0
+
+  for (const _ of newLineQuotes) {
+    const from = text.indexOf('&gt;', previousFrom) + 4
+    const to = text.indexOf('\n', from)
+
+    quotesEntities.push({
+      from,
+      to: to || text.length - 1,
+      quote: true,
+    })
+
+    previousFrom = from
+  }
+
+  return quotesEntities
+}
+
 const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
   const attachments = slackBlocks?.map(mapAttachmentBlock).filter(x => Boolean(x))
   const richElements = extractRichElements(slackBlocks)
@@ -155,7 +187,7 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
 
   return {
     attachments,
-    textAttributes: { entities },
+    textAttributes: { entities: [...entities, ...getQuotesEntities(mappedText)] },
     mappedText,
     buttons,
   }
