@@ -73,44 +73,51 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   return [...richElements, ...sectionElements, ...calls]
 }
 
-const getQuotesEntities = (text: string): TextEntity[] => {
-  if (!text.includes('&gt;')) return []
+const getQuotesEntities = (text: string): { entities: TextEntity[], mappedText: string, offset: number } => {
+  if (!text.includes('&gt;')) return { entities: [], mappedText: text, offset: 0 }
 
   const quotesEntities: TextEntity[] = []
+  let mappedText = text
+  let offset = 0
 
   if (text.slice(0, 4) === '&gt;') {
+    mappedText = text.slice(4)
+    offset += 4
+
     quotesEntities.push({
-      from: 4,
-      to: text.includes('\n') ? text.indexOf('\n') : text.length - 1,
+      from: 0,
+      to: mappedText.includes('\n') ? mappedText.indexOf('\n') : mappedText.length - 1,
       quote: true,
     })
   }
 
-  const newLineQuotes = text.match(/(\n&gt;)/g) || []
+  const newLineQuotes = mappedText.match(/(\n&gt;)/g) || []
   let previousFrom = 0
 
   for (const _ of newLineQuotes) {
-    const from = text.indexOf('&gt;', previousFrom) + 4
-    const to = text.indexOf('\n', from)
+    const from = mappedText.indexOf('&gt;', previousFrom)
+    const to = mappedText.indexOf('\n', from)
 
     quotesEntities.push({
       from,
-      to: to || text.length - 1,
+      to: to || mappedText.length - 1,
       quote: true,
     })
 
     previousFrom = from
+    mappedText = `${mappedText.slice(0, from)}${mappedText.slice(from + 5)}`
+    offset += 5
   }
 
-  return quotesEntities
+  return { entities: quotesEntities, mappedText, offset }
 }
 
 const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
   const attachments = slackBlocks?.map(mapAttachmentBlock).filter(x => Boolean(x))
   const richElements = extractRichElements(slackBlocks)
 
-  const entities: TextEntity[] = []
   let mappedText = text
+  const entities: TextEntity[] = []
   const buttons: MessageButton[] = []
 
   for (const element of richElements) {
@@ -185,10 +192,17 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
     }
   }
 
+  const quotesEntities = getQuotesEntities(mappedText)
+  const entitiesWithQuotesOffset = entities.map(entity => ({
+    ...entity,
+    from: entity.from - quotesEntities.offset,
+    to: entity.to - quotesEntities.offset,
+  }))
+
   return {
     attachments,
-    textAttributes: { entities: [...entities, ...getQuotesEntities(mappedText)] },
-    mappedText,
+    textAttributes: { entities: [...entitiesWithQuotesOffset, ...quotesEntities.entities] },
+    mappedText: quotesEntities.mappedText,
     buttons,
   }
 }
