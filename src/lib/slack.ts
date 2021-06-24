@@ -124,10 +124,11 @@ export default class SlackAPI {
       }
 
       if (threadTypes.includes('channel')) {
-        const { channels = [], response_metadata: channelsMetadata } = (await this.webClient.channels.list()) as any
-        const { channels: privateChannels = [] } = (await this.webClient.conversations.list()) as any
-        response.channels = [...response.channels, ...channels, ...privateChannels]
-        response.response_metadata = channelsMetadata || response.response_metadata || {}
+        const promises = [this.webClient.channels.list(), this.webClient.conversations.list()]
+        const results = await Promise.all(promises)
+
+        response.channels = [...response.channels, ...(results[0] as any).channels, ...(results[1] as any).channels]
+        response.response_metadata = results[0].response_metadata || results[1].response_metadata || response.response_metadata || {}
       }
     } else {
       const types = threadTypes.map(t => {
