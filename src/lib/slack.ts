@@ -1,7 +1,7 @@
 import { WebClient } from '@slack/web-api'
 import bluebird from 'bluebird'
 import { promises as fs } from 'fs'
-import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant } from '@textshq/platform-sdk'
+import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ReAuthError } from '@textshq/platform-sdk'
 import { uniqBy } from 'lodash'
 import type { CookieJar } from 'tough-cookie'
 
@@ -45,6 +45,9 @@ export default class SlackAPI {
     const workspacesBody = workspacesBodyBuffer.toString('utf-8')
     const filteredSlackWorkspaces = [NOT_USED_SLACK_URL, 'dev.slack.com']
     const alreadyConnectedUrls = workspacesBody?.match(/([a-zA-Z0-9-]+\.slack\.com)/g).filter((url: string) => !filteredSlackWorkspaces.includes(url)) || []
+    // If there's no already connected Slack workspace (on the browser) this will raise an error.
+    // TODO: Add error message
+    if (!alreadyConnectedUrls || !alreadyConnectedUrls?.length) throw new ReAuthError()
     // Since the browser is initialized with fresh and new cookies and cache, the wanted workspace would be
     // in the first place
     const firstWorkspace = alreadyConnectedUrls[0] || ''
