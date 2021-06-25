@@ -92,7 +92,7 @@ const getQuotesEntities = (text: string): { entities: TextEntity[], mappedText: 
   }
 
   const newLineQuotes = mappedText.match(/(\n&gt;)/g) || []
-  let previousFrom = 0
+  let previousFrom = mappedText.indexOf('\n&gt;') || 0
 
   for (const _ of newLineQuotes) {
     const from = mappedText.indexOf('&gt;', previousFrom)
@@ -100,12 +100,12 @@ const getQuotesEntities = (text: string): { entities: TextEntity[], mappedText: 
 
     quotesEntities.push({
       from,
-      to: to || mappedText.length - 1,
+      to: (to - 5) || mappedText.length - 1,
       quote: true,
     })
 
-    previousFrom = from
     mappedText = `${mappedText.slice(0, from)}${mappedText.slice(from + 5)}`
+    previousFrom = from
     offset += 5
   }
 
