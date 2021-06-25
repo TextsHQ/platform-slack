@@ -208,10 +208,24 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
 }
 
 export const mapAction = (slackMessage: any): MessageAction => {
-  if (slackMessage?.subtype !== 'channel_join') return
+  const actions = ['channel_join', 'channel_leave']
+  if (!actions.includes(slackMessage?.subtype)) return
+
+  const type: MessageActionType = (() => {
+    switch (slackMessage.subtype) {
+      case 'channel_join':
+        return MessageActionType.THREAD_PARTICIPANTS_ADDED
+
+      case 'channel_leave':
+        return MessageActionType.THREAD_PARTICIPANTS_REMOVED
+
+      default:
+        break
+    }
+  })()
 
   return {
-    type: MessageActionType.THREAD_PARTICIPANTS_ADDED,
+    type,
     participantIDs: [slackMessage?.user],
     actorParticipantID: slackMessage?.user,
   }
