@@ -1,0 +1,42 @@
+{
+  "type": "message",
+  "subtype": "message_changed",
+  "hidden": true,
+  "message": {
+    "type": "message",
+    "text": "ajksndjkad",
+    "user": "U01PR3VAPK8",
+    "team": "T01QMMLU7JL",
+    "edited": {
+      "user": "U01PR3VAPK8",
+      "ts": "1624739788.000000"
+    },
+    "blocks": [
+      [
+        null
+      ]
+    ],
+    "ts": "1624739313.001100",
+    "source_team": "T01QMMLU7JL",
+    "user_team": "T01QMMLU7JL"
+  },
+  "channel": "D01PH3YQE31",
+  "previous_message": {
+    "type": "message",
+    "text": "asdjkanskdj",
+    "user": "U01PR3VAPK8",
+    "ts": "1624739313.001100",
+    "team": "T01QMMLU7JL",
+    "edited": {
+      "user": "U01PR3VAPK8",
+      "ts": "1624739744.000000"
+    },
+    "blocks": [
+      [
+        null
+      ]
+    ]
+  },
+  "event_ts": "1624739788.001500",
+  "ts": "1624739788.001500"
+}

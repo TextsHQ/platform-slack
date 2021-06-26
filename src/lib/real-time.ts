@@ -14,9 +14,10 @@ export default class SlackRealTime {
   ) {}
 
   subscribeToEvents = async (): Promise<void> => {
-    const token = this.api.userToken
-    this.rtm = new RTMClient(token)
+    this.rtm = new RTMClient(this.api.userToken)
 
+    // fixtures/message_rtm_event.json
+    // fixtures/messase_changed_rtm_event.json
     this.rtm.on('message', slackEvent => {
       this.onEvent([{
         type: ServerEventType.THREAD_MESSAGES_REFRESH,
