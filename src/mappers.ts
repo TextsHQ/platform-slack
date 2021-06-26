@@ -73,40 +73,57 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   return [...richElements, ...sectionElements, ...calls]
 }
 
+/**
+ * FIXME: This NEEDS to be refactored and fixed. It uses a lot of logic that needs to be generalized and documented
+ *
+ * @param text
+ * @returns
+ */
 const getQuotesEntities = (text: string): { entities: TextEntity[], mappedText: string, offset: number } => {
   if (!text.includes('&gt;')) return { entities: [], mappedText: text, offset: 0 }
 
   const quotesEntities: TextEntity[] = []
-  let mappedText = text
+  let mappedText = text.replace(/&gt;/g, '>')
   let offset = 0
 
-  if (text.slice(0, 4) === '&gt;') {
-    mappedText = text.slice(4)
-    offset += 4
+  if (mappedText[0] === '>') {
+    mappedText = mappedText.slice(2)
+    offset += 5
+
+    const to = mappedText.includes('\n') ? Array.from(mappedText).indexOf('\n') : Array.from(mappedText).length
+    const isLink = mappedText.slice(0, to + 1).startsWith('<') && mappedText.slice(0, to).endsWith('>')
 
     quotesEntities.push({
       from: 0,
-      to: mappedText.includes('\n') ? mappedText.indexOf('\n') : mappedText.length - 1,
+      to: isLink ? to - 2 : to,
       quote: true,
     })
   }
 
-  const newLineQuotes = mappedText.match(/(\n&gt;)/g) || []
-  let previousFrom = mappedText.indexOf('\n&gt;') || 0
+  const newLineQuotes = mappedText.match(/(\n>)/g) || []
+  let previousFrom = Array.from(mappedText).indexOf('>') || 0
+  let counter = 1
 
-  for (const _ of newLineQuotes) {
-    const from = mappedText.indexOf('&gt;', previousFrom)
-    const to = mappedText.indexOf('\n', from)
+  while (counter <= newLineQuotes.length) {
+    const arrayText = Array.from(mappedText)
 
-    quotesEntities.push({
-      from,
-      to: (to - 5) || mappedText.length - 1,
-      quote: true,
-    })
+    const from = arrayText.indexOf('>', previousFrom)
+    const to = arrayText.indexOf('\n', from)
 
-    mappedText = `${mappedText.slice(0, from)}${mappedText.slice(from + 5)}`
-    previousFrom = from
-    offset += 5
+    if (arrayText[from - 1] === '\n') {
+      quotesEntities.push({
+        from,
+        to: to > 0 ? to : Array.from(mappedText).length,
+        quote: true,
+      })
+
+      mappedText = `${arrayText.slice(0, from).join('')}${arrayText.slice(from + 1).join('')}`
+      previousFrom = from
+      // offset += 2
+      counter += 1
+    } else {
+      previousFrom += 1
+    }
   }
 
   return { entities: quotesEntities, mappedText, offset }
