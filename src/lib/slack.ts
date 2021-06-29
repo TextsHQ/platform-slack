@@ -30,7 +30,8 @@ export default class SlackAPI {
 
     const token = clientToken || await this.getClientToken()
 
-    const client = new WebClient(token)
+    const cookie = await cookieJar.getCookieString('https://slack.com')
+    const client = new WebClient(token, { headers: { cookie } })
 
     this.userToken = token
     this.webClient = client
