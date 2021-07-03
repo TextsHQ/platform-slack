@@ -4,19 +4,20 @@ import { EMOTES } from './emotes'
 import { removeCharactersAfterAndBefore } from './util'
 
 const mapAttachment = (slackAttachment: any): MessageAttachment => {
+  if (!slackAttachment) return
   const type = (() => {
-    if (slackAttachment?.mimetype?.startsWith('image')) return MessageAttachmentType.IMG
-    if (slackAttachment?.mimetype?.startsWith('video')) return MessageAttachmentType.VIDEO
-    if (slackAttachment?.mimetype?.startsWith('audio')) return MessageAttachmentType.AUDIO
+    if (slackAttachment.mimetype?.startsWith('image')) return MessageAttachmentType.IMG
+    if (slackAttachment.mimetype?.startsWith('video')) return MessageAttachmentType.VIDEO
+    if (slackAttachment.mimetype?.startsWith('audio')) return MessageAttachmentType.AUDIO
     return MessageAttachmentType.UNKNOWN
   })()
 
   return {
-    id: slackAttachment?.id,
-    fileName: slackAttachment?.name,
+    id: slackAttachment.id,
+    fileName: slackAttachment.name,
     type,
-    srcURL: 'asset://$accountID/proxy/' + Buffer.from(slackAttachment?.url_private).toString('hex'),
-    mimeType: slackAttachment?.mimetype,
+    srcURL: 'asset://$accountID/proxy/' + Buffer.from(slackAttachment.url_private).toString('hex'),
+    mimeType: slackAttachment.mimetype,
   }
 }
 
