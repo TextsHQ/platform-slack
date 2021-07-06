@@ -1,17 +1,19 @@
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
-import { EMOTE_REGEX, LINK_REGEX, SLACK_THREAD_REGEX } from './constants'
+import { BOLD_REGEX, EMOTE_REGEX, LINK_REGEX } from './constants'
 import { EMOTES } from './emotes'
 import { removeCharactersAfterAndBefore } from './util'
 
-const mapAttachment = (slackAttachment: any): MessageAttachment => {
-  if (!slackAttachment) return
-  const type = (() => {
-    if (slackAttachment.mimetype?.startsWith('image')) return MessageAttachmentType.IMG
-    if (slackAttachment.mimetype?.startsWith('video')) return MessageAttachmentType.VIDEO
-    if (slackAttachment.mimetype?.startsWith('audio')) return MessageAttachmentType.AUDIO
-    return MessageAttachmentType.UNKNOWN
-  })()
+const getAttachmentType = (mimeType: string): MessageAttachmentType => {
+  if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
+  if (mimeType?.startsWith('video')) return MessageAttachmentType.VIDEO
+  if (mimeType?.startsWith('audio')) return MessageAttachmentType.AUDIO
+  return MessageAttachmentType.UNKNOWN
+}
 
+const mapAttachment = (slackAttachment: any): MessageAttachment => {
+  if (!slackAttachment || slackAttachment?.mimetype) return
+
+  const type = getAttachmentType(slackAttachment.mimetype)
   return {
     id: slackAttachment.id,
     fileName: slackAttachment.name,
@@ -30,13 +32,7 @@ const mapAttachmentBlock = (slackBlock: any) => {
   const { type: slackType } = slackBlock
   if (slackType !== 'image') return
 
-  const type = (() => {
-    if (slackType?.startsWith('image')) return MessageAttachmentType.IMG
-    if (slackType?.startsWith('video')) return MessageAttachmentType.VIDEO
-    if (slackType?.startsWith('audio')) return MessageAttachmentType.AUDIO
-    return MessageAttachmentType.UNKNOWN
-  })()
-
+  const type = getAttachmentType(slackType)
   return {
     id: slackBlock.image_url,
     type,
@@ -130,13 +126,35 @@ const getQuotesEntities = (text: string): { entities: TextEntity[], mappedText: 
   return { entities: quotesEntities, mappedText, offset }
 }
 
+const mapTextWithoutBlocks = (text: string) => {
+  const entities: TextEntity[] = []
+
+  let mappedText = text
+  const boldElements = text.match(BOLD_REGEX) || []
+
+  for (const element of boldElements) {
+    const onlyText = element.slice(1, -1)
+    mappedText = removeCharactersAfterAndBefore(mappedText, onlyText)
+    const from = mappedText.indexOf(onlyText)
+    entities.push({ from, to: from + onlyText.length, bold: true })
+  }
+
+  return { entities, text: mappedText }
+}
+
 const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
   const attachments = slackBlocks?.map(mapAttachmentBlock).filter(x => Boolean(x))
   const richElements = extractRichElements(slackBlocks)
 
   let mappedText = text
-  const entities: TextEntity[] = []
+  let entities: TextEntity[] = []
   const buttons: MessageButton[] = []
+
+  if (!richElements?.length && text) {
+    const mappedWithoutBlocks = mapTextWithoutBlocks(text)
+    entities = mappedWithoutBlocks.entities
+    mappedText = mappedWithoutBlocks.text
+  }
 
   for (const element of richElements) {
     const { type = '', style, text: blockText, url: blockUrl, user_id: blockUser, profile: blockProfile, name: blockEmojiName } = element
@@ -264,9 +282,9 @@ const mapNativeEmojis = (text: string): string => {
   return mappedText
 }
 
-const mapTextWithLinkEntities = (slackText: string): TextAttributes => {
+const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttributes, text: string } => {
   const found = slackText?.match(LINK_REGEX)
-  if (!found) return {}
+  if (!found) return { attributes: {}, text: slackText }
 
   const entities: TextEntity[] = []
   let finalText = slackText
@@ -278,32 +296,14 @@ const mapTextWithLinkEntities = (slackText: string): TextAttributes => {
     const text = linkAndText.includes('|') ? linkAndText.split('|').pop() : ''
     const link = linkAndText.includes('|') ? linkAndText.split('|')[0] : linkAndText
 
-    if (text) finalText = finalText.replace(`${link}|`, '')
+    if (text) finalText = finalText.replace(`${link}|`, link.includes('#') ? '#' : '')
 
     const from = text ? finalText.indexOf(text) : finalText.indexOf(link)
     const to = from + (text ? text.length : link.length)
     entities.push({ from, to, link })
   }
 
-  return { entities }
-}
-
-const replaceLinks = (slackText: string): string => {
-  const found = [...(slackText?.match(LINK_REGEX) || []), ...(slackText?.match(SLACK_THREAD_REGEX) || [])]
-  if (!found?.length) return slackText
-  let finalText = slackText
-
-  for (const linkFound of found) {
-    const linkAndText = linkFound.slice(1, linkFound.length - 1)
-    finalText = removeCharactersAfterAndBefore(finalText, linkAndText)
-
-    const text = linkAndText.includes('|') ? linkAndText.split('|').pop() : ''
-    const link = linkAndText.includes('|') ? linkAndText.split('|')[0] : linkAndText
-
-    if (text) finalText = finalText.replace(`${link}|`, link.includes('#') ? '#' : '')
-  }
-
-  return finalText
+  return { attributes: { entities }, text: finalText }
 }
 
 const mapReactions = (
@@ -327,16 +327,22 @@ const mapReactions = (
   }))
 }
 
+const mapAttachmentsText = (attachments: any[]): string => attachments
+  .reduce((prev: string, current: Record<string, string>) => `${prev}${current?.pretext ? `\n${current?.pretext}` : ''}\n&gt; ${current?.text}`, '')
+  // Remove the first character '\n'
+  .slice(1)
+
 export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any[] = []): Message => {
   const date = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id || 'none'
 
   const text = mapNativeEmojis(slackMessage?.text)
     || mapNativeEmojis(slackMessage?.attachments?.map(attachment => attachment.title).join(' '))
+    || mapNativeEmojis(mapAttachmentsText(slackMessage?.attachments))
     || ''
   // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
   // we avoid to concatenate that to the real message (divided in sections).
-  const blocksText = slackMessage?.subtype !== 'bot_message' ? text : ''
+  const blocksText = text !== "This content can't be displayed" ? text : ''
   const blocks = mapBlocks(slackMessage?.blocks, blocksText, emojis)
 
   const attachments = [
@@ -344,15 +350,17 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
     ...(blocks.attachments || []),
   ]
 
-  const mappedText = replaceLinks(mapNativeEmojis(blocks.mappedText) || text)
+  const links = mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text)
 
   const textAttributes: TextAttributes = {
     entities: [
       ...(blocks.textAttributes.entities || []),
-      ...(mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text).entities || []),
+      ...(links.attributes.entities || []),
     ],
     heDecode: true,
   }
+
+  const mappedText = links.text
 
   return {
     _original: JSON.stringify(slackMessage),
@@ -405,6 +413,7 @@ const mapThread = (slackChannel: any, currentUserId: string): Thread => {
     if (slackChannel.is_channel) return 'channel'
     return 'single'
   }
+
   return {
     _original: JSON.stringify(slackChannel),
     id: slackChannel.id,
