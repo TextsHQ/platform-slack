@@ -11,7 +11,7 @@ const getAttachmentType = (mimeType: string): MessageAttachmentType => {
 }
 
 const mapAttachment = (slackAttachment: any): MessageAttachment => {
-  if (!slackAttachment || slackAttachment?.mimetype) return
+  if (!slackAttachment || !slackAttachment?.mimetype) return
 
   const type = getAttachmentType(slackAttachment.mimetype)
   return {
@@ -24,7 +24,7 @@ const mapAttachment = (slackAttachment: any): MessageAttachment => {
 }
 
 const mapAttachments = (slackAttachments: any[]): MessageAttachment[] => {
-  if (!slackAttachments) return []
+  if (!slackAttachments?.length) return []
   return slackAttachments.map(mapAttachment)
 }
 
@@ -327,10 +327,14 @@ const mapReactions = (
   }))
 }
 
-const mapAttachmentsText = (attachments: any[]): string => attachments
-  .reduce((prev: string, current: Record<string, string>) => `${prev}${current?.pretext ? `\n${current?.pretext}` : ''}\n&gt; ${current?.text}`, '')
-  // Remove the first character '\n'
-  .slice(1)
+const mapAttachmentsText = (attachments: any[]): string => {
+  if (!attachments?.length) return ''
+
+  return attachments
+    .reduce((prev: string, current: Record<string, string>) => `${prev}${current?.pretext ? `\n${current?.pretext}` : ''}\n&gt; ${current?.text}`, '')
+    // Remove the first character '\n'
+    .slice(1)
+}
 
 export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any[] = []): Message => {
   const date = new Date(Number(slackMessage?.ts) * 1000)
