@@ -89,6 +89,12 @@ export default class SlackRealTime {
     // @see https://api.slack.com/changelog/2017-10-making-rtm-presence-subscription-only
     // @ts-expect-error
     await this.rtm.start({ batch_presence_aware: 1 })
+    // @see https://github.com/slackapi/node-slack-sdk/issues/842#issuecomment-606009261
+    process.on('SIGINT', () => {
+      this.rtm.disconnect()
+        .then(() => { this.rtm.disconnect() })
+        .catch(console.error)
+    })
   }
 
   subscribeToPresence = async (users: string[]): Promise<void> => {
