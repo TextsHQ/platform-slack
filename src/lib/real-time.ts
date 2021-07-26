@@ -1,4 +1,4 @@
-import { OnServerEventCallback, PresenceMap, ServerEventType } from '@textshq/platform-sdk'
+import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType } from '@textshq/platform-sdk'
 import { RTMClient } from '@slack/rtm-api'
 
 import type SlackAPI from './slack'
@@ -27,10 +27,11 @@ export default class SlackRealTime {
 
     this.rtm.on('user_typing', slackEvent => {
       this.onEvent([{
-        type: ServerEventType.PARTICIPANT_TYPING,
+        type: ServerEventType.USER_ACTIVITY,
+        activityType: ActivityType.TYPING,
         threadID: slackEvent?.channel,
         participantID: slackEvent?.user,
-        typing: true,
+        durationMs: 5000, // todo review
       }])
     })
 
