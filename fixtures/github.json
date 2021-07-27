@@ -1,0 +1,41 @@
+{
+  "bot_id": "B029B8L4FH9",
+  "type": "message",
+  "text": "You have successfully installed GitHub on this Slack workspace!",
+  "user": "U029H8LGP4L",
+  "ts": "1627397685.000100",
+  "team": "T01QMMLU7JL",
+  "bot_profile": {
+    "id": "B029B8L4FH9",
+    "deleted": false,
+    "name": "GitHub",
+    "updated": 1627397684,
+    "app_id": "A01BP7R4KNY",
+    "icons": {
+      "image_36": "https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_36.png",
+      "image_48": "https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_48.png",
+      "image_72": "https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_72.png"
+    },
+    "team_id": "T01QMMLU7JL"
+  },
+  "blocks": [
+    {
+      "type": "section",
+      "block_id": "a6Ol",
+      "text": {
+        "type": "plain_text",
+        "text": "You've successfully installed GitHub on this Slack workspace :tada:\nTo subscribe a channel to a repository use the following slash command:\n/github subscribe owner/repository\n",
+        "emoji": true
+      }
+    },
+    {
+      "type": "section",
+      "block_id": "hBiw",
+      "text": {
+        "type": "plain_text",
+        "text": "Looking for additional help? Try /github help",
+        "emoji": true
+      }
+    }
+  ]
+}
