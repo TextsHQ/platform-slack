@@ -22,7 +22,7 @@ export default class SlackAPI {
 
   emojis: any[]
 
-  workspaceUsers: Record<string, unknown> = {}
+  workspaceUsers: Record<string, any> = {}
 
   setLoginState = async (cookieJar: CookieJar, clientToken: string = '') => {
     if (!cookieJar && !clientToken) throw TypeError()
@@ -164,12 +164,13 @@ export default class SlackAPI {
     return response
   }
 
-  messageReplies = async (threadId: string, messageId: string): Promise<unknown[]> => {
+  messageReplies = async (threadId: string, messageId: string) => {
     try {
       const response = await this.webClient.conversations.replies({ channel: threadId, ts: messageId })
-      return response?.messages as unknown[] || []
+      return response?.messages as any[] || []
     } catch (error) {
       texts.error(error)
+      texts.Sentry.captureException(error)
       return []
     }
   }
@@ -215,7 +216,9 @@ export default class SlackAPI {
       if (typeof text === 'string') message.text = await this.loadMentions(text)
 
       // if (message?.user && !message?.user_profile) message.user_profile = await this.getParticipantProfile(message.user)
-      const sharedParticipant = message?.user_profile ? { profile: { ...message.user_profile, id: `${message.user_profile?.team}-${message.user_profile?.avatar_hash}` } } : undefined
+      const sharedParticipant = message?.user_profile
+        ? { profile: { ...message.user_profile, id: `${message.user_profile?.team}-${message.user_profile?.avatar_hash}` } }
+        : undefined
       // B01 === "Slackbot" but slack bot isn't a bot on slack so normal profile needs to be fetched instead the bot
       const user = sharedParticipant || (message?.bot_id && message?.bot_id !== 'B01' && !message?.user ? await this.getParticipantBot(message.bot_id) : await this.getParticipantProfile(messageUser))
 
@@ -270,7 +273,7 @@ export default class SlackAPI {
     const bot: any = await this.webClient.bots.info({ bot: botId })
 
     const keys = Object.keys(this.workspaceUsers)
-    const foundKey = keys.find(key => (this.workspaceUsers[key] as any)?.profile?.api_app_id === bot.bot.app_id)
+    const foundKey = keys.find(key => this.workspaceUsers[key]?.profile?.api_app_id === bot.bot.app_id)
     const user: any = this.workspaceUsers[foundKey] || {}
 
     const participant = { profile: { ...bot.bot, ...(user?.profile || {}), id: bot.bot.app_id } }
