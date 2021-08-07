@@ -47,7 +47,7 @@ export default class SlackRealTime {
         mutationType: 'upsert',
         objectName: 'message_reaction',
         entries: [{
-          id: `${slackEvent.reaction}-${participantID}`,
+          id: `${participantID}${slackEvent.reaction}`,
           participantID,
           // todo review:
           reactionKey: mapReactionKey(slackEvent.reaction, this.api.emojis),
@@ -66,7 +66,7 @@ export default class SlackRealTime {
         },
         mutationType: 'delete',
         objectName: 'message_reaction',
-        entries: [`${slackEvent.reaction}-${slackEvent.item_user}`],
+        entries: [`${slackEvent.item_user}${slackEvent.reaction}`],
       }])
     })
 

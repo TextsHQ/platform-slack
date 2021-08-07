@@ -324,7 +324,7 @@ const mapReactions = (
   const reactions = slackReactions?.flatMap(reaction => reaction.users.map(user => ({ ...reaction, user })))
 
   return reactions.map(reaction => ({
-    id: `${reaction.name}-${reaction.user}`,
+    id: `${reaction.user}${reaction.name}`,
     participantID: reaction.user,
     // todo review:
     reactionKey: mapReactionKey(reaction.name, emojis),
