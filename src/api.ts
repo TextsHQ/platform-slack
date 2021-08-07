@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo } from '@textshq/platform-sdk'
+import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
 
 import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
@@ -132,4 +132,14 @@ export default class Slack implements PlatformAPI {
   editMessage = this.api.editMessage
 
   getPresence = () => this.realTimeApi.userPresence
+
+  getCustomEmojis = () => {
+    const map: CustomEmojiMap = {}
+    for (const [shortcode, url] of Object.entries(this.api.emojis)) {
+      if (url.startsWith('https://')) {
+        map[shortcode] = url
+      }
+    }
+    return map
+  }
 }

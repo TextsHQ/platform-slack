@@ -28,11 +28,12 @@ const info: PlatformInfo = {
     allowsMultipleReactionsToSingleMessage: true,
   },
   attributes: new Set([
-    Attribute.SUPPORTS_DELETE_THREAD,
     Attribute.SORT_MESSAGES_ON_PUSH,
     Attribute.CAN_MESSAGE_USERNAME,
+    Attribute.SUPPORTS_DELETE_THREAD,
     Attribute.SUPPORTS_EDIT_MESSAGE,
     Attribute.SUPPORTS_PRESENCE,
+    Attribute.SUPPORTS_CUSTOM_EMOJIS,
   ]),
 }
 
