@@ -354,12 +354,12 @@ export default class SlackAPI {
   }
 
   addReaction = async (threadID: string, messageID: string, reactionKey: string) => {
-    const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '')
+    const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '') || reactionKey
     await this.webClient.reactions.add({ name: emoji, channel: threadID, timestamp: messageID })
   }
 
   removeReaction = async (threadID: string, messageID: string, reactionKey: string) => {
-    const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '')
+    const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '') || reactionKey
     await this.webClient.reactions.remove({ name: emoji, channel: threadID, timestamp: messageID })
   }
 
