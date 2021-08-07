@@ -215,8 +215,8 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis: Record<string, string>
           mediaType: 'img',
           srcURL: emojis[blockEmojiName],
           size: {
-            width: mappedText.length === blockEmojiName.length ? 64 : 16,
-            height: mappedText.length === blockEmojiName.length ? 64 : 16,
+            width: mappedText.length === blockEmojiName.length ? 32 : 16,
+            height: mappedText.length === blockEmojiName.length ? 32 : 16,
           },
         },
       })
