@@ -20,7 +20,7 @@ export default class SlackAPI {
 
   webClient: WebClient
 
-  emojis: Record<string, string>
+  customEmojis: Record<string, string>
 
   workspaceUsers: Record<string, any> = {}
 
@@ -59,8 +59,8 @@ export default class SlackAPI {
     return token
   }
 
-  setEmojis = async () => {
-    this.emojis = (await this.webClient.emoji.list()).emoji as any
+  setCustomEmojis = async () => {
+    this.customEmojis = (await this.webClient.emoji.list()).emoji as any
   }
 
   getCurrentUser = async () => {
@@ -354,11 +354,13 @@ export default class SlackAPI {
   }
 
   addReaction = async (threadID: string, messageID: string, reactionKey: string) => {
+    // reactionKey is an emoji so convert to shortcode
     const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '') || reactionKey
     await this.webClient.reactions.add({ name: emoji, channel: threadID, timestamp: messageID })
   }
 
   removeReaction = async (threadID: string, messageID: string, reactionKey: string) => {
+    // reactionKey is an emoji so convert to shortcode
     const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '') || reactionKey
     await this.webClient.reactions.remove({ name: emoji, channel: threadID, timestamp: messageID })
   }

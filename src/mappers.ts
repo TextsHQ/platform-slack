@@ -310,27 +310,30 @@ const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttribute
 // so a fallback without the skin tone support is added, since we don't have every emoji unicode displayed in
 // Slack's reaction emoji picker.
 // TODO: Add more emojis with skin tone support
-export const mapReactionKey = (reactionName: any, emojis: Record<string, string>) => emojis[reactionName]
-  || EMOTES.find(({ emoji }) => emoji === `:${reactionName}:`)?.unicode
-  || EMOTES.find(({ emoji }) => emoji === `:${reactionName?.split('::')[0]}:`)?.unicode
-  || reactionName
+// todo optimize
+export const mapReactionKey = (shortcode: string, customEmojis: Record<string, string>) => customEmojis[shortcode] || shortcode
+
+export const shortcodeToEmoji = (shortcode: string) =>
+  EMOTES.find(({ emoji }) => emoji === `:${shortcode}:`)?.unicode
+  || EMOTES.find(({ emoji }) => emoji === `:${shortcode?.split('::')[0]}:`)?.unicode
 
 const mapReactions = (
   slackReactions: { name: string; users: string[]; count: number }[],
-  emojis: Record<string, string>,
+  customEmojis: Record<string, string>,
 ): MessageReaction[] => {
   if (!slackReactions?.length) return []
 
   const reactions = slackReactions?.flatMap(reaction => reaction.users.map(user => ({ ...reaction, user })))
 
-  return reactions.map(reaction => ({
-    id: `${reaction.user}${reaction.name}`,
-    participantID: reaction.user,
-    // todo review:
-    reactionKey: mapReactionKey(reaction.name, emojis),
-    // todo fix:
-    emoji: undefined,
-  }))
+  return reactions.map(reaction => {
+    const emoji = shortcodeToEmoji(reaction.name)
+    return {
+      id: `${reaction.user}${emoji || reaction.name}`,
+      participantID: reaction.user,
+      reactionKey: emoji || mapReactionKey(reaction.name, customEmojis),
+      emoji: !!emoji,
+    }
+  })
 }
 
 const mapAttachmentsText = (attachments: any[]): string => {
@@ -342,7 +345,7 @@ const mapAttachmentsText = (attachments: any[]): string => {
     .slice(1)
 }
 
-export const mapMessage = (slackMessage: any, currentUserId: string, emojis: Record<string, string> = {}): Message => {
+export const mapMessage = (slackMessage: any, currentUserId: string, customEmojis: Record<string, string>): Message => {
   const date = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id || 'none'
 
@@ -353,7 +356,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: Rec
   // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
   // we avoid to concatenate that to the real message (divided in sections).
   const blocksText = text !== "This content can't be displayed" ? text : ''
-  const blocks = mapBlocks(slackMessage?.blocks, blocksText, emojis)
+  const blocks = mapBlocks(slackMessage?.blocks, blocksText, customEmojis)
 
   const attachments = [
     ...(mapAttachments(slackMessage?.files) || []),
@@ -381,7 +384,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: Rec
     attachments,
     links: [],
     editedTimestamp: slackMessage.edited?.ts ? new Date(Number(slackMessage.edited?.ts) * 1000) : undefined,
-    reactions: mapReactions(slackMessage.reactions, emojis) || [],
+    reactions: mapReactions(slackMessage.reactions, customEmojis) || [],
     senderID,
     isSender: currentUserId === senderID,
     seen: {},
@@ -414,8 +417,8 @@ export const mapProfile = (user: any): Participant => ({
   imgURL: user?.profile?.image_192 || '',
 })
 
-const mapThread = (slackChannel: any, currentUserId: string): Thread => {
-  const messages = (slackChannel?.messages as any[])?.map(message => mapMessage(message, currentUserId)) || []
+const mapThread = (slackChannel: any, currentUserId: string, customEmojis: Record<string, string>): Thread => {
+  const messages = (slackChannel?.messages as any[])?.map(message => mapMessage(message, currentUserId, customEmojis)) || []
   const participants = (slackChannel?.participants as any[])?.map(mapParticipant).filter(Boolean) || []
 
   const getType = () => {
@@ -440,4 +443,5 @@ const mapThread = (slackChannel: any, currentUserId: string): Thread => {
   }
 }
 
-export const mapThreads = (slackChannels: any[], currentUserId: string): Thread[] => slackChannels.map(thread => mapThread(thread, currentUserId))
+export const mapThreads = (slackChannels: any[], currentUserId: string, customEmojis: Record<string, string>) =>
+  slackChannels.map(thread => mapThread(thread, currentUserId, customEmojis))

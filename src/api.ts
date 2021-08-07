@@ -32,7 +32,7 @@ export default class Slack implements PlatformAPI {
   afterAuth = async (dataDirPath = '') => {
     const currentUser = await this.api.getCurrentUser()
     this.currentUser = currentUser
-    await this.api.setEmojis()
+    await this.api.setCustomEmojis()
 
     const onlyDMs = fs.existsSync(path.join(dataDirPath, '../slack-only-dms'))
     // TODO: Connect it with the platform-sdk user preference
@@ -72,7 +72,7 @@ export default class Slack implements PlatformAPI {
     const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
     const currentUser = mapCurrentUser(this.currentUser)
 
-    const items = mapThreads(channels as any[], currentUser.id)
+    const items = mapThreads(channels as any[], currentUser.id, this.api.customEmojis)
 
     const participants = items.filter(item => ['group', 'single'].includes(item.type)).flatMap(item => item.participants.items) || []
     const participantsIDs = participants.flatMap(item => item.id) || []
@@ -91,7 +91,7 @@ export default class Slack implements PlatformAPI {
     const { messages, response_metadata } = await this.api.getMessages(threadID, 20, cursor)
     const currentUser = mapCurrentUser(this.currentUser)
     const items = (messages as any[])
-      .map(message => mapMessage(message, currentUser.id, this.api.emojis))
+      .map(message => mapMessage(message, currentUser.id, this.api.customEmojis))
       .sort((a, b) => a.timestamp.valueOf() - b.timestamp.valueOf())
 
     return {
@@ -103,7 +103,7 @@ export default class Slack implements PlatformAPI {
   sendMessage = async (threadID: string, content: MessageContent) => {
     const message = await this.api.sendMessage(threadID, content)
     const currentUser = mapCurrentUser(this.currentUser)
-    return [mapMessage(message, currentUser.id, this.api.emojis)]
+    return [mapMessage(message, currentUser.id, this.api.customEmojis)]
   }
 
   createThread = (userIDs: string[]) => this.api.createThread(userIDs)
@@ -135,7 +135,7 @@ export default class Slack implements PlatformAPI {
 
   getCustomEmojis = () => {
     const map: CustomEmojiMap = {}
-    for (const [shortcode, url] of Object.entries(this.api.emojis)) {
+    for (const [shortcode, url] of Object.entries(this.api.customEmojis)) {
       if (url.startsWith('https://')) {
         map[shortcode] = url
       }

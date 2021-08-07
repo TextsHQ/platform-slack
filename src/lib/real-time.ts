@@ -1,7 +1,7 @@
 import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType } from '@textshq/platform-sdk'
 import { RTMClient } from '@slack/rtm-api'
 
-import { mapReactionKey } from '../mappers'
+import { mapReactionKey, shortcodeToEmoji } from '../mappers'
 import type SlackAPI from './slack'
 
 export default class SlackRealTime {
@@ -38,6 +38,7 @@ export default class SlackRealTime {
 
     this.rtm.on('reaction_added', slackEvent => {
       const participantID = slackEvent.item_user
+      const emoji = shortcodeToEmoji(slackEvent.reaction)
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
         objectIDs: {
@@ -47,17 +48,16 @@ export default class SlackRealTime {
         mutationType: 'upsert',
         objectName: 'message_reaction',
         entries: [{
-          id: `${participantID}${slackEvent.reaction}`,
+          id: `${participantID}${emoji || slackEvent.reaction}`,
           participantID,
-          // todo review:
-          reactionKey: mapReactionKey(slackEvent.reaction, this.api.emojis),
-          // todo fix:
-          emoji: undefined,
+          reactionKey: emoji || mapReactionKey(slackEvent.reaction, this.api.customEmojis),
+          emoji: !!emoji,
         }],
       }])
     })
 
     this.rtm.on('reaction_removed', slackEvent => {
+      const emoji = shortcodeToEmoji(slackEvent.reaction)
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
         objectIDs: {
@@ -66,7 +66,7 @@ export default class SlackRealTime {
         },
         mutationType: 'delete',
         objectName: 'message_reaction',
-        entries: [`${slackEvent.item_user}${slackEvent.reaction}`],
+        entries: [`${slackEvent.item_user}${emoji || slackEvent.reaction}`],
       }])
     })
 
