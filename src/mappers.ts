@@ -142,7 +142,7 @@ const mapTextWithoutBlocks = (text: string) => {
   return { entities, text: mappedText }
 }
 
-const mapBlocks = (slackBlocks: any[], text = '', emojis = []) => {
+const mapBlocks = (slackBlocks: any[], text = '', emojis: Record<string, string> = {}) => {
   const attachments = slackBlocks?.map(mapAttachmentBlock).filter(x => Boolean(x))
   const richElements = extractRichElements(slackBlocks)
 
@@ -306,24 +306,30 @@ const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttribute
   return { attributes: { entities }, text: finalText }
 }
 
+// Fallback without skin tone support. On slack reactions skin-tone will come like 'reaction-name::skin-tone-N'
+// so a fallback without the skin tone support is added, since we don't have every emoji unicode displayed in
+// Slack's reaction emoji picker.
+// TODO: Add more emojis with skin tone support
+export const mapReactionKey = (reactionName: any, emojis: Record<string, string>) => emojis[reactionName]
+  || EMOTES.find(({ emoji }) => emoji === `:${reactionName}:`)?.unicode
+  || EMOTES.find(({ emoji }) => emoji === `:${reactionName?.split('::')[0]}:`)?.unicode
+  || reactionName
+
 const mapReactions = (
   slackReactions: { name: string; users: string[]; count: number }[],
-  messageId: string,
-  emojis: any[],
+  emojis: Record<string, string>,
 ): MessageReaction[] => {
   if (!slackReactions?.length) return []
 
   const reactions = slackReactions?.flatMap(reaction => reaction.users.map(user => ({ ...reaction, user })))
 
   return reactions.map(reaction => ({
-    id: `${messageId}-${reaction.name}-${reaction.user}`,
+    id: `${reaction.name}-${reaction.user}`,
     participantID: reaction.user,
-    // Fallback without skin tone support. On slack reactions skin-tone will come like 'reaction-name::skin-tone-N'
-    // so a fallback without the skin tone support is added, since we don't have every emoji unicode displayed in
-    // Slack's reaction emoji picker.
-    // TODO: Add more emojis with skin tone support
-    reactionKey: emojis[reaction.name] || EMOTES.find(({ emoji }) => emoji === `:${reaction.name}:`)?.unicode || EMOTES.find(({ emoji }) => emoji === `:${reaction.name?.split('::')[0]}:`)?.unicode || reaction.name,
-    emoji: Boolean(emojis[reaction.name]),
+    // todo review:
+    reactionKey: mapReactionKey(reaction.name, emojis),
+    // todo fix:
+    emoji: undefined,
   }))
 }
 
@@ -336,7 +342,7 @@ const mapAttachmentsText = (attachments: any[]): string => {
     .slice(1)
 }
 
-export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any[] = []): Message => {
+export const mapMessage = (slackMessage: any, currentUserId: string, emojis: Record<string, string> = {}): Message => {
   const date = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id || 'none'
 
@@ -375,7 +381,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string, emojis: any
     attachments,
     links: [],
     editedTimestamp: slackMessage.edited?.ts ? new Date(Number(slackMessage.edited?.ts) * 1000) : undefined,
-    reactions: mapReactions(slackMessage.reactions, slackMessage?.ts, emojis) || [],
+    reactions: mapReactions(slackMessage.reactions, emojis) || [],
     senderID,
     isSender: currentUserId === senderID,
     seen: {},
@@ -409,8 +415,8 @@ export const mapProfile = (user: any): Participant => ({
 })
 
 const mapThread = (slackChannel: any, currentUserId: string): Thread => {
-  const messages: Message[] = slackChannel?.messages?.map(message => mapMessage(message, currentUserId)) || []
-  const participants = slackChannel?.participants?.map(mapParticipant).filter(Boolean) || []
+  const messages = (slackChannel?.messages as any[])?.map(message => mapMessage(message, currentUserId)) || []
+  const participants = (slackChannel?.participants as any[])?.map(mapParticipant).filter(Boolean) || []
 
   const getType = () => {
     if (slackChannel.is_group) return 'group'

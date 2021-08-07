@@ -1,0 +1,13 @@
+{
+  "type": "reaction_added",
+  "user": "U01PR3VAPK8",
+  "item": {
+    "type": "message",
+    "channel": "D01PH3YQE31",
+    "ts": "1628285272.000200"
+  },
+  "reaction": "+1",
+  "item_user": "U01PR3VAPK8",
+  "event_ts": "1628285296.000300",
+  "ts": "1628285296.000300"
+}

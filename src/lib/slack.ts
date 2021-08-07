@@ -20,7 +20,7 @@ export default class SlackAPI {
 
   webClient: WebClient
 
-  emojis: any[]
+  emojis: Record<string, string>
 
   workspaceUsers: Record<string, any> = {}
 
@@ -60,7 +60,7 @@ export default class SlackAPI {
   }
 
   setEmojis = async () => {
-    this.emojis = (await this.webClient.emoji.list()).emoji as any[]
+    this.emojis = (await this.webClient.emoji.list()).emoji as any
   }
 
   getCurrentUser = async () => {

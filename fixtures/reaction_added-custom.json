@@ -1,0 +1,13 @@
+{
+  "type": "reaction_added",
+  "user": "U01PR3VAPK8",
+  "item": {
+    "type": "message",
+    "channel": "D01PH3YQE31",
+    "ts": "1628016534.001400"
+  },
+  "reaction": "think-about-it",
+  "item_user": "U01PR3VAPK8",
+  "event_ts": "1628285366.000600",
+  "ts": "1628285366.000600"
+}

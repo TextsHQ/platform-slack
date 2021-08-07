@@ -1,6 +1,7 @@
 import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType } from '@textshq/platform-sdk'
 import { RTMClient } from '@slack/rtm-api'
 
+import { mapReactionKey } from '../mappers'
 import type SlackAPI from './slack'
 
 export default class SlackRealTime {
@@ -36,16 +37,36 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('reaction_added', slackEvent => {
+      const participantID = slackEvent.item_user
       this.onEvent([{
-        type: ServerEventType.THREAD_MESSAGES_REFRESH,
-        threadID: slackEvent?.item?.channel,
+        type: ServerEventType.STATE_SYNC,
+        objectIDs: {
+          threadID: slackEvent.item.channel,
+          messageID: slackEvent.item.ts,
+        },
+        mutationType: 'upsert',
+        objectName: 'message_reaction',
+        entries: [{
+          id: `${slackEvent.reaction}-${participantID}`,
+          participantID,
+          // todo review:
+          reactionKey: mapReactionKey(slackEvent.reaction, this.api.emojis),
+          // todo fix:
+          emoji: undefined,
+        }],
       }])
     })
 
     this.rtm.on('reaction_removed', slackEvent => {
       this.onEvent([{
-        type: ServerEventType.THREAD_MESSAGES_REFRESH,
-        threadID: slackEvent?.item?.channel,
+        type: ServerEventType.STATE_SYNC,
+        objectIDs: {
+          threadID: slackEvent.item.channel,
+          messageID: slackEvent.item.ts,
+        },
+        mutationType: 'delete',
+        objectName: 'message_reaction',
+        entries: [`${slackEvent.reaction}-${slackEvent.item_user}`],
       }])
     })
 
