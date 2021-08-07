@@ -5,9 +5,8 @@ import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, Ser
 import { uniqBy } from 'lodash'
 import type { CookieJar } from 'tough-cookie'
 
-import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
+import { emojiToShortcode, extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { NOT_USED_SLACK_URL } from './constants'
-import { EMOTES } from '../emotes'
 import { MENTION_REGEX } from '../constants'
 import type { ThreadType } from '../api'
 
@@ -354,14 +353,12 @@ export default class SlackAPI {
   }
 
   addReaction = async (threadID: string, messageID: string, reactionKey: string) => {
-    // reactionKey is an emoji so convert to shortcode
-    const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '') || reactionKey
+    const emoji = emojiToShortcode(reactionKey) || reactionKey
     await this.webClient.reactions.add({ name: emoji, channel: threadID, timestamp: messageID })
   }
 
   removeReaction = async (threadID: string, messageID: string, reactionKey: string) => {
-    // reactionKey is an emoji so convert to shortcode
-    const emoji = EMOTES.find(({ unicode }) => unicode === reactionKey)?.emoji?.replace(/:/g, '') || reactionKey
+    const emoji = emojiToShortcode(reactionKey) || reactionKey
     await this.webClient.reactions.remove({ name: emoji, channel: threadID, timestamp: messageID })
   }
 

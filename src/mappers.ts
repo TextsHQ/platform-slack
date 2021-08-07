@@ -1,6 +1,6 @@
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
 import { BOLD_REGEX, EMOTE_REGEX, LINK_REGEX } from './constants'
-import { EMOTES } from './emotes'
+import EMOJI_LIST from './emoji-list'
 import { removeCharactersAfterAndBefore } from './util'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
@@ -274,9 +274,9 @@ const mapNativeEmojis = (text: string): string => {
   if (!found) return text
 
   let mappedText = text
-  for (const emote of found) {
-    const emoteUnicode = EMOTES.find(({ emoji }) => emoji === emote)
-    if (emoteUnicode) mappedText = mappedText.replace(emote, emoteUnicode.unicode)
+  for (const shortcode of found) {
+    const match = EMOJI_LIST.find(({ emoji }) => emoji === shortcode)
+    if (match) mappedText = mappedText.replace(shortcode, match.unicode)
   }
 
   return mappedText
@@ -314,8 +314,11 @@ const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttribute
 export const mapReactionKey = (shortcode: string, customEmojis: Record<string, string>) => customEmojis[shortcode] || shortcode
 
 export const shortcodeToEmoji = (shortcode: string) =>
-  EMOTES.find(({ emoji }) => emoji === `:${shortcode}:`)?.unicode
-  || EMOTES.find(({ emoji }) => emoji === `:${shortcode?.split('::')[0]}:`)?.unicode
+  EMOJI_LIST.find(({ emoji }) => emoji === `:${shortcode}:`)?.unicode
+  || EMOJI_LIST.find(({ emoji }) => emoji === `:${shortcode?.split('::')[0]}:`)?.unicode
+
+export const emojiToShortcode = (emoji: string) =>
+  EMOJI_LIST.find(({ unicode }) => unicode === emoji)?.emoji?.replace(/:/g, '')
 
 const mapReactions = (
   slackReactions: { name: string; users: string[]; count: number }[],
@@ -346,7 +349,7 @@ const mapAttachmentsText = (attachments: any[]): string => {
 }
 
 export const mapMessage = (slackMessage: any, currentUserId: string, customEmojis: Record<string, string>): Message => {
-  const date = new Date(Number(slackMessage?.ts) * 1000)
+  const timestamp = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id || 'none'
 
   const text = mapNativeEmojis(slackMessage?.text)
@@ -379,16 +382,13 @@ export const mapMessage = (slackMessage: any, currentUserId: string, customEmoji
     _original: JSON.stringify(slackMessage),
     id: slackMessage?.ts,
     text: mappedText,
-    timestamp: date,
-    isDeleted: false,
+    timestamp,
     attachments,
-    links: [],
     editedTimestamp: slackMessage.edited?.ts ? new Date(Number(slackMessage.edited?.ts) * 1000) : undefined,
     reactions: mapReactions(slackMessage.reactions, customEmojis) || [],
     senderID,
     isSender: currentUserId === senderID,
-    seen: {},
-    textAttributes: textAttributes || undefined,
+    textAttributes,
     buttons: blocks.buttons || undefined,
     isAction: Boolean(mapAction(slackMessage)),
     action: mapAction(slackMessage) || undefined,
@@ -432,14 +432,11 @@ const mapThread = (slackChannel: any, currentUserId: string, customEmojis: Recor
     id: slackChannel.id,
     type: getType(),
     title: slackChannel?.name || participants[0]?.username || slackChannel?.user,
-    // FIXME: Slack doesn't have the last activity date. So if the thread doesn't have the first message,
-    // it'll set 1970 as the timestamp.
-    timestamp: messages[0]?.timestamp || slackChannel?.timestamp || new Date(0),
+    timestamp: messages[0]?.timestamp || slackChannel?.timestamp,
     isUnread: slackChannel?.unread || false,
     isReadOnly: slackChannel?.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
     participants: { items: participants, hasMore: false },
-    isArchived: undefined,
   }
 }
 

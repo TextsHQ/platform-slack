@@ -1,7 +1,7 @@
 // @see https://raw.githubusercontent.com/nulab/emoji-data-ts/master/src/emoji.json
 // @see https://raw.githubusercontent.com/paragbhadoria/emoji.json/master/emoji.js
 // @see https://gist.github.com/eavillagran/7117c4cfd1a6605ad182fd8bcbed9611
-export const EMOTES = [
+const EMOJI_LIST = [
   {
     unicode: '🌍',
     emoji: ':earth_africa:',
@@ -8640,3 +8640,5 @@ export const EMOTES = [
   },
 
 ]
+
+export default EMOJI_LIST
