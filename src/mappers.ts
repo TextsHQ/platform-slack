@@ -1,3 +1,4 @@
+import type { ImageBlock, KnownBlock } from '@slack/web-api'
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
 import { BOLD_REGEX, EMOTE_REGEX, LINK_REGEX } from './constants'
 import EMOJI_LIST from './emoji-list'
@@ -28,15 +29,14 @@ const mapAttachments = (slackAttachments: any[]): MessageAttachment[] => {
   return slackAttachments.map(mapAttachment)
 }
 
-const mapAttachmentBlock = (slackBlock: any) => {
+const mapAttachmentBlock = (slackBlock: KnownBlock) => {
   const { type: slackType } = slackBlock
   if (slackType !== 'image') return
-
-  const type = getAttachmentType(slackType)
+  const block = slackBlock as ImageBlock
   return {
-    id: slackBlock.image_url,
-    type,
-    srcURL: 'asset://$accountID/proxy/' + Buffer.from(slackBlock.image_url).toString('hex'),
+    id: block.image_url,
+    type: MessageAttachmentType.IMG,
+    srcURL: 'asset://$accountID/proxy/' + Buffer.from(block.image_url).toString('hex'),
   }
 }
 
@@ -64,7 +64,7 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   //   }
   // ],
   const extractElements = ({ elements }) => elements || []
-  const richElements = richTexts?.flatMap(extractElements).flatMap(extractElements).filter(x => Boolean(x)) || []
+  const richElements = richTexts?.flatMap(extractElements).flatMap(extractElements).filter(Boolean) || []
   const sectionElements = sectionTexts?.map(({ text }) => text) || []
 
   return [...richElements, ...sectionElements, ...calls]
@@ -143,7 +143,7 @@ const mapTextWithoutBlocks = (text: string) => {
 }
 
 const mapBlocks = (slackBlocks: any[], text = '', emojis: Record<string, string> = {}) => {
-  const attachments = slackBlocks?.map(mapAttachmentBlock).filter(x => Boolean(x))
+  const attachments = slackBlocks?.map(mapAttachmentBlock).filter(Boolean)
   const richElements = extractRichElements(slackBlocks)
 
   let mappedText = text
