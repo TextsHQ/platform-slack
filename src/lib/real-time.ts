@@ -1,7 +1,7 @@
 import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType } from '@textshq/platform-sdk'
 import { RTMClient } from '@slack/rtm-api'
 
-import { mapReactionKey, shortcodeToEmoji } from '../mappers'
+import { mapEmojiChangedEvent, mapReactionKey, shortcodeToEmoji } from '../mappers'
 import type SlackAPI from './slack'
 
 export default class SlackRealTime {
@@ -34,6 +34,11 @@ export default class SlackRealTime {
         participantID: slackEvent?.user,
         durationMs: 5000, // todo review
       }])
+    })
+
+    /** https://api.slack.com/events/emoji_changed */
+    this.rtm.on('emoji_changed', slackEvent => {
+      this.onEvent(mapEmojiChangedEvent(slackEvent))
     })
 
     this.rtm.on('reaction_added', slackEvent => {

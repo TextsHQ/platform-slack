@@ -1,5 +1,5 @@
 import type { ImageBlock, KnownBlock } from '@slack/web-api'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
 import { BOLD_REGEX, EMOTE_REGEX, LINK_REGEX } from './constants'
 import EMOJI_LIST from './emoji-list'
 import { removeCharactersAfterAndBefore } from './util'
@@ -442,3 +442,51 @@ const mapThread = (slackChannel: any, currentUserId: string, customEmojis: Recor
 
 export const mapThreads = (slackChannels: any[], currentUserId: string, customEmojis: Record<string, string>) =>
   slackChannels.map(thread => mapThread(thread, currentUserId, customEmojis))
+
+export function mapEmojiChangedEvent(event: any): ServerEvent[] {
+  if (event.value?.startsWith('alias:')) return []
+
+  switch (event.subtype) {
+    case 'add':
+      return [{
+        type: ServerEventType.STATE_SYNC,
+        objectIDs: {},
+        mutationType: 'upsert',
+        objectName: 'custom_emoji',
+        entries: [{
+          id: event.name,
+          url: event.value,
+        }],
+      }]
+
+    case 'remove':
+      return [{
+        type: ServerEventType.STATE_SYNC,
+        objectIDs: {},
+        mutationType: 'delete',
+        objectName: 'custom_emoji',
+        entries: event.names,
+      }]
+
+    case 'rename':
+      return [
+        {
+          type: ServerEventType.STATE_SYNC,
+          objectIDs: {},
+          mutationType: 'delete',
+          objectName: 'custom_emoji',
+          entries: [event.old_name],
+        },
+        {
+          type: ServerEventType.STATE_SYNC,
+          objectIDs: {},
+          mutationType: 'upsert',
+          objectName: 'custom_emoji',
+          entries: [{
+            id: event.new_name,
+            url: event.value,
+          }],
+        },
+      ]
+  }
+}
