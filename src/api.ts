@@ -59,8 +59,13 @@ export default class Slack implements PlatformAPI {
   getCurrentUser = () => mapCurrentUser(this.currentUser)
 
   subscribeToEvents = (onEvent: OnServerEventCallback): void => {
-    this.realTimeApi = new SlackRealTime(this.api, onEvent)
-    this.realTimeApi.subscribeToEvents()
+    try {
+      this.realTimeApi = new SlackRealTime(this.api, onEvent)
+      this.realTimeApi.subscribeToEvents()
+    } catch (error) {
+      return console.error(error)
+    }
+
     this.api.setOnEvent(onEvent)
   }
 
