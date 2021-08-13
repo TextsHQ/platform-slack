@@ -112,24 +112,16 @@ export default class SlackRealTime {
       }])
     })
 
-    try {
-      // This is added because Slack has changed their policies and now you'll need to subscribe for each user
-      // @see https://api.slack.com/changelog/2017-10-making-rtm-presence-subscription-only
-      // @ts-expect-error
-      await this.rtm.start({ batch_presence_aware: 1 })
-    } catch (error) {
-      return console.error(error)
-    }
+    // This is added because Slack has changed their policies and now you'll need to subscribe for each user
+    // @see https://api.slack.com/changelog/2017-10-making-rtm-presence-subscription-only
+    // @ts-expect-error
+    await this.rtm.start({ batch_presence_aware: 1 })
   }
 
   subscribeToPresence = async (users: string[]): Promise<void> => {
-    try {
-      if (this.rtm.connected) {
-        const alreadySubscribed = Object.keys(this.userPresence)
-        await this.rtm.subscribePresence(users.filter(id => !alreadySubscribed.includes(id)))
-      }
-    } catch (error) {
-      return console.error(error)
+    if (this.rtm.connected) {
+      const alreadySubscribed = Object.keys(this.userPresence)
+      await this.rtm.subscribePresence(users.filter(id => !alreadySubscribed.includes(id)))
     }
   }
 
