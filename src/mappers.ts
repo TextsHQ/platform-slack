@@ -1,9 +1,8 @@
 import type { ImageBlock, KnownBlock } from '@slack/web-api'
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
 import { BOLD_REGEX, LINK_REGEX } from './constants'
-import EMOJI_LIST from './emoji-list'
 import { removeCharactersAfterAndBefore } from './util'
-import { mapNativeEmojis } from './text-attributes'
+import { emojisToCode, mapNativeEmojis } from './text-attributes'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
   if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
@@ -292,19 +291,13 @@ const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttribute
   return { attributes: { entities }, text: finalText }
 }
 
-// Fallback without skin tone support. On slack reactions skin-tone will come like 'reaction-name::skin-tone-N'
-// so a fallback without the skin tone support is added, since we don't have every emoji unicode displayed in
-// Slack's reaction emoji picker.
-// TODO: Add more emojis with skin tone support
-// todo optimize
 export const mapReactionKey = (shortcode: string, customEmojis: Record<string, string>) => customEmojis[shortcode] || shortcode
 
 export const shortcodeToEmoji = (shortcode: string) =>
-  EMOJI_LIST.find(({ emoji }) => emoji === `:${shortcode}:`)?.unicode
-  || EMOJI_LIST.find(({ emoji }) => emoji === `:${shortcode?.split('::')[0]}:`)?.unicode
+  mapNativeEmojis(`:${shortcode}:`)
 
 export const emojiToShortcode = (emoji: string) =>
-  EMOJI_LIST.find(({ unicode }) => unicode === emoji)?.emoji?.replace(/:/g, '')
+  emojisToCode(emoji)?.slice(1, -1)
 
 const mapReactions = (
   slackReactions: { name: string; users: string[]; count: number }[],
