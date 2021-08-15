@@ -1,8 +1,9 @@
 import type { ImageBlock, KnownBlock } from '@slack/web-api'
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
-import { BOLD_REGEX, EMOTE_REGEX, LINK_REGEX } from './constants'
+import { BOLD_REGEX, LINK_REGEX } from './constants'
 import EMOJI_LIST from './emoji-list'
 import { removeCharactersAfterAndBefore } from './util'
+import { mapNativeEmojis } from './text-attributes'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
   if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
@@ -265,21 +266,6 @@ export const mapAction = (slackMessage: any): MessageAction => {
     participantIDs: [slackMessage?.user],
     actorParticipantID: slackMessage?.user,
   }
-}
-
-const mapNativeEmojis = (text: string): string => {
-  if (!text) return
-
-  const found = text?.match(EMOTE_REGEX)
-  if (!found) return text
-
-  let mappedText = text
-  for (const shortcode of found) {
-    const match = EMOJI_LIST.find(({ emoji }) => emoji === shortcode)
-    if (match) mappedText = mappedText.replace(shortcode, match.unicode)
-  }
-
-  return mappedText
 }
 
 const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttributes, text: string } => {

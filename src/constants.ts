@@ -1,4 +1,3 @@
-export const EMOTE_REGEX = /:([+A-Za-z0-9_]+):/g
 export const BOLD_REGEX = /\*[^\s]([+A-Za-z0-9_ ]+[^\s])\*/g
 export const MENTION_REGEX = /<@([A-Za-z0-9_]+)>/g
 export const SLACK_THREAD_REGEX = /<#([A-Za-z0-9_]+)\|([A-Za-z0-9_]+)>/g
