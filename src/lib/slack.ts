@@ -5,7 +5,8 @@ import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, Ser
 import { uniqBy } from 'lodash'
 import type { CookieJar } from 'tough-cookie'
 
-import { emojiToShortcode, extractRichElements, mapParticipant, mapProfile } from '../mappers'
+import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
+import { emojiToShortcode } from '../text-attributes'
 import { NOT_USED_SLACK_URL } from './constants'
 import { MENTION_REGEX } from '../constants'
 import type { ThreadType } from '../api'
@@ -353,13 +354,13 @@ export default class SlackAPI {
   }
 
   addReaction = async (threadID: string, messageID: string, reactionKey: string) => {
-    const emoji = emojiToShortcode(reactionKey) || reactionKey
-    await this.webClient.reactions.add({ name: emoji, channel: threadID, timestamp: messageID })
+    const name = emojiToShortcode(reactionKey) || reactionKey
+    await this.webClient.reactions.add({ name, channel: threadID, timestamp: messageID })
   }
 
   removeReaction = async (threadID: string, messageID: string, reactionKey: string) => {
-    const emoji = emojiToShortcode(reactionKey) || reactionKey
-    await this.webClient.reactions.remove({ name: emoji, channel: threadID, timestamp: messageID })
+    const name = emojiToShortcode(reactionKey) || reactionKey
+    await this.webClient.reactions.remove({ name, channel: threadID, timestamp: messageID })
   }
 
   editMessage = async (threadID: string, messageID: string, content: MessageContent): Promise<boolean> => {

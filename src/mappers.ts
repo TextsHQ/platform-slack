@@ -1,8 +1,10 @@
-import type { ImageBlock, KnownBlock } from '@slack/web-api'
+import NodeEmoji from 'node-emoji'
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
+import type { ImageBlock, KnownBlock } from '@slack/web-api'
+
 import { BOLD_REGEX, LINK_REGEX } from './constants'
 import { removeCharactersAfterAndBefore } from './util'
-import { emojisToCode, mapNativeEmojis } from './text-attributes'
+import { mapNativeEmojis, skinToneShortcodeToEmojiMap } from './text-attributes'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
   if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
@@ -291,13 +293,12 @@ const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttribute
   return { attributes: { entities }, text: finalText }
 }
 
-export const mapReactionKey = (shortcode: string, customEmojis: Record<string, string>) => customEmojis[shortcode] || shortcode
+export const mapReactionKey = (shortcode: string, customEmojis: Record<string, string>) =>
+  customEmojis[shortcode] || shortcode
 
+/** takes a shortcode argument like `+1` and returns '👍' */
 export const shortcodeToEmoji = (shortcode: string) =>
-  mapNativeEmojis(`:${shortcode}:`)
-
-export const emojiToShortcode = (emoji: string) =>
-  emojisToCode(emoji)?.slice(1, -1)
+  NodeEmoji.findByName(shortcode)?.emoji || skinToneShortcodeToEmojiMap[shortcode]
 
 const mapReactions = (
   slackReactions: { name: string; users: string[]; count: number }[],

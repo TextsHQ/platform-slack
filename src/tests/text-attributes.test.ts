@@ -1,4 +1,4 @@
-import { emojisToCode, mapNativeEmojis } from '../text-attributes'
+import { mapNativeEmojis } from '../text-attributes'
 
 test('mapNativeEmojis', async () => {
   const cases = [
@@ -11,20 +11,6 @@ test('mapNativeEmojis', async () => {
 
   for (const c of cases) {
     const result = mapNativeEmojis(c.text)
-    expect(result).toEqual(c.result)
-  }
-})
-
-test('emojisToCode', async () => {
-  const cases = [
-    {
-      text: '👍👍🏼',
-      result: ':thumbsup::thumbsup::skin-tone-3:',
-    },
-  ]
-
-  for (const c of cases) {
-    const result = emojisToCode(c.text)
     expect(result).toEqual(c.result)
   }
 })
