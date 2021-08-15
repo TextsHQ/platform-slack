@@ -5,7 +5,8 @@
   "scripts": {
     "postinstall": "yarn tsc || true",
     "build": "yarn tsc",
-    "lint": "eslint src --ext ts,tsx,js,jsx --cache"
+    "lint": "eslint src --ext ts,tsx,js,jsx --cache",
+    "test": "jest"
   },
   "husky": {
     "hooks": {
@@ -13,18 +14,21 @@
     }
   },
   "dependencies": {
-    "@textshq/platform-sdk": "link:../platform-sdk",
     "@slack/logger": "^3.0.0",
     "@slack/rtm-api": "^6.0.0",
     "@slack/web-api": "^6.3.0",
+    "@textshq/platform-sdk": "link:../platform-sdk",
     "bluebird": "^3.7.2",
     "lodash": "^4.17.21",
+    "node-emoji": "^1.11.0",
     "tough-cookie": "^4.0.0"
   },
   "devDependencies": {
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config",
+    "@types/jest": "^27.0.1",
     "eslint": "^7.32.0",
     "husky": "^4.3.0",
+    "jest": "^27.0.6",
     "typescript": "^4.3.5"
   }
 }
