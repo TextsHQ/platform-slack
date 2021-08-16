@@ -310,10 +310,12 @@ const mapReactions = (
 
   return reactions.map(reaction => {
     const emoji = shortcodeToEmoji(reaction.name)
+    const reactionKey = emoji || reaction.name
     return {
-      id: `${reaction.user}${emoji || reaction.name}`,
+      id: `${reaction.user}${reactionKey}`,
       participantID: reaction.user,
-      reactionKey: emoji || mapReactionKey(reaction.name, customEmojis),
+      reactionKey,
+      imgURL: emoji ? undefined : mapReactionKey(reaction.name, customEmojis),
       emoji: !!emoji,
     }
   })

@@ -44,6 +44,7 @@ export default class SlackRealTime {
     this.rtm.on('reaction_added', slackEvent => {
       const participantID = slackEvent.item_user
       const emoji = shortcodeToEmoji(slackEvent.reaction)
+      const reactionKey = emoji || slackEvent.reaction
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
         objectIDs: {
@@ -53,9 +54,10 @@ export default class SlackRealTime {
         mutationType: 'upsert',
         objectName: 'message_reaction',
         entries: [{
-          id: `${participantID}${emoji || slackEvent.reaction}`,
+          id: `${participantID}${reactionKey}`,
           participantID,
-          reactionKey: emoji || mapReactionKey(slackEvent.reaction, this.api.customEmojis),
+          reactionKey,
+          imgURL: emoji ? undefined : mapReactionKey(slackEvent.reaction, this.api.customEmojis),
           emoji: !!emoji,
         }],
       }])
