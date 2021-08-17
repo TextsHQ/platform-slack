@@ -1,32 +1,43 @@
-/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable no-multi-assign */
 /* eslint-disable import/no-cycle */
 /* eslint-disable import/extensions */
 import type { Agent } from 'http'
 
 import { EventEmitter } from 'eventemitter3'
-import WebSocket from 'ws' // tslint:disable-line:import-name
-import Finity, { StateMachine } from 'finity' // tslint:disable-line:import-name
-import PQueue from 'p-queue' // tslint:disable-line:import-name
-import PCancelable from 'p-cancelable' // tslint:disable-line:import-name
-import {
-  WebClient,
-  WebAPICallResult,
-  WebAPICallError,
-  ErrorCode as APICallErrorCode,
-  RetryOptions,
-  TLSOptions,
-  RTMConnectArguments,
-  RTMStartArguments,
-} from '@slack/web-api'
+import WebSocket from 'ws'
+import Finity, { StateMachine } from 'finity'
+import PQueue from 'p-queue'
+import PCancelable from 'p-cancelable'
+import { WebClient, WebAPICallResult, WebAPICallError, ErrorCode as APICallErrorCode, RetryOptions, TLSOptions, RTMConnectArguments, RTMStartArguments } from '@slack/web-api'
 
+import { websocketErrorWithOriginal, platformErrorFromEvent, noReplyReceivedError, sendWhileDisconnectedError, sendWhileNotReadyError } from './errors'
 import { KeepAlive } from './KeepAlive'
-import {
-  websocketErrorWithOriginal,
-  platformErrorFromEvent,
-  noReplyReceivedError,
-  sendWhileDisconnectedError,
-  sendWhileNotReadyError,
-} from './errors'
+
+/**
+ * Helpers
+ */
+// NOTE: there may be a better way to add metadata to an error about being "unrecoverable" than to keep an
+// independent enum, probably a Set (this isn't used as a type).
+enum UnrecoverableRTMStartError {
+  NotAuthed = 'not_authed',
+  InvalidAuth = 'invalid_auth',
+  AccountInactive = 'account_inactive',
+  UserRemovedFromTeam = 'user_removed_from_team',
+  TeamDisabled = 'team_disabled',
+}
+
+/**
+ * This interface is the minimum that the RTMClient depends on from the intersection of `rtm.start` and `rtm.connect`
+ * responses.
+ */
+interface RTMStartResult extends WebAPICallResult {
+  self: {
+    id: string;
+  };
+  team: {
+    id: string;
+  };
+}
 
 /**
  * An RTMClient allows programs to communicate with the {@link https://api.slack.com/rtm|Slack Platform's RTM API}.
@@ -627,30 +638,3 @@ export interface RTMCallResult {
 }
 
 export type RTMStartOptions = RTMConnectArguments | RTMStartArguments
-
-/*
- * Helpers
- */
-
-// NOTE: there may be a better way to add metadata to an error about being "unrecoverable" than to keep an
-// independent enum, probably a Set (this isn't used as a type).
-enum UnrecoverableRTMStartError {
-  NotAuthed = 'not_authed',
-  InvalidAuth = 'invalid_auth',
-  AccountInactive = 'account_inactive',
-  UserRemovedFromTeam = 'user_removed_from_team',
-  TeamDisabled = 'team_disabled',
-}
-
-/**
- * This interface is the minimum that the RTMClient depends on from the intersection of `rtm.start` and `rtm.connect`
- * responses.
- */
-interface RTMStartResult extends WebAPICallResult {
-  self: {
-    id: string;
-  };
-  team: {
-    id: string;
-  };
-}

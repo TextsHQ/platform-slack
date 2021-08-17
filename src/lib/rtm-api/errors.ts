@@ -1,3 +1,8 @@
+/**
+ * Extracted from 'slack-rtm' module
+ *
+ * @see https://github.com/slackapi/node-slack-sdk/blob/main/packages/rtm-api/src/errors.ts
+ */
 import type { RTMCallResult } from './RTMClient'
 
 /**
@@ -23,8 +28,7 @@ export enum ErrorCode {
   KeepAliveInconsistentState = 'slack_rtmapi_keepalive_inconsistent_state',
 }
 
-export type RTMCallError = RTMPlatformError | RTMWebsocketError | RTMNoReplyReceivedError
-| RTMSendWhileDisconnectedError | RTMSendWhileNotReadyError
+export type RTMCallError = RTMPlatformError | RTMWebsocketError | RTMNoReplyReceivedError | RTMSendWhileDisconnectedError | RTMSendWhileNotReadyError
 
 export interface RTMPlatformError extends CodedError {
   code: ErrorCode.SendMessagePlatformError;
