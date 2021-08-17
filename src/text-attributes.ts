@@ -9,11 +9,11 @@ export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-6:': '🏿',
 }
 const skinToneEmojiToShortcodeMap = {
-  '🏻': ':skin-tone-2:',
-  '🏼': ':skin-tone-3:',
-  '🏽': ':skin-tone-4:',
-  '🏾': ':skin-tone-5:',
-  '🏿': ':skin-tone-6:',
+  '🏻': 'skin-tone-2',
+  '🏼': 'skin-tone-3',
+  '🏽': 'skin-tone-4',
+  '🏾': 'skin-tone-5',
+  '🏿': 'skin-tone-6',
 }
 
 export function mapNativeEmojis(text: string): string {
@@ -32,8 +32,12 @@ export function mapNativeEmojis(text: string): string {
 }
 
 export const emojiToShortcode = (emoji: string) => {
-  for (const skinToneChar of Object.keys(skinToneEmojiToShortcodeMap)) {
-    emoji = emoji.replace(skinToneChar, '')
+  let skinTone = ''
+  for (const [skinToneChar, skinToneCode] of Object.entries(skinToneEmojiToShortcodeMap)) {
+    if (emoji.includes(skinToneChar)) {
+      skinTone += '::' + skinToneCode
+      emoji = emoji.replace(skinToneChar, '')
+    }
   }
-  return NodeEmoji.findByCode(emoji)?.key
+  return NodeEmoji.findByCode(emoji)?.key + skinTone
 }
