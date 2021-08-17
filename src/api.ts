@@ -6,6 +6,8 @@ import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
 import SlackAPI from './lib/slack'
 import SlackRealTime from './lib/real-time'
+import WSClient from './lib/wsclient'
+// import WSClient from './lib/wsclient'
 
 export type ThreadType = 'channel' | 'dm'
 
@@ -18,12 +20,14 @@ export default class Slack implements PlatformAPI {
 
   private threadTypes: ThreadType[]
 
-  init = async (serialized: { cookies: any; clientToken: string }, { dataDirPath }: AccountInfo) => {
-    const { cookies, clientToken } = serialized || {}
+  init = async (serialized: { cookies: any; clientToken: string; workspaceUrl: string }, { dataDirPath }: AccountInfo) => {
+    const { cookies, clientToken, workspaceUrl } = serialized || {}
     if (!cookies && !clientToken) return
+    // eslint-disable-next-line
+    // if (!workspaceUrl) throw new ReAuthError();
 
     const cookieJar = CookieJar.fromJSON(cookies) || null
-    await this.api.setLoginState(cookieJar, clientToken)
+    await this.api.setLoginState(cookieJar, clientToken, workspaceUrl)
     await this.afterAuth(dataDirPath)
     // eslint-disable-next-line
     if (!this.currentUser?.ok) throw new ReAuthError()
@@ -32,6 +36,8 @@ export default class Slack implements PlatformAPI {
   afterAuth = async (dataDirPath = '') => {
     const currentUser = await this.api.getCurrentUser()
     this.currentUser = currentUser
+
+    await this.api.getWebappToken()
     await this.api.setCustomEmojis()
 
     const onlyDMs = fs.existsSync(path.join(dataDirPath, '../slack-only-dms'))
@@ -52,15 +58,17 @@ export default class Slack implements PlatformAPI {
   serializeSession = () => ({
     cookies: this.api.cookieJar.toJSON(),
     clientToken: this.api.userToken,
+    workspaceUrl: this.api.workspaceUrl,
   })
 
-  dispose = () => this.realTimeApi.dispose()
+  dispose = () => this.realTimeApi?.dispose()
 
   getCurrentUser = () => mapCurrentUser(this.currentUser)
 
-  subscribeToEvents = (onEvent: OnServerEventCallback): void => {
+  subscribeToEvents = async (onEvent: OnServerEventCallback): Promise<void> => {
+    // const wsClient = new WSClient(this.api, onEvent)
     this.realTimeApi = new SlackRealTime(this.api, onEvent)
-    this.realTimeApi.subscribeToEvents()
+    await this.realTimeApi?.subscribeToEvents()
     this.api.setOnEvent(onEvent)
   }
 
@@ -76,7 +84,7 @@ export default class Slack implements PlatformAPI {
 
     const participants = items.filter(item => ['group', 'single'].includes(item.type)).flatMap(item => item.participants.items) || []
     const participantsIDs = participants.flatMap(item => item.id) || []
-    await this.realTimeApi.subscribeToPresence(participantsIDs)
+    await this.realTimeApi?.subscribeToPresence(participantsIDs)
 
     return {
       items,
@@ -131,7 +139,7 @@ export default class Slack implements PlatformAPI {
 
   editMessage = this.api.editMessage
 
-  getPresence = () => this.realTimeApi.userPresence
+  getPresence = () => this.realTimeApi?.userPresence
 
   getCustomEmojis = () => {
     const map: CustomEmojiMap = {}

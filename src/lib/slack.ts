@@ -18,30 +18,35 @@ export default class SlackAPI {
 
   userToken: string
 
+  workspaceUrl: string
+
+  webappToken: string
+
   webClient: WebClient
 
   customEmojis: Record<string, string>
 
   workspaceUsers: Record<string, any> = {}
 
-  setLoginState = async (cookieJar: CookieJar, clientToken: string = '') => {
+  setLoginState = async (cookieJar: CookieJar, clientToken: string = '', workspaceUrl: string = '') => {
     if (!cookieJar && !clientToken) throw TypeError()
     this.cookieJar = cookieJar || null
 
-    const token = clientToken || await this.getClientToken()
+    const token = (clientToken && workspaceUrl) ? clientToken : await this.getClientToken()
 
     const cookie = await cookieJar.getCookieString('https://slack.com')
     const client = new WebClient(token, { headers: { cookie } })
 
     this.userToken = token
     this.webClient = client
+    this.workspaceUrl = workspaceUrl
   }
 
   setOnEvent = (onEvent: OnServerEventCallback) => {
     this.onEvent = onEvent
   }
 
-  getClientToken = async () => {
+  getCurrentWorkspace = async () => {
     const { body: workspacesBodyBuffer } = await texts.fetch(NOT_USED_SLACK_URL, { cookieJar: this.cookieJar })
     const workspacesBody = workspacesBodyBuffer.toString('utf-8')
     const filteredSlackWorkspaces = [NOT_USED_SLACK_URL, 'dev.slack.com']
@@ -52,11 +57,28 @@ export default class SlackAPI {
     // Since the browser is initialized with fresh and new cookies and cache, the wanted workspace would be
     // in the first place
     const firstWorkspace = alreadyConnectedUrls[0] || ''
+
+    return firstWorkspace
+  }
+
+  getClientToken = async () => {
+    const firstWorkspace = await this.getCurrentWorkspace()
+
     const { body: emojisBodyBuffer } = await texts.fetch(`https://${firstWorkspace}/customize/emoji`, { cookieJar: this.cookieJar })
     const emojisBody = emojisBodyBuffer.toString('utf-8')
     const token = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
 
     return token
+  }
+
+  getWebappToken = async (): Promise<void> => {
+    const firstWorkspace = await this.getCurrentWorkspace()
+
+    const { body } = await texts.fetch(`https://${firstWorkspace}`, { cookieJar: this.cookieJar })
+    const emojisBody = body.toString('utf-8')
+    const token = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
+
+    this.webappToken = token
   }
 
   setCustomEmojis = async () => {
