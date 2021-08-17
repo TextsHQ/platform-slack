@@ -296,19 +296,23 @@ const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttribute
 export const mapReactionKey = (shortcode: string, customEmojis: Record<string, string>) =>
   customEmojis[shortcode] || shortcode
 
-/** takes a shortcode argument like `+1` and returns '👍' */
-export const shortcodeToEmoji = (shortcode: string) =>
-  NodeEmoji.findByName(shortcode)?.emoji || skinToneShortcodeToEmojiMap[shortcode]
+/** takes a shortcode argument like `+1` or `+1::skin-tone-4` and returns '👍' or '👍🏽' */
+export const shortcodeToEmoji = (shortcode: string) => {
+  if (shortcode.includes('::')) {
+    const [code, skinTone] = shortcode.split('::')
+    return NodeEmoji.emoji[code] + NodeEmoji.emoji[skinTone]
+  }
+  return NodeEmoji.emoji[shortcode] || skinToneShortcodeToEmojiMap[shortcode]
+}
 
 const mapReactions = (
   slackReactions: { name: string; users: string[]; count: number }[],
   customEmojis: Record<string, string>,
 ): MessageReaction[] => {
   if (!slackReactions?.length) return []
-
   const reactions = slackReactions?.flatMap(reaction => reaction.users.map(user => ({ ...reaction, user })))
-
   return reactions.map(reaction => {
+    // reaction.name is `heart`, `+1`, or `+1::skin-tone-4`
     const emoji = shortcodeToEmoji(reaction.name)
     const reactionKey = emoji || reaction.name
     return {
