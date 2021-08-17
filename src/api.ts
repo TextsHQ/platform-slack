@@ -6,8 +6,6 @@ import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
 import SlackAPI from './lib/slack'
 import SlackRealTime from './lib/real-time'
-import WSClient from './lib/wsclient'
-// import WSClient from './lib/wsclient'
 
 export type ThreadType = 'channel' | 'dm'
 
@@ -20,14 +18,12 @@ export default class Slack implements PlatformAPI {
 
   private threadTypes: ThreadType[]
 
-  init = async (serialized: { cookies: any; clientToken: string; workspaceUrl: string }, { dataDirPath }: AccountInfo) => {
-    const { cookies, clientToken, workspaceUrl } = serialized || {}
+  init = async (serialized: { cookies: any; clientToken: string; }, { dataDirPath }: AccountInfo) => {
+    const { cookies, clientToken } = serialized || {}
     if (!cookies && !clientToken) return
-    // eslint-disable-next-line
-    // if (!workspaceUrl) throw new ReAuthError();
 
     const cookieJar = CookieJar.fromJSON(cookies) || null
-    await this.api.setLoginState(cookieJar, clientToken, workspaceUrl)
+    await this.api.setLoginState(cookieJar, clientToken)
     await this.afterAuth(dataDirPath)
     // eslint-disable-next-line
     if (!this.currentUser?.ok) throw new ReAuthError()
@@ -37,7 +33,6 @@ export default class Slack implements PlatformAPI {
     const currentUser = await this.api.getCurrentUser()
     this.currentUser = currentUser
 
-    await this.api.getWebappToken()
     await this.api.setCustomEmojis()
 
     const onlyDMs = fs.existsSync(path.join(dataDirPath, '../slack-only-dms'))
@@ -58,7 +53,6 @@ export default class Slack implements PlatformAPI {
   serializeSession = () => ({
     cookies: this.api.cookieJar.toJSON(),
     clientToken: this.api.userToken,
-    workspaceUrl: this.api.workspaceUrl,
   })
 
   dispose = () => this.realTimeApi?.dispose()
