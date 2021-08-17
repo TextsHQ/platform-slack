@@ -1,9 +1,9 @@
-import { WebClient } from '@slack/web-api'
-import bluebird from 'bluebird'
-import { promises as fs } from 'fs'
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ReAuthError } from '@textshq/platform-sdk'
-import { uniqBy } from 'lodash'
 import type { CookieJar } from 'tough-cookie'
+import { WebClient } from '@slack/web-api'
+import { promises as fs } from 'fs'
+import bluebird from 'bluebird'
+import { uniqBy } from 'lodash'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
@@ -18,8 +18,6 @@ export default class SlackAPI {
 
   userToken: string
 
-  workspaceUrl: string
-
   webappToken: string
 
   webClient: WebClient
@@ -28,18 +26,17 @@ export default class SlackAPI {
 
   workspaceUsers: Record<string, any> = {}
 
-  setLoginState = async (cookieJar: CookieJar, clientToken: string = '', workspaceUrl: string = '') => {
+  setLoginState = async (cookieJar: CookieJar, clientToken: string = '') => {
     if (!cookieJar && !clientToken) throw TypeError()
     this.cookieJar = cookieJar || null
 
-    const token = (clientToken && workspaceUrl) ? clientToken : await this.getClientToken()
+    const token = clientToken || await this.getClientToken()
 
     const cookie = await cookieJar.getCookieString('https://slack.com')
     const client = new WebClient(token, { headers: { cookie } })
 
     this.userToken = token
     this.webClient = client
-    this.workspaceUrl = workspaceUrl
   }
 
   setOnEvent = (onEvent: OnServerEventCallback) => {
@@ -69,16 +66,6 @@ export default class SlackAPI {
     const token = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
 
     return token
-  }
-
-  getWebappToken = async (): Promise<void> => {
-    const firstWorkspace = await this.getCurrentWorkspace()
-
-    const { body } = await texts.fetch(`https://${firstWorkspace}`, { cookieJar: this.cookieJar })
-    const emojisBody = body.toString('utf-8')
-    const token = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
-
-    this.webappToken = token
   }
 
   setCustomEmojis = async () => {
