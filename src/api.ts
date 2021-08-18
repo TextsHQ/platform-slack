@@ -32,6 +32,7 @@ export default class Slack implements PlatformAPI {
   afterAuth = async (dataDirPath = '') => {
     const currentUser = await this.api.getCurrentUser()
     this.currentUser = currentUser
+
     await this.api.setCustomEmojis()
 
     const onlyDMs = fs.existsSync(path.join(dataDirPath, '../slack-only-dms'))
@@ -54,14 +55,14 @@ export default class Slack implements PlatformAPI {
     clientToken: this.api.userToken,
   })
 
-  dispose = () => this.realTimeApi.dispose()
+  dispose = () => this.realTimeApi?.dispose()
 
   getCurrentUser = () => mapCurrentUser(this.currentUser)
 
-  subscribeToEvents = (onEvent: OnServerEventCallback): void => {
-    this.realTimeApi = new SlackRealTime(this.api, onEvent)
-    this.realTimeApi.subscribeToEvents()
+  subscribeToEvents = async (onEvent: OnServerEventCallback): Promise<void> => {
     this.api.setOnEvent(onEvent)
+    this.realTimeApi = new SlackRealTime(this.api, onEvent)
+    await this.realTimeApi?.subscribeToEvents()
   }
 
   searchUsers = async (typed: string) => this.api.searchUsers(typed)
@@ -76,7 +77,7 @@ export default class Slack implements PlatformAPI {
 
     const participants = items.filter(item => ['group', 'single'].includes(item.type)).flatMap(item => item.participants.items) || []
     const participantsIDs = participants.flatMap(item => item.id) || []
-    await this.realTimeApi.subscribeToPresence(participantsIDs)
+    await this.realTimeApi?.subscribeToPresence(participantsIDs)
 
     return {
       items,
@@ -131,7 +132,7 @@ export default class Slack implements PlatformAPI {
 
   editMessage = this.api.editMessage
 
-  getPresence = () => this.realTimeApi.userPresence
+  getPresence = () => this.realTimeApi?.userPresence
 
   getCustomEmojis = () => {
     const map: CustomEmojiMap = {}

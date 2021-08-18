@@ -1,7 +1,7 @@
-import { WebClient } from '@slack/web-api'
-import bluebird from 'bluebird'
-import { promises as fs } from 'fs'
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ReAuthError } from '@textshq/platform-sdk'
+import { WebClient } from '@slack/web-api'
+import { promises as fs } from 'fs'
+import bluebird from 'bluebird'
 import { uniqBy } from 'lodash'
 import type { CookieJar } from 'tough-cookie'
 
@@ -41,7 +41,7 @@ export default class SlackAPI {
     this.onEvent = onEvent
   }
 
-  getClientToken = async () => {
+  getCurrentWorkspace = async () => {
     const { body: workspacesBodyBuffer } = await texts.fetch(NOT_USED_SLACK_URL, { cookieJar: this.cookieJar })
     const workspacesBody = workspacesBodyBuffer.toString('utf-8')
     const filteredSlackWorkspaces = [NOT_USED_SLACK_URL, 'dev.slack.com']
@@ -52,6 +52,12 @@ export default class SlackAPI {
     // Since the browser is initialized with fresh and new cookies and cache, the wanted workspace would be
     // in the first place
     const firstWorkspace = alreadyConnectedUrls[0] || ''
+    return firstWorkspace
+  }
+
+  getClientToken = async () => {
+    const firstWorkspace = await this.getCurrentWorkspace()
+
     const { body: emojisBodyBuffer } = await texts.fetch(`https://${firstWorkspace}/customize/emoji`, { cookieJar: this.cookieJar })
     const emojisBody = emojisBodyBuffer.toString('utf-8')
     const token = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
