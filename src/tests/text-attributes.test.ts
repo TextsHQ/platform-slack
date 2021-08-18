@@ -19,9 +19,9 @@ test('mapTextAttributes', () => {
   const cases = [
     {
       src:
-        '✌️ <https://twitter.com/jack|@jack> <http://Texts.com|Texts.com> Me too',
+        '✌️ <https://twitter.com/jack|@jack> <http://Texts.com|Texts.com> Me too :wink:',
       result: {
-        text: '✌️ @jack Texts.com Me too',
+        text: '✌️ @jack Texts.com Me too 😉',
         textAttributes: {
           entities: [
             {
@@ -35,6 +35,7 @@ test('mapTextAttributes', () => {
               link: 'http://Texts.com',
             },
           ],
+          heDecode: true,
         },
       },
     },

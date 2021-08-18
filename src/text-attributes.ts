@@ -49,6 +49,7 @@ export function mapTextAttributes(
     text: string
     textAttributes: TextAttributes
   } {
+  src = mapNativeEmojis(src)
   let text = ''
   let cursor = 0
   const entities = []
@@ -90,6 +91,7 @@ export function mapTextAttributes(
     text,
     textAttributes: {
       entities,
+      heDecode: true,
     },
   }
 }
