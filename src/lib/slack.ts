@@ -170,15 +170,9 @@ export default class SlackAPI {
     return response
   }
 
-  messageReplies = async (threadId: string, messageId: string) => {
-    try {
-      const response = await this.webClient.conversations.replies({ channel: threadId, ts: messageId })
-      return response?.messages as any[] || []
-    } catch (error) {
-      texts.error(error)
-      texts.Sentry.captureException(error)
-      return []
-    }
+  messageReplies = async (channel: string, messageID: string) => {
+    const response = await this.webClient.conversations.replies({ channel, ts: messageID })
+    return response?.messages || []
   }
 
   loadMentions = async (text: string): Promise<string> => {
@@ -196,23 +190,19 @@ export default class SlackAPI {
     return finalText
   }
 
-  getMessages = async (threadId: string, limit: number = 20, latest = undefined) => {
+  getMessages = async (threadID: string, limit = 20, latest = undefined) => {
     const response = await this.webClient.conversations.history({
-      channel: threadId,
+      channel: threadID,
       limit,
       latest,
     })
 
     const { messages = [] } = response
-    let replies = []
     const participants: Participant[] = []
 
     const loadMessage = async (message: any) => {
-      const { blocks, ts, reply_count, text, user: messageUser } = message
+      const { blocks, text, user: messageUser } = message
       const richElements = extractRichElements(blocks)
-
-      const newReplies = await this.messageReplies(threadId, ts) || []
-      if (reply_count) replies = [...replies, ...newReplies]
 
       await bluebird.map(richElements, async element => {
         if (element.type !== 'user') return
@@ -237,15 +227,14 @@ export default class SlackAPI {
 
     await bluebird.map(messages, loadMessage)
 
-    const aux = [...(messages as any[]), ...replies]
-    response.messages = uniqBy(aux, 'ts')
+    response.messages = uniqBy(messages, 'ts')
 
     if (participants.length > 0) {
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
         mutationType: 'upsert',
         objectName: 'participant',
-        objectIDs: { threadID: threadId },
+        objectIDs: { threadID },
         entries: participants,
       }])
     }

@@ -12,13 +12,17 @@ export type ThreadType = 'channel' | 'dm'
 export default class Slack implements PlatformAPI {
   private readonly api = new SlackAPI()
 
+  private accountID: string
+
   private currentUser = null
 
   private realTimeApi: null | SlackRealTime = null
 
   private threadTypes: ThreadType[]
 
-  init = async (serialized: { cookies: any; clientToken: string }, { dataDirPath }: AccountInfo) => {
+  init = async (serialized: { cookies: any; clientToken: string }, { accountID, dataDirPath }: AccountInfo) => {
+    this.accountID = accountID
+
     const { cookies, clientToken } = serialized || {}
     if (!cookies && !clientToken) return
 
@@ -73,7 +77,7 @@ export default class Slack implements PlatformAPI {
     const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
     const currentUser = mapCurrentUser(this.currentUser)
 
-    const items = mapThreads(channels as any[], currentUser.id, this.api.customEmojis)
+    const items = mapThreads(channels as any[], this.accountID, currentUser.id, this.api.customEmojis)
 
     const participants = items.filter(item => ['group', 'single'].includes(item.type)).flatMap(item => item.participants.items) || []
     const participantsIDs = participants.flatMap(item => item.id) || []
@@ -92,7 +96,7 @@ export default class Slack implements PlatformAPI {
     const { messages, response_metadata } = await this.api.getMessages(threadID, 20, cursor)
     const currentUser = mapCurrentUser(this.currentUser)
     const items = (messages as any[])
-      .map(message => mapMessage(message, currentUser.id, this.api.customEmojis))
+      .map(message => mapMessage(message, this.accountID, threadID, currentUser.id, this.api.customEmojis))
       .sort((a, b) => a.timestamp.valueOf() - b.timestamp.valueOf())
 
     return {
@@ -104,7 +108,7 @@ export default class Slack implements PlatformAPI {
   sendMessage = async (threadID: string, content: MessageContent) => {
     const message = await this.api.sendMessage(threadID, content)
     const currentUser = mapCurrentUser(this.currentUser)
-    return [mapMessage(message, currentUser.id, this.api.customEmojis)]
+    return [mapMessage(message as any, this.accountID, threadID, currentUser.id, this.api.customEmojis)]
   }
 
   createThread = (userIDs: string[]) => this.api.createThread(userIDs)
@@ -142,5 +146,11 @@ export default class Slack implements PlatformAPI {
       }
     }
     return map
+  }
+
+  handleDeepLink = (link: string) => {
+    // texts://platform-callback/{accountID}/show-message-replies/{threadID}/{slackMessage.ts}
+    const [, , , , command, threadID, messageID] = link.split('/')
+    // this.api.messageReplies(threadID, messageID).then(x => console.log(command, threadID, messageID, x))
   }
 }

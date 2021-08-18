@@ -1,6 +1,7 @@
 import NodeEmoji from 'node-emoji'
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread, Tweet } from '@textshq/platform-sdk'
 import type { ImageBlock, KnownBlock } from '@slack/web-api'
+import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { BOLD_REGEX, LINK_REGEX } from './constants'
 import { removeCharactersAfterAndBefore } from './util'
@@ -245,9 +246,9 @@ const mapBlocks = (slackBlocks: any[], text = '', emojis: Record<string, string>
   }
 }
 
-export const mapAction = (slackMessage: any): MessageAction => {
+export const mapAction = (slackMessage: CHRMessage): MessageAction => {
   const actions = ['channel_join', 'channel_leave']
-  if (!actions.includes(slackMessage?.subtype)) return
+  if (!actions.includes(slackMessage.subtype)) return
 
   const type: MessageActionType = (() => {
     switch (slackMessage.subtype) {
@@ -264,8 +265,8 @@ export const mapAction = (slackMessage: any): MessageAction => {
 
   return {
     type,
-    participantIDs: [slackMessage?.user],
-    actorParticipantID: slackMessage?.user,
+    participantIDs: [slackMessage.user],
+    actorParticipantID: slackMessage.user,
   }
 }
 
@@ -373,12 +374,12 @@ const mapTweetAttachment = ({
   return tweet
 }
 
-export const mapMessage = (slackMessage: any, currentUserId: string, customEmojis: Record<string, string>): Message => {
-  const timestamp = new Date(Number(slackMessage?.ts) * 1000)
-  const senderID = slackMessage?.user || slackMessage?.bot_id || 'none'
+export const mapMessage = (slackMessage: CHRMessage, accountID: string, threadID: string, currentUserId: string, customEmojis: Record<string, string>): Message => {
+  const timestamp = new Date(Number(slackMessage.ts) * 1000)
+  const senderID = slackMessage.user || slackMessage.bot_id || 'none'
   const tweetAttachments = []
   const otherAttachments = []
-  for (const x of slackMessage?.attachments || []) {
+  for (const x of slackMessage.attachments || []) {
     if (x.service_name === 'twitter') {
       tweetAttachments.push(x)
     } else {
@@ -386,17 +387,17 @@ export const mapMessage = (slackMessage: any, currentUserId: string, customEmoji
     }
   }
 
-  const text = mapNativeEmojis(slackMessage?.text)
-    || mapNativeEmojis(slackMessage?.attachments?.map(attachment => attachment.title).join(' '))
+  const text = mapNativeEmojis(slackMessage.text)
+    || mapNativeEmojis(slackMessage.attachments?.map(attachment => attachment.title).join(' '))
     || mapNativeEmojis(mapAttachmentsText(otherAttachments))
     || ''
   // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
   // we avoid to concatenate that to the real message (divided in sections).
   const blocksText = text !== "This content can't be displayed" ? text : ''
-  const blocks = mapBlocks(slackMessage?.blocks, blocksText, customEmojis)
+  const blocks = mapBlocks(slackMessage.blocks, blocksText, customEmojis)
 
   const attachments = [
-    ...(mapAttachments(slackMessage?.files) || []),
+    ...(mapAttachments(slackMessage.files) || []),
     ...(blocks.attachments || []),
   ]
 
@@ -412,21 +413,28 @@ export const mapMessage = (slackMessage: any, currentUserId: string, customEmoji
 
   const mappedText = links.text
 
+  const buttons = [...(blocks.buttons || [])]
+  if (slackMessage.reply_count) {
+    // buttons.push({
+    //   label: `Show ${slackMessage.reply_count} ${slackMessage.reply_count === 1 ? 'reply' : 'replies'}`,
+    //   linkURL: `texts://platform-callback/${accountID}/show-message-replies/${threadID}/${slackMessage.ts}`,
+    // })
+  }
   return {
     _original: JSON.stringify(slackMessage),
-    id: slackMessage?.ts,
+    id: slackMessage.ts,
     text: mappedText,
+    textFooter: slackMessage.reply_count ? `${slackMessage.reply_count} ${slackMessage.reply_count === 1 ? 'reply' : 'replies'}` : undefined,
     timestamp,
     attachments,
     editedTimestamp: slackMessage.edited?.ts ? new Date(Number(slackMessage.edited?.ts) * 1000) : undefined,
-    reactions: mapReactions(slackMessage.reactions, customEmojis) || [],
+    reactions: mapReactions(slackMessage.reactions as any, customEmojis) || [],
     senderID,
     isSender: currentUserId === senderID,
     textAttributes,
-    buttons: blocks.buttons || undefined,
+    buttons,
     isAction: Boolean(mapAction(slackMessage)),
     action: mapAction(slackMessage) || undefined,
-    linkedMessageID: !slackMessage?.reply_count ? (slackMessage?.thread_ts || undefined) : undefined,
     tweets: tweetAttachments.map(mapTweetAttachment),
   }
 }
@@ -452,31 +460,31 @@ export const mapProfile = (user: any): Participant => ({
   imgURL: user?.profile?.image_192 || '',
 })
 
-const mapThread = (slackChannel: any, currentUserId: string, customEmojis: Record<string, string>): Thread => {
-  const messages = (slackChannel?.messages as any[])?.map(message => mapMessage(message, currentUserId, customEmojis)) || []
-  const participants = (slackChannel?.participants as any[])?.map(mapParticipant).filter(Boolean) || []
+const mapThread = (channel: any, accountID: string, currentUserId: string, customEmojis: Record<string, string>): Thread => {
+  const messages = (channel.messages as any[])?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
+  const participants = (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
 
   const getType = () => {
-    if (slackChannel.is_group) return 'group'
-    if (slackChannel.is_channel) return 'channel'
+    if (channel.is_group) return 'group'
+    if (channel.is_channel) return 'channel'
     return 'single'
   }
 
   return {
-    _original: JSON.stringify(slackChannel),
-    id: slackChannel.id,
+    _original: JSON.stringify(channel),
+    id: channel.id,
     type: getType(),
-    title: slackChannel?.name || participants[0]?.username || slackChannel?.user,
-    timestamp: messages[0]?.timestamp || slackChannel?.timestamp,
-    isUnread: slackChannel?.unread || false,
-    isReadOnly: slackChannel?.is_user_deleted || false,
+    title: channel.name || participants[0]?.username || channel.user,
+    timestamp: messages[0]?.timestamp || channel.timestamp,
+    isUnread: channel.unread || false,
+    isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
     participants: { items: participants, hasMore: false },
   }
 }
 
-export const mapThreads = (slackChannels: any[], currentUserId: string, customEmojis: Record<string, string>) =>
-  slackChannels.map(thread => mapThread(thread, currentUserId, customEmojis))
+export const mapThreads = (slackChannels: any[], accountID: string, currentUserId: string, customEmojis: Record<string, string>) =>
+  slackChannels.map(thread => mapThread(thread, accountID, currentUserId, customEmojis))
 
 export function mapEmojiChangedEvent(event: any): ServerEvent[] {
   if (event.value?.startsWith('alias:')) return []
