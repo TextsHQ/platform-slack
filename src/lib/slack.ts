@@ -66,7 +66,9 @@ export default class SlackAPI {
   }
 
   setCustomEmojis = async () => {
-    this.customEmojis = (await this.webClient.emoji.list()).emoji as any
+    const res = await this.webClient.emoji.list()
+    // @ts-expect-error res.emoji's type is incorrect
+    this.customEmojis = res.emoji
   }
 
   getCurrentUser = async () => {
@@ -265,11 +267,11 @@ export default class SlackAPI {
   getParticipantBot = async (botId: string) => {
     if (this.workspaceUsers[botId]) return this.workspaceUsers[botId]
 
-    const bot: any = await this.webClient.bots.info({ bot: botId })
+    const bot = await this.webClient.bots.info({ bot: botId })
 
     const keys = Object.keys(this.workspaceUsers)
     const foundKey = keys.find(key => this.workspaceUsers[key]?.profile?.api_app_id === bot.bot.app_id)
-    const user: any = this.workspaceUsers[foundKey] || {}
+    const user = this.workspaceUsers[foundKey] || {}
 
     const participant = { profile: { ...bot.bot, ...(user?.profile || {}), id: bot.bot.app_id } }
     this.workspaceUsers[botId] = participant
@@ -278,8 +280,7 @@ export default class SlackAPI {
 
   searchUsers = async (typed: string) => {
     const allUsers = await this.webClient.users.list({ limit: 100 })
-    const { members: _members } = allUsers
-    const members = _members as any[]
+    const { members } = allUsers
 
     if (!typed) return members.map(mapProfile)
     return members
@@ -313,12 +314,17 @@ export default class SlackAPI {
     return res.message
   }
 
+  editMessage = async (threadID: string, messageID: string, content: MessageContent): Promise<boolean> => {
+    await this.webClient.chat.update({ channel: threadID, ts: messageID, text: content.text })
+    return true
+  }
+
   deleteMessage = async (channel: string, messageID: string) =>
     this.webClient.chat.delete({ channel, ts: messageID })
 
   createThread = async (userIDs: string[]): Promise<Thread> => {
     const res = await this.webClient.conversations.open({ users: userIDs.join(','), return_im: true })
-    const { channel } = res as any
+    const { channel } = res
 
     const promises = userIDs.map(user => this.webClient.users.profile.get({ user }))
     const profiles = (await Promise.all(promises)).map(mapParticipant)
@@ -356,29 +362,5 @@ export default class SlackAPI {
   removeReaction = async (threadID: string, messageID: string, reactionKey: string) => {
     const name = emojiToShortcode(reactionKey) || reactionKey
     await this.webClient.reactions.remove({ name, channel: threadID, timestamp: messageID })
-  }
-
-  editMessage = async (threadID: string, messageID: string, content: MessageContent): Promise<boolean> => {
-    let buffer: Buffer
-    let attachments: any[]
-    let file
-
-    if (content.mimeType) {
-      buffer = content.fileBuffer || await fs.readFile(content.filePath)
-
-      if (buffer) {
-        file = await this.webClient.files.upload({
-          file: buffer,
-          channels: threadID,
-          title: content.fileName,
-          filename: content.fileName,
-        }) || {}
-      }
-
-      attachments = [file.file] || []
-    }
-
-    await this.webClient.chat.update({ channel: threadID, ts: messageID, text: content.text, attachments })
-    return true
   }
 }
