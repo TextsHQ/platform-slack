@@ -37,10 +37,6 @@ export default class SlackAPI {
     this.webClient = client
   }
 
-  setOnEvent = (onEvent: OnServerEventCallback) => {
-    this.onEvent = onEvent
-  }
-
   getCurrentWorkspace = async () => {
     const { body: workspacesBodyBuffer } = await texts.fetch(NOT_USED_SLACK_URL, { cookieJar: this.cookieJar })
     const workspacesBody = workspacesBodyBuffer.toString('utf-8')
@@ -72,15 +68,13 @@ export default class SlackAPI {
   }
 
   getCurrentUser = async () => {
-    const auth = await this.webClient.auth.test()
-    const [user, team] = await Promise.all([
+    const [auth, user, team] = await Promise.all([
+      this.webClient.auth.test(),
       this.webClient.users.profile.get(),
       this.webClient.team.info(),
     ])
-    // @ts-expect-error
-    user.profile.id = auth.user_id
 
-    return { ...user, ...(team || {}) }
+    return { auth, user: user.profile, team: team.team }
   }
 
   loadPublicChannel = async (channel: any) => {
@@ -172,10 +166,8 @@ export default class SlackAPI {
     return response
   }
 
-  messageReplies = async (channel: string, messageID: string) => {
-    const response = await this.webClient.conversations.replies({ channel, ts: messageID })
-    return response?.messages || []
-  }
+  messageReplies = (channel: string, ts: string) =>
+    this.webClient.conversations.replies({ channel, ts })
 
   loadMentions = async (text: string): Promise<string> => {
     const matches = text?.match(MENTION_REGEX)
@@ -288,7 +280,7 @@ export default class SlackAPI {
       .map(mapProfile)
   }
 
-  sendMessage = async (channel: string, content: MessageContent) => {
+  sendMessage = async (channel: string, thread_ts: string, content: MessageContent) => {
     const { text } = content
 
     let buffer: Buffer
@@ -302,6 +294,7 @@ export default class SlackAPI {
         file = await this.webClient.files.upload({
           file: buffer,
           channels: channel,
+          thread_ts,
           title: content.fileName,
           filename: content.fileName,
         }) || {}
@@ -310,13 +303,13 @@ export default class SlackAPI {
       attachments = [file.file] || []
     }
 
-    const res = await this.webClient.chat.postMessage({ channel, text, attachments })
+    const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments })
     return res.message
   }
 
-  editMessage = async (threadID: string, messageID: string, content: MessageContent): Promise<boolean> => {
-    await this.webClient.chat.update({ channel: threadID, ts: messageID, text: content.text })
-    return true
+  editMessage = async (channel: string, ts: string, thread_ts: string, text: string): Promise<boolean> => {
+    const res = await this.webClient.chat.update({ channel, ts, thread_ts, text })
+    return res.ok
   }
 
   deleteMessage = async (channel: string, messageID: string) =>
@@ -354,13 +347,13 @@ export default class SlackAPI {
     await this.webClient.conversations.mark({ channel: threadID, ts: messageID })
   }
 
-  addReaction = async (threadID: string, messageID: string, reactionKey: string) => {
+  addReaction = async (channel: string, timestamp: string, reactionKey: string) => {
     const name = emojiToShortcode(reactionKey) || reactionKey
-    await this.webClient.reactions.add({ name, channel: threadID, timestamp: messageID })
+    await this.webClient.reactions.add({ name, channel, timestamp })
   }
 
-  removeReaction = async (threadID: string, messageID: string, reactionKey: string) => {
+  removeReaction = async (channel: string, timestamp: string, reactionKey: string) => {
     const name = emojiToShortcode(reactionKey) || reactionKey
-    await this.webClient.reactions.remove({ name, channel: threadID, timestamp: messageID })
+    await this.webClient.reactions.remove({ name, channel, timestamp })
   }
 }

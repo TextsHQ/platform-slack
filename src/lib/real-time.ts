@@ -1,8 +1,15 @@
 import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType, texts } from '@textshq/platform-sdk'
 import { RTMClient } from './rtm-api'
 
-import { mapEmojiChangedEvent, mapReactionKey, shortcodeToEmoji } from '../mappers'
+import { mapEmojiChangedEvent, mapMessage, mapReactionKey, shortcodeToEmoji } from '../mappers'
+import { MESSAGE_REPLY_THREAD_PREFIX } from '../constants'
 import type SlackAPI from './slack'
+import type PAPI from '../api'
+
+function getThreadID(event: any) {
+  if (event.thread_ts) return `${MESSAGE_REPLY_THREAD_PREFIX}${event.channel}/${event.ts}`
+  return event.channel
+}
 
 export default class SlackRealTime {
   public rtm: RTMClient
@@ -10,7 +17,8 @@ export default class SlackRealTime {
   public userPresence: PresenceMap = {}
 
   constructor(
-    private api: SlackAPI,
+    private readonly api: SlackAPI,
+    private readonly papi: InstanceType<typeof PAPI>,
     private onEvent: OnServerEventCallback,
   ) {}
 
@@ -23,23 +31,32 @@ export default class SlackRealTime {
     // fixtures/messase_changed_rtm_event.json
     /** https://api.slack.com/events/message */
     this.rtm.on('message', slackEvent => {
+      const threadID = getThreadID(slackEvent)
+      // console.log(JSON.stringify(slackEvent, null, 2))
       switch (slackEvent.subtype) {
-        case 'message_deleted': {
+        case 'message_changed':
           this.onEvent([{
             type: ServerEventType.STATE_SYNC,
-            objectIDs: { threadID: slackEvent.channel },
+            objectIDs: { threadID },
+            objectName: 'message',
+            mutationType: 'update',
+            entries: [mapMessage(slackEvent.message, this.papi.accountID, threadID, this.papi.currentUserID, this.api.customEmojis)],
+          }])
+          break
+        case 'message_deleted':
+          this.onEvent([{
+            type: ServerEventType.STATE_SYNC,
+            objectIDs: { threadID },
             objectName: 'message',
             mutationType: 'delete',
             entries: [slackEvent.deleted_ts], // this is correct, deleted_ts is the message timestamp
           }])
           break
-        }
-        default: {
+        default:
           this.onEvent([{
             type: ServerEventType.THREAD_MESSAGES_REFRESH,
-            threadID: slackEvent?.channel,
+            threadID,
           }])
-        }
       }
     })
 

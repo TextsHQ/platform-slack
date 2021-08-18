@@ -1,4 +1,5 @@
 import NodeEmoji from 'node-emoji'
+import { truncate } from 'lodash'
 import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread, Tweet } from '@textshq/platform-sdk'
 import type { ImageBlock, KnownBlock } from '@slack/web-api'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
@@ -374,8 +375,14 @@ const mapTweetAttachment = ({
   return tweet
 }
 
-export const mapMessage = (slackMessage: CHRMessage, accountID: string, threadID: string, currentUserId: string, customEmojis: Record<string, string>): Message => {
-  const timestamp = new Date(Number(slackMessage.ts) * 1000)
+export const mapMessage = (
+  slackMessage: CHRMessage,
+  accountID: string,
+  threadID: string,
+  currentUserId: string,
+  customEmojis: Record<string, string>,
+  disableReplyButton = false,
+): Message => {
   const senderID = slackMessage.user || slackMessage.bot_id || 'none'
   const tweetAttachments = []
   const otherAttachments = []
@@ -414,18 +421,17 @@ export const mapMessage = (slackMessage: CHRMessage, accountID: string, threadID
   const mappedText = links.text
 
   const buttons = [...(blocks.buttons || [])]
-  if (slackMessage.reply_count) {
-    // buttons.push({
-    //   label: `Show ${slackMessage.reply_count} ${slackMessage.reply_count === 1 ? 'reply' : 'replies'}`,
-    //   linkURL: `texts://platform-callback/${accountID}/show-message-replies/${threadID}/${slackMessage.ts}`,
-    // })
+  if (slackMessage.reply_count && !disableReplyButton) {
+    buttons.push({
+      label: `Show ${slackMessage.reply_count} ${slackMessage.reply_count === 1 ? 'reply' : 'replies'}`,
+      linkURL: `texts://platform-callback/${accountID}/show-message-replies/${threadID}/${slackMessage.ts}/${slackMessage.latest_reply}/${truncate(mappedText, { length: 128 })}`,
+    })
   }
   return {
     _original: JSON.stringify(slackMessage),
     id: slackMessage.ts,
     text: mappedText,
-    textFooter: slackMessage.reply_count ? `${slackMessage.reply_count} ${slackMessage.reply_count === 1 ? 'reply' : 'replies'}` : undefined,
-    timestamp,
+    timestamp: new Date(+slackMessage.ts * 1000),
     attachments,
     editedTimestamp: slackMessage.edited?.ts ? new Date(Number(slackMessage.edited?.ts) * 1000) : undefined,
     reactions: mapReactions(slackMessage.reactions as any, customEmojis) || [],
@@ -446,11 +452,11 @@ export const mapParticipant = ({ profile }: any): Participant => profile && {
   imgURL: profile.image_192 || profile.image_72,
 }
 
-export const mapCurrentUser = ({ profile, team }: any): CurrentUser => ({
-  id: profile.id,
-  fullName: profile.real_name,
-  displayText: `${team?.name + ' - '}${profile.display_name || profile.real_name}`,
-  imgURL: profile.image_192,
+export const mapCurrentUser = ({ user, team, auth }: any): CurrentUser => ({
+  id: auth.user_id,
+  fullName: user.real_name,
+  displayText: `${team?.name + ' - '}${user.display_name || user.real_name}`,
+  imgURL: user.image_192,
 })
 
 export const mapProfile = (user: any): Participant => ({
