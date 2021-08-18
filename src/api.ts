@@ -18,7 +18,7 @@ export default class Slack implements PlatformAPI {
 
   private threadTypes: ThreadType[]
 
-  init = async (serialized: { cookies: any; clientToken: string; }, { dataDirPath }: AccountInfo) => {
+  init = async (serialized: { cookies: any; clientToken: string }, { dataDirPath }: AccountInfo) => {
     const { cookies, clientToken } = serialized || {}
     if (!cookies && !clientToken) return
 
@@ -60,10 +60,9 @@ export default class Slack implements PlatformAPI {
   getCurrentUser = () => mapCurrentUser(this.currentUser)
 
   subscribeToEvents = async (onEvent: OnServerEventCallback): Promise<void> => {
-    // const wsClient = new WSClient(this.api, onEvent)
+    this.api.setOnEvent(onEvent)
     this.realTimeApi = new SlackRealTime(this.api, onEvent)
     await this.realTimeApi?.subscribeToEvents()
-    this.api.setOnEvent(onEvent)
   }
 
   searchUsers = async (typed: string) => this.api.searchUsers(typed)

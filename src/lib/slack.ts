@@ -1,9 +1,9 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ReAuthError } from '@textshq/platform-sdk'
-import type { CookieJar } from 'tough-cookie'
 import { WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import bluebird from 'bluebird'
 import { uniqBy } from 'lodash'
+import type { CookieJar } from 'tough-cookie'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
@@ -17,8 +17,6 @@ export default class SlackAPI {
   onEvent: OnServerEventCallback
 
   userToken: string
-
-  webappToken: string
 
   webClient: WebClient
 
@@ -54,7 +52,6 @@ export default class SlackAPI {
     // Since the browser is initialized with fresh and new cookies and cache, the wanted workspace would be
     // in the first place
     const firstWorkspace = alreadyConnectedUrls[0] || ''
-
     return firstWorkspace
   }
 

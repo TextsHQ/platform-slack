@@ -1,4 +1,4 @@
-import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType } from '@textshq/platform-sdk'
+import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType, texts } from '@textshq/platform-sdk'
 import { RTMClient } from './rtm-api'
 
 import { mapEmojiChangedEvent, mapReactionKey, shortcodeToEmoji } from '../mappers'
@@ -15,8 +15,7 @@ export default class SlackRealTime {
   ) {}
 
   subscribeToEvents = async (): Promise<void> => {
-    this.rtm = new RTMClient(this.api.webappToken, {
-      // This is the b
+    this.rtm = new RTMClient(undefined, {
       webClient: this.api.webClient,
     })
 
@@ -124,10 +123,9 @@ export default class SlackRealTime {
   }
 
   subscribeToPresence = async (users: string[]): Promise<void> => {
-    if (this.rtm?.connected) {
-      const alreadySubscribed = Object.keys(this.userPresence)
-      await this.rtm.subscribePresence(users.filter(id => !alreadySubscribed.includes(id)))
-    }
+    if (!this.rtm?.connected) return texts.log('slack rtm not connected')
+    const alreadySubscribed = Object.keys(this.userPresence)
+    await this.rtm.subscribePresence(users.filter(id => !alreadySubscribed.includes(id)))
   }
 
   async dispose() {
