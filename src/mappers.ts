@@ -1,10 +1,10 @@
 import NodeEmoji from 'node-emoji'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread, Tweet } from '@textshq/platform-sdk'
 import type { ImageBlock, KnownBlock } from '@slack/web-api'
 
 import { BOLD_REGEX, LINK_REGEX } from './constants'
 import { removeCharactersAfterAndBefore } from './util'
-import { mapNativeEmojis, skinToneShortcodeToEmojiMap } from './text-attributes'
+import { mapNativeEmojis, mapTextAttributes, skinToneShortcodeToEmojiMap } from './text-attributes'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
   if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
@@ -334,13 +334,61 @@ const mapAttachmentsText = (attachments: any[]): string => {
     .slice(1)
 }
 
+const mapTweetAttachment = ({
+  author_name,
+  author_icon,
+  author_subname,
+  from_url,
+  text: src,
+  ts,
+  image_url,
+  image_width,
+  image_height,
+}: any): Tweet => {
+  const { text, textAttributes } = mapTextAttributes(src)
+  const tweet: Tweet = {
+    id: from_url,
+    user: {
+      imgURL: author_icon,
+      name: author_name,
+      username: author_subname.slice(1),
+    },
+    timestamp: new Date(ts * 1000),
+    url: from_url,
+    text,
+    textAttributes,
+  }
+  if (image_url) {
+    tweet.attachments = [
+      { id: image_url,
+        type: MessageAttachmentType.IMG,
+        srcURL: image_url,
+        size: {
+          width: image_width,
+          height: image_height,
+        },
+      },
+    ]
+  }
+  return tweet
+}
+
 export const mapMessage = (slackMessage: any, currentUserId: string, customEmojis: Record<string, string>): Message => {
   const timestamp = new Date(Number(slackMessage?.ts) * 1000)
   const senderID = slackMessage?.user || slackMessage?.bot_id || 'none'
+  const tweetAttachments = []
+  const otherAttachments = []
+  for (const x of slackMessage?.attachments || []) {
+    if (x.service_name === 'twitter') {
+      tweetAttachments.push(x)
+    } else {
+      otherAttachments.push(x)
+    }
+  }
 
   const text = mapNativeEmojis(slackMessage?.text)
     || mapNativeEmojis(slackMessage?.attachments?.map(attachment => attachment.title).join(' '))
-    || mapNativeEmojis(mapAttachmentsText(slackMessage?.attachments))
+    || mapNativeEmojis(mapAttachmentsText(otherAttachments))
     || ''
   // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
   // we avoid to concatenate that to the real message (divided in sections).
@@ -379,6 +427,7 @@ export const mapMessage = (slackMessage: any, currentUserId: string, customEmoji
     isAction: Boolean(mapAction(slackMessage)),
     action: mapAction(slackMessage) || undefined,
     linkedMessageID: !slackMessage?.reply_count ? (slackMessage?.thread_ts || undefined) : undefined,
+    tweets: tweetAttachments.map(mapTweetAttachment),
   }
 }
 
