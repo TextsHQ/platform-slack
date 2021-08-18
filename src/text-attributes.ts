@@ -40,6 +40,7 @@ export const emojiToShortcode = (emoji: string) => {
       emoji = emoji.replace(skinToneChar, '')
     }
   }
+  // @ts-expect-error missing type defs
   return NodeEmoji.findByCode(emoji)?.key + skinTone
 }
 
