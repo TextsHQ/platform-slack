@@ -21,11 +21,26 @@ export default class SlackRealTime {
 
     // fixtures/message_rtm_event.json
     // fixtures/messase_changed_rtm_event.json
+    /** https://api.slack.com/events/message */
     this.rtm.on('message', slackEvent => {
-      this.onEvent([{
-        type: ServerEventType.THREAD_MESSAGES_REFRESH,
-        threadID: slackEvent?.channel,
-      }])
+      switch (slackEvent.subtype) {
+        case 'message_deleted': {
+          this.onEvent([{
+            type: ServerEventType.STATE_SYNC,
+            objectIDs: { threadID: slackEvent.channel },
+            objectName: 'message',
+            mutationType: 'delete',
+            entries: [slackEvent.deleted_ts], // this is correct, deleted_ts is the message timestamp
+          }])
+          break
+        }
+        default: {
+          this.onEvent([{
+            type: ServerEventType.THREAD_MESSAGES_REFRESH,
+            threadID: slackEvent?.channel,
+          }])
+        }
+      }
     })
 
     this.rtm.on('user_typing', slackEvent => {
