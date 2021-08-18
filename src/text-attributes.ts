@@ -1,5 +1,6 @@
 // node-emoji doesn't support skin tone, see https://github.com/omnidan/node-emoji/issues/57
 import NodeEmoji from 'node-emoji'
+import type { TextAttributes } from '../../platform-sdk/dist'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -40,4 +41,57 @@ export const emojiToShortcode = (emoji: string) => {
     }
   }
   return NodeEmoji.findByCode(emoji)?.key + skinTone
+}
+
+export function mapTextAttributes(
+  src: string,
+) : {
+    text: string
+    textAttributes: TextAttributes
+  } {
+  src = mapNativeEmojis(src)
+  let text = ''
+  let cursor = 0
+  const entities = []
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const openIndex = src.indexOf('<http', cursor)
+    const closeIndex = src.indexOf('>', openIndex)
+    if (openIndex === -1 || closeIndex === -1) {
+      // No possible links.
+      text += src.slice(cursor)
+      break
+    }
+
+    const matches = /^(https?:\/\/[^\s|]+)(|.*)?$/.exec(src.slice(openIndex + 1, closeIndex))
+    if (!matches) {
+      // Not really a link.
+      const newCursor = openIndex + 5
+      text += src.slice(cursor, newCursor)
+      cursor = newCursor
+      continue
+    } else {
+      // Really a link.
+      text += src.slice(cursor, openIndex)
+      // eslint-disable-next-line prefer-const
+      let [, link, title] = matches
+      const from = text.length
+      title = title?.slice(1) || link
+      entities.push({
+        from,
+        to: from + title.length,
+        link,
+      })
+      text += title
+      cursor = closeIndex + 1
+    }
+  }
+
+  return {
+    text,
+    textAttributes: {
+      entities,
+      heDecode: true,
+    },
+  }
 }
