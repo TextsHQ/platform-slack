@@ -76,11 +76,11 @@ export function mapTextAttributes(
       text += src.slice(cursor, openIndex)
       // eslint-disable-next-line prefer-const
       let [, link, title] = matches
-      const from = text.length
+      const from = Array.from(text).length
       title = title?.slice(1) || link
       entities.push({
         from,
-        to: from + title.length,
+        to: from + Array.from(title).length,
         link,
       })
       text += title

@@ -395,7 +395,7 @@ export const mapMessage = (
   }
 
   const text = mapNativeEmojis(slackMessage.text)
-    || mapNativeEmojis(slackMessage.attachments?.map(attachment => attachment.title).join(' '))
+    || mapNativeEmojis(otherAttachments.map(attachment => attachment.title).join(' '))
     || mapNativeEmojis(mapAttachmentsText(otherAttachments))
     || ''
   // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
@@ -408,17 +408,24 @@ export const mapMessage = (
     ...(blocks.attachments || []),
   ]
 
-  const links = mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text)
+  let mappedText, textAttributes
 
-  const textAttributes: TextAttributes = {
-    entities: [
-      ...(blocks.textAttributes.entities || []),
-      ...(links.attributes.entities || []),
-    ],
-    heDecode: true,
+  if (slackMessage.blocks) {
+    const links = mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text)
+    mappedText = links.text
+    textAttributes = {
+      entities: [
+        ...(blocks.textAttributes.entities || []),
+        ...(links.attributes.entities || []),
+      ],
+      heDecode: true,
+    }
+  } else {
+    const data = mapTextAttributes(text)
+    mappedText = data.text
+    textAttributes = data.textAttributes
   }
 
-  const mappedText = links.text
 
   const buttons = [...(blocks.buttons || [])]
   if (slackMessage.reply_count && !disableReplyButton) {

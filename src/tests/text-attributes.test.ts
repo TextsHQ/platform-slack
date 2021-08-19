@@ -39,6 +39,24 @@ test('mapTextAttributes', () => {
         },
       },
     },
+    {
+      src:
+        'You asked me to remind you “:thumbsup: hi &lt;<https://twitter.com>|test&gt; 123”.',
+      result: {
+        text:
+          'You asked me to remind you “👍 hi &lt;https://twitter.com|test&gt; 123”.',
+        textAttributes: {
+          entities: [
+            {
+              from: 37,
+              to: 56,
+              link: 'https://twitter.com',
+            },
+          ],
+          heDecode: true,
+        },
+      },
+    },
   ]
   for (const c of cases) {
     const result = mapTextAttributes(c.src)
