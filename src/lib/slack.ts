@@ -192,7 +192,7 @@ export default class SlackAPI {
     })
 
     const { messages = [] } = response
-    const participants: Participant[] = []
+    const participantsMap: { [id: string]: Participant } = {}
 
     const loadMessage = async (message: any) => {
       const { blocks, text, user: messageUser } = message
@@ -216,13 +216,14 @@ export default class SlackAPI {
       if (message.bot_id) message.user = user.profile.id
 
       const p = mapParticipant(user)
-      if (p) participants.push(p)
+      if (!participantsMap[p.id]) participantsMap[p.id] = p
     }
 
     await bluebird.map(messages, loadMessage)
 
     response.messages = uniqBy(messages, 'ts')
 
+    const participants = Object.values(participantsMap)
     if (participants.length > 0) {
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
