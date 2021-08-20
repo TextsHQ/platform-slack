@@ -44,7 +44,7 @@ export const emojiToShortcode = (emoji: string) => {
   return NodeEmoji.findByCode(emoji)?.key + skinTone
 }
 
-export function mapTextAttributes(
+export function mapTextAttributes0(
   src: string,
 ) : {
     text: string
@@ -90,6 +90,102 @@ export function mapTextAttributes(
 
   return {
     text,
+    textAttributes: {
+      entities,
+      heDecode: true,
+    },
+  }
+}
+
+const getClosingToken = (token: string): string => (token === '<' ? '>' : token)
+
+const findClosingIndex = (input: string[], curToken: string) => {
+  const closingToken = getClosingToken(curToken)
+  let closingIndex = input.indexOf(closingToken[0])
+  let data
+  if (closingIndex > -1) {
+    let tokenMatched = true
+    for (let i = 1; i < closingToken.length; i++) {
+      // When token has more than one char, make sure the chars after the
+      // closingIndex fully match token.
+      if (input[closingIndex + i] !== closingToken[i]) {
+        tokenMatched = false
+        break
+      }
+    }
+    if (curToken === '<') {
+      const link = input.slice(0, closingIndex).join('')
+      const matches = /^([^\s:]+:\/?\/?[^\s|]+)\|?(.*)?$/.exec(link)
+      if (matches) {
+        data = matches.slice(1)
+      } else {
+        tokenMatched = false
+      }
+    }
+    if (tokenMatched) return { closingIndex, data }
+  }
+  return {
+    closingIndex: -1,
+    data
+  }
+}
+
+export function mapTextAttributes(
+  src: string,
+) : {
+  text: string
+  textAttributes: TextAttributes
+} {
+  let output = ''
+  let cursor = 0
+  const entities = []
+  let input = Array.from(mapNativeEmojis(src))
+
+  // Parse the input sequentially.
+  while (input.length) {
+    const c1 = input[0]
+    let curToken
+    if ('*_~`<'.includes(c1)) {
+      if (c1 === '`') {
+        if (input[1] === '`' && input[2] === '`') {
+          curToken = '```'
+        } else {
+          curToken = null
+        }
+      } else {
+        curToken = c1
+      }
+    }
+    if (curToken) {
+      input = input.slice(curToken.length)
+      const { closingIndex, data } = findClosingIndex(input, curToken)
+      if (closingIndex > 0) {
+        if (curToken === '<') {
+          let [link, title] = data
+          title = title || link
+          const from = Array.from(output).length
+          output += title
+          entities.push({
+            from,
+            to: from + Array.from(title).length,
+            link,
+          })
+        } else {
+          output += input.slice(0, closingIndex).join('')
+        }
+        input = input.slice(closingIndex + curToken.length)
+      } else {
+        output += curToken
+      }
+    } else {
+      // c1 is plain text!
+      output += c1
+      input = input.slice(1)
+    }
+  }
+
+  return {
+    text: output,
     textAttributes: {
       entities,
       heDecode: true,
