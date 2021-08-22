@@ -1,6 +1,6 @@
 // node-emoji doesn't support skin tone, see https://github.com/omnidan/node-emoji/issues/57
 import NodeEmoji from 'node-emoji'
-import type { TextAttributes } from '../../platform-sdk/dist'
+import type { TextAttributes, TextEntity } from '../../platform-sdk/dist'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -97,11 +97,16 @@ export function mapTextAttributes0(
   }
 }
 
-const getClosingToken = (token: string): string => (token === '<' ? '>' : token)
+const getClosingToken = (token: string): string => (
+  {
+    '<': '>',
+  }[token] || token
+)
 
 const findClosingIndex = (input: string[], curToken: string) => {
   const closingToken = getClosingToken(curToken)
   let closingIndex = input.indexOf(closingToken[0])
+  // console.log({closingIndex}, closingToken, input)
   let data
   if (closingIndex > -1) {
     let tokenMatched = true
@@ -132,6 +137,7 @@ const findClosingIndex = (input: string[], curToken: string) => {
 
 export function mapTextAttributes(
   src: string,
+  wrapInQuote: boolean = false,
 ) : {
   text: string
   textAttributes: TextAttributes
@@ -150,7 +156,7 @@ export function mapTextAttributes(
         if (input[1] === '`' && input[2] === '`') {
           curToken = '```'
         } else {
-          curToken = null
+          curToken = '`'
         }
       } else {
         curToken = c1
@@ -159,22 +165,63 @@ export function mapTextAttributes(
     if (curToken) {
       input = input.slice(curToken.length)
       const { closingIndex, data } = findClosingIndex(input, curToken)
+      console.log('curToken', curToken, closingIndex, input.join('').slice(0, 16))
       if (closingIndex > 0) {
-        if (curToken === '<') {
-          let [link, title] = data
-          title = title || link
-          const from = Array.from(output).length
-          output += title
-          entities.push({
-            from,
-            to: from + Array.from(title).length,
-            link,
-          })
-        } else {
-          output += input.slice(0, closingIndex).join('')
+        // A valid closingIndex is found, it's a valid token!
+        const content = input.slice(0, closingIndex).join('')
+        // See if we can find nested entities.
+        let nestedAttributes = { text: '', textAttributes: undefined }
+        if (!['```', '<'].includes(curToken)) {
+          nestedAttributes = mapTextAttributes(content)
         }
+        // Construct the entity of the current token.
+        const from = Array.from(output).length
+        let to = from + closingIndex
+        if (nestedAttributes.textAttributes) {
+          // Nested entities change the output, so update the range.
+          to = from + nestedAttributes.text.length
+          // Offset the range of child entities.
+          const childEntities = nestedAttributes.textAttributes.entities.map(entity => ({
+            ...entity,
+            from: entity.from + from,
+            to: entity.to + from,
+          }))
+          entities.push(...childEntities)
+          output += nestedAttributes.text
+        }
+        const entity: TextEntity = {
+          from,
+          to,
+        }
+        switch (curToken) {
+          case '*':
+            entity.bold = true
+            break
+          case '_':
+            entity.italic = true
+            break
+          case '~':
+            entity.strikethrough = true
+            break
+          case '`':
+            entity.code = true
+            break
+          case '<': {
+            let [link, title] = data
+            title = title || link
+            output += title
+            entity.to = from + Array.from(title).length,
+            entity.link = link
+            break;
+          }
+          default:
+            output += input.slice(0, closingIndex).join('')
+        }
+        entities.push(entity)
+        // Set input to start from the char after the closing token.
         input = input.slice(closingIndex + curToken.length)
       } else {
+        // Unable to find a valid closingIndex, curToken is plain text!
         output += curToken
       }
     } else {
@@ -182,6 +229,14 @@ export function mapTextAttributes(
       output += c1
       input = input.slice(1)
     }
+  }
+
+  if (wrapInQuote) {
+    entities.push({
+      from: 0,
+      to: Array.from(output).length,
+      quote: true,
+    })
   }
 
   return {
