@@ -39,9 +39,66 @@ test('mapTextAttributes', () => {
         },
       },
     },
+    {
+      src:
+        'You asked me to remind you “:thumbsup: hi &lt;<https://twitter.com>|test&gt; 123”.',
+      result: {
+        text:
+          'You asked me to remind you “👍 hi &lt;https://twitter.com|test&gt; 123”.',
+        textAttributes: {
+          entities: [
+            {
+              from: 37,
+              to: 56,
+              link: 'https://twitter.com',
+            },
+          ],
+          heDecode: true,
+        },
+      },
+    },
+    {
+      src:
+        '*<https://github.com/TextsHQ/texts-app-desktop/compare/5e502f5a47ee...0050c68aabd6|1 new commit> pushed  to `<https://github.com/TextsHQ/texts-app-desktop/tree/main|main>` by KishanBagaria*',
+      wrapInQuote: true,
+      result: {
+        text: '1 new commit pushed  to main by KishanBagaria',
+        textAttributes: {
+          entities: [
+            {
+              from: 0,
+              to: 12,
+              link:
+                'https://github.com/TextsHQ/texts-app-desktop/compare/5e502f5a47ee...0050c68aabd6',
+            },
+            {
+              from: 24,
+              to: 28,
+              link: 'https://github.com/TextsHQ/texts-app-desktop/tree/main',
+            },
+            {
+              from: 24,
+              to: 28,
+              code: true,
+            },
+            {
+              from: 0,
+              to: 45,
+              bold: true,
+            },
+            {
+              from: 0,
+              to: 45,
+              quote: true,
+            },
+          ],
+          heDecode: true,
+        },
+      },
+    },
   ]
   for (const c of cases) {
-    const result = mapTextAttributes(c.src)
+    const result = mapTextAttributes(c.src, c.wrapInQuote)
     expect(result).toEqual(c.result)
   }
 })

@@ -331,9 +331,9 @@ const mapAttachmentsText = (attachments: any[]): string => {
   if (!attachments?.length) return ''
 
   return attachments
-    .reduce((prev: string, current: Record<string, string>) => `${prev}${current?.pretext ? `\n${current?.pretext}` : ''}\n&gt; ${current?.text}`, '')
-    // Remove the first character '\n'
-    .slice(1)
+    .map(x => x.pretext || x.text)
+    .filter(Boolean)
+    .join('\n')
 }
 
 const mapTweetAttachment = ({
@@ -395,8 +395,7 @@ export const mapMessage = (
   }
 
   const text = mapNativeEmojis(slackMessage.text)
-    || mapNativeEmojis(slackMessage.attachments?.map(attachment => attachment.title).join(' '))
-    || mapNativeEmojis(mapAttachmentsText(otherAttachments))
+    || mapNativeEmojis(otherAttachments.map(attachment => attachment.title).join(' '))
     || ''
   // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
   // we avoid to concatenate that to the real message (divided in sections).
@@ -408,17 +407,27 @@ export const mapMessage = (
     ...(blocks.attachments || []),
   ]
 
-  const links = mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text)
+  let mappedText = text
+  let textAttributes
 
-  const textAttributes: TextAttributes = {
-    entities: [
-      ...(blocks.textAttributes.entities || []),
-      ...(links.attributes.entities || []),
-    ],
-    heDecode: true,
+  if (slackMessage.blocks) {
+    const links = mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text)
+    mappedText = links.text
+    textAttributes = {
+      entities: [
+        ...(blocks.textAttributes.entities || []),
+        ...(links.attributes.entities || []),
+      ],
+      heDecode: true,
+    }
+  } else {
+    const attachmentsText = mapAttachmentsText(otherAttachments)
+    if (attachmentsText) {
+      const data = mapTextAttributes(attachmentsText, true)
+      mappedText = data.text
+      textAttributes = data.textAttributes
+    }
   }
-
-  const mappedText = links.text
 
   const buttons = [...(blocks.buttons || [])]
   if (slackMessage.reply_count && !disableReplyButton) {
