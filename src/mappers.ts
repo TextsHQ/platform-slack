@@ -330,15 +330,10 @@ const mapReactions = (
 const mapAttachmentsText = (attachments: any[]): string => {
   if (!attachments?.length) return ''
 
-  const text = attachments
+  return attachments
     .map(x => x.pretext || x.text)
     .filter(Boolean)
     .join('\n')
-  return text
-  return attachments
-    .reduce((prev: string, current: Record<string, string>) => `${prev}${current?.pretext ? `\n${current?.pretext}` : ''}\n> ${current?.text}`, '')
-    // Remove the first character '\n'
-    .slice(1)
 }
 
 const mapTweetAttachment = ({
@@ -388,7 +383,6 @@ export const mapMessage = (
   customEmojis: Record<string, string>,
   disableReplyButton = false,
 ): Message => {
-  console.log('-- mapMessage', slackMessage, JSON.stringify(slackMessage))
   const senderID = slackMessage.user || slackMessage.bot_id || 'none'
   const tweetAttachments = []
   const otherAttachments = []
@@ -402,7 +396,6 @@ export const mapMessage = (
 
   const text = mapNativeEmojis(slackMessage.text)
     || mapNativeEmojis(otherAttachments.map(attachment => attachment.title).join(' '))
-    // || mapNativeEmojis(mapAttachmentsText(otherAttachments))
     || ''
   // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
   // we avoid to concatenate that to the real message (divided in sections).
@@ -430,13 +423,11 @@ export const mapMessage = (
   } else {
     const attachmentsText = mapAttachmentsText(otherAttachments)
     if (attachmentsText) {
-    console.log('-- before mapTextAttributes', attachmentsText)
-    const data = mapTextAttributes(attachmentsText, true)
-    mappedText = data.text
-    textAttributes = data.textAttributes
+      const data = mapTextAttributes(attachmentsText, true)
+      mappedText = data.text
+      textAttributes = data.textAttributes
     }
   }
-
 
   const buttons = [...(blocks.buttons || [])]
   if (slackMessage.reply_count && !disableReplyButton) {

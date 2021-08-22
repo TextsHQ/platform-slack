@@ -44,59 +44,6 @@ export const emojiToShortcode = (emoji: string) => {
   return NodeEmoji.findByCode(emoji)?.key + skinTone
 }
 
-export function mapTextAttributes0(
-  src: string,
-) : {
-    text: string
-    textAttributes: TextAttributes
-  } {
-  src = mapNativeEmojis(src)
-  let text = ''
-  let cursor = 0
-  const entities = []
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const openIndex = src.indexOf('<http', cursor)
-    const closeIndex = src.indexOf('>', openIndex)
-    if (openIndex === -1 || closeIndex === -1) {
-      // No possible links.
-      text += src.slice(cursor)
-      break
-    }
-
-    const matches = /^(https?:\/\/[^\s|]+)(|.*)?$/.exec(src.slice(openIndex + 1, closeIndex))
-    if (!matches) {
-      // Not really a link.
-      const newCursor = openIndex + 5
-      text += src.slice(cursor, newCursor)
-      cursor = newCursor
-      continue
-    } else {
-      // Really a link.
-      text += src.slice(cursor, openIndex)
-      // eslint-disable-next-line prefer-const
-      let [, link, title] = matches
-      const from = Array.from(text).length
-      title = title?.slice(1) || link
-      entities.push({
-        from,
-        to: from + Array.from(title).length,
-        link,
-      })
-      text += title
-      cursor = closeIndex + 1
-    }
-  }
-
-  return {
-    text,
-    textAttributes: {
-      entities,
-      heDecode: true,
-    },
-  }
-}
-
 const getClosingToken = (token: string): string => (
   {
     '<': '>',
@@ -105,8 +52,7 @@ const getClosingToken = (token: string): string => (
 
 const findClosingIndex = (input: string[], curToken: string) => {
   const closingToken = getClosingToken(curToken)
-  let closingIndex = input.indexOf(closingToken[0])
-  // console.log({closingIndex}, closingToken, input)
+  const closingIndex = input.indexOf(closingToken[0])
   let data
   if (closingIndex > -1) {
     let tokenMatched = true
@@ -131,7 +77,7 @@ const findClosingIndex = (input: string[], curToken: string) => {
   }
   return {
     closingIndex: -1,
-    data
+    data,
   }
 }
 
@@ -139,11 +85,10 @@ export function mapTextAttributes(
   src: string,
   wrapInQuote: boolean = false,
 ) : {
-  text: string
-  textAttributes: TextAttributes
-} {
+    text: string
+    textAttributes: TextAttributes
+  } {
   let output = ''
-  let cursor = 0
   const entities = []
   let input = Array.from(mapNativeEmojis(src))
 
@@ -165,7 +110,6 @@ export function mapTextAttributes(
     if (curToken) {
       input = input.slice(curToken.length)
       const { closingIndex, data } = findClosingIndex(input, curToken)
-      console.log('curToken', curToken, closingIndex, input.join('').slice(0, 16))
       if (closingIndex > 0) {
         // A valid closingIndex is found, it's a valid token!
         const content = input.slice(0, closingIndex).join('')
@@ -210,9 +154,9 @@ export function mapTextAttributes(
             let [link, title] = data
             title = title || link
             output += title
-            entity.to = from + Array.from(title).length,
+            entity.to = from + Array.from(title).length
             entity.link = link
-            break;
+            break
           }
           default:
             output += input.slice(0, closingIndex).join('')
