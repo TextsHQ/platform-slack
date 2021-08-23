@@ -70,7 +70,7 @@ export default class Slack implements PlatformAPI {
     await this.api.setLoginState(cookieJar)
     await this.afterAuth()
 
-    if (this.currentUser.ok) return { type: 'success' }
+    if (this.currentUser?.auth.ok) return { type: 'success' }
     // FIXME: Add error message
     return { type: 'error', errorMessage: 'Error' }
   }
