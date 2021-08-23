@@ -191,3 +191,100 @@ export function mapTextAttributes(
     },
   }
 }
+
+interface BaseParentBlock {
+  type: string
+  elements: Block[]
+}
+
+interface RichTextBlock extends BaseParentBlock {
+  type: 'rich_text' | 'rich_text_section'
+}
+
+interface QuoteBlock extends BaseParentBlock {
+  type: 'rich_text_quote'
+}
+
+type TextElement = {
+  type: 'text'
+  text: string
+}
+
+type LinkElement = {
+  type: 'link'
+  url: string
+  text?: string
+}
+
+type EmojiElement = {
+  type: 'emoji'
+  name: string
+}
+
+export type Block =
+  RichTextBlock |
+  QuoteBlock |
+  TextElement |
+  LinkElement |
+  EmojiElement
+
+const mapBlock = (block: Block) : {
+  text: string
+  textAttributes: TextAttributes
+} => {
+  let output = ''
+  const entities = []
+
+  switch (block.type) {
+    case 'rich_text':
+    case 'rich_text_section': {
+      const { text, textAttributes } = mapBlocks(block.elements)
+      output += text
+      break;
+    }
+    case 'rich_text_quote': {
+      const { text, textAttributes } = mapBlocks(block.elements)
+      output += text
+      break;
+    }
+    case 'text':
+      output += block.text
+      break;
+    case 'link':
+      output += block.text || block.url
+      break;
+    case 'emoji':
+      output += mapNativeEmojis(`:${block.name}:`)
+      break;
+  }
+
+  return {
+    text: output,
+    textAttributes: {
+      entities,
+      heDecode: true,
+    },
+  }
+}
+
+export const mapBlocks = (blocks: Block[]) : {
+  text: string
+  textAttributes: TextAttributes
+} => {
+  let output = ''
+  const entities = []
+
+  for (let block of blocks) {
+    const { text, textAttributes } = mapBlock(block)
+    console.log()
+    output += text
+  }
+
+  return {
+    text: output,
+    textAttributes: {
+      entities,
+      heDecode: true,
+    },
+  }
+}

@@ -6,7 +6,7 @@ import type { Message as CHRMessage } from '@slack/web-api/dist/response/Convers
 
 import { BOLD_REGEX, LINK_REGEX } from './constants'
 import { removeCharactersAfterAndBefore } from './util'
-import { mapNativeEmojis, mapTextAttributes, skinToneShortcodeToEmojiMap } from './text-attributes'
+import { mapNativeEmojis, mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks } from './text-attributes'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
   if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
@@ -146,7 +146,7 @@ const mapTextWithoutBlocks = (text: string) => {
   return { entities, text: mappedText }
 }
 
-const mapBlocks = (slackBlocks: any[], text = '', emojis: Record<string, string> = {}) => {
+const mapBlocks0 = (slackBlocks: any[], text = '', emojis: Record<string, string> = {}) => {
   const attachments = slackBlocks?.map(mapAttachmentBlock).filter(Boolean)
   const richElements = extractRichElements(slackBlocks)
 
@@ -387,6 +387,7 @@ export const mapMessage = (
   customEmojis: Record<string, string>,
   disableReplyButton = false,
 ): Message => {
+  console.log('-- mapMessage', slackMessage, JSON.stringify(slackMessage))
   const senderID = slackMessage.user || slackMessage.bot_id || 'none'
   const tweetAttachments = []
   const otherAttachments = []
@@ -404,26 +405,30 @@ export const mapMessage = (
   // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
   // we avoid to concatenate that to the real message (divided in sections).
   const blocksText = text !== "This content can't be displayed" ? text : ''
-  const blocks = mapBlocks(slackMessage.blocks, blocksText, customEmojis)
+  // const blocks = mapBlocks(slackMessage.blocks, blocksText, customEmojis)
 
   const attachments = [
     ...(mapAttachments(slackMessage.files) || []),
-    ...(blocks.attachments || []),
+    // ...(blocks.attachments || []),
   ]
 
   let mappedText = text
   let textAttributes
 
   if (slackMessage.blocks) {
-    const links = mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text)
-    mappedText = links.text
-    textAttributes = {
-      entities: [
-        ...(blocks.textAttributes.entities || []),
-        ...(links.attributes.entities || []),
-      ],
-      heDecode: true,
-    }
+    // @ts-expect-error
+    const data = mapBlocks(slackMessage.blocks)
+    mappedText = data.text
+    textAttributes = data.textAttributes
+    // const links = mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text)
+    // mappedText = links.text
+    // textAttributes = {
+    //   entities: [
+    //     ...(blocks.textAttributes.entities || []),
+    //     ...(links.attributes.entities || []),
+    //   ],
+    //   heDecode: true,
+    // }
   } else {
     const attachmentsText = mapAttachmentsText(otherAttachments)
     if (attachmentsText) {
@@ -433,7 +438,8 @@ export const mapMessage = (
     }
   }
 
-  const buttons = [...(blocks.buttons || [])]
+  // const buttons = [...(blocks.buttons || [])]
+  const buttons = []
   if (slackMessage.reply_count && !disableReplyButton) {
     buttons.push({
       label: `Show ${slackMessage.reply_count} ${slackMessage.reply_count === 1 ? 'reply' : 'replies'}`,
