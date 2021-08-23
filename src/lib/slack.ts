@@ -56,6 +56,8 @@ export default class SlackAPI {
 
     const { body: emojisBodyBuffer } = await texts.fetch(`https://${firstWorkspace}/customize/emoji`, { cookieJar: this.cookieJar })
     const emojisBody = emojisBodyBuffer.toString('utf-8')
+    if (!emojisBody) throw new ReAuthError('There was an error trying to login to this workspace')
+
     const token = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)[0] || ''
 
     return token
