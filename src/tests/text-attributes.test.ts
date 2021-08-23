@@ -113,7 +113,7 @@ test.only('mapBlocks', () => {
   type Case = {
     blocks: Block[]
     result: {
-      text: string,
+      text: string
       textAttributes: TextAttributes
     }
   }
@@ -128,13 +128,11 @@ test.only('mapBlocks', () => {
               elements: [
                 {
                   type: 'text',
-                  text:
-                    'WhatsApp is launching a public beta program\n\n',
+                  text: 'WhatsApp is launching a public beta program\n\n',
                 },
                 {
                   type: 'link',
-                  url:
-                    'https://wabetainfo.com/whatsapp/',
+                  url: 'https://wabetainfo.com/whatsapp/',
                 },
               ],
             },
@@ -146,12 +144,50 @@ test.only('mapBlocks', () => {
         },
       ],
       result: {
-        text: 'WhatsApp is launching a public beta program\n\nhttps://wabetainfo.com/whatsapp/',
+        text:
+          'WhatsApp is launching a public beta program\n\nhttps://wabetainfo.com/whatsapp/',
         textAttributes: {
-          entities: [],
-          heDecode: true
-        }
-      }
+          entities: [
+            {
+              from: 45,
+              to: 77,
+              link: 'https://wabetainfo.com/whatsapp/',
+            },
+            {
+              from: 0,
+              to: 77,
+              quote: true,
+            },
+          ],
+          heDecode: true,
+        },
+      },
+    },
+    {
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text:
+              'Unsubscribed from <https://github.com/TextsHQ/texts-app-desktop|TextsHQ/texts-app-desktop>',
+            verbatim: false,
+          },
+        },
+      ],
+      result: {
+        text: 'Unsubscribed from TextsHQ/texts-app-desktop',
+        textAttributes: {
+          entities: [
+            {
+              from: 18,
+              to: 43,
+              link: 'https://github.com/TextsHQ/texts-app-desktop',
+            },
+          ],
+          heDecode: true,
+        },
+      },
     },
   ]
   for (const c of cases) {

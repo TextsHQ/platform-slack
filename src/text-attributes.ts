@@ -81,6 +81,14 @@ const findClosingIndex = (input: string[], curToken: string) => {
   }
 }
 
+// When merging in nested entities, need to adjust the ranges.
+const offsetEntities = (entities: TextEntity[], offset: number): TextEntity[] =>
+  entities.map(entity => ({
+    ...entity,
+    from: entity.from + offset,
+    to: entity.to + offset,
+  }))
+
 export function mapTextAttributes(
   src: string,
   wrapInQuote: boolean = false,
@@ -221,12 +229,25 @@ type EmojiElement = {
   name: string
 }
 
+type SectionBlock = {
+  type: 'section'
+  text: MrkdwnElement
+}
+
+type MrkdwnElement = {
+  type: 'mrkdwn'
+  text: string
+  verbatim: boolean
+}
+
 export type Block =
   RichTextBlock |
   QuoteBlock |
   TextElement |
   LinkElement |
-  EmojiElement
+  EmojiElement |
+  SectionBlock |
+  MrkdwnElement
 
 const mapBlock = (block: Block) : {
   text: string
@@ -239,23 +260,61 @@ const mapBlock = (block: Block) : {
     case 'rich_text':
     case 'rich_text_section': {
       const { text, textAttributes } = mapBlocks(block.elements)
+      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      entities.push(...nestedEntities)
       output += text
       break;
     }
     case 'rich_text_quote': {
       const { text, textAttributes } = mapBlocks(block.elements)
+      const cursor = Array.from(output).length
+      const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+      entities.push(...nestedEntities)
+      if (text) {
+        console.log('rich_text_quote', cursor, typeof cursor)
+        // Add a quote entity.
+        entities.push({
+          from: cursor,
+          to: Array.from(text).length,
+          quote: true,
+        })
+      }
       output += text
       break;
     }
     case 'text':
       output += block.text
       break;
-    case 'link':
-      output += block.text || block.url
+    case 'link': {
+      const title = block.text || block.url
+      const from = Array.from(output).length
+      entities.push({
+        from,
+        to: from + Array.from(title).length,
+        link: block.url,
+      })
+      output += title
       break;
+    }
     case 'emoji':
-      output += mapNativeEmojis(`:${block.name}:`)
+      output += NodeEmoji.emojify(`:${block.name}:`)
       break;
+    case 'section': {
+      const { text, textAttributes } = mapBlock(block.text)
+      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      entities.push(...nestedEntities)
+      output += text
+      break;
+    }
+    case 'mrkdwn': {
+      const { text, textAttributes } = mapTextAttributes(block.text)
+      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      entities.push(...nestedEntities)
+      output += text
+      break;
+    }
+    default:
+      console.log('Unrecognized block:', block)
   }
 
   return {
@@ -276,7 +335,8 @@ export const mapBlocks = (blocks: Block[]) : {
 
   for (let block of blocks) {
     const { text, textAttributes } = mapBlock(block)
-    console.log()
+    const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+    entities.push(...nestedEntities)
     output += text
   }
 
