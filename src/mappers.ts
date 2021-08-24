@@ -1,6 +1,6 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread, Tweet } from '@textshq/platform-sdk'
 import type { ImageBlock, KnownBlock } from '@slack/web-api'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
@@ -379,6 +379,28 @@ const ACTION_MESSAGE_TYPES = new Set([
   'joiner_notification_for_inviter',
 ])
 
+const mapLinkAttachment = ({
+  title,
+  title_link,
+  text,
+  image_url,
+  image_width,
+  image_height,
+  service_icon,
+  original_url,
+}: any): MessageLink => ({
+  url: title_link,
+  originalURL: original_url,
+  favicon: service_icon,
+  img: image_url,
+  imgSize: {
+    width: image_width,
+    height: image_height,
+  },
+  title,
+  summary: text
+})
+
 export const mapMessage = (
   slackMessage: CHRMessage,
   accountID: string,
@@ -390,10 +412,13 @@ export const mapMessage = (
   console.log('-- mapMessage', slackMessage, JSON.stringify(slackMessage))
   const senderID = slackMessage.user || slackMessage.bot_id || 'none'
   const tweetAttachments = []
+  const linkAttachments = []
   const otherAttachments = []
   for (const x of slackMessage.attachments || []) {
     if (x.service_name === 'twitter') {
       tweetAttachments.push(x)
+    } else if (x.title_link) {
+      linkAttachments.push(x)
     } else {
       otherAttachments.push(x)
     }
@@ -462,6 +487,7 @@ export const mapMessage = (
     isAction: !!action || ACTION_MESSAGE_TYPES.has(slackMessage.subtype),
     action,
     tweets: tweetAttachments.map(mapTweetAttachment),
+    links: linkAttachments.map(mapLinkAttachment),
   }
 }
 
