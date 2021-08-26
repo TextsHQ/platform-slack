@@ -21,6 +21,18 @@ const info: PlatformInfo = {
   browserLogin: {
     loginURL: 'https://slack.com/signin#/signin',
     authCookieName: 'd',
+    runJSOnLaunch: `
+      function poll() {
+        const url = window.location.href
+
+        if (url.includes('ssb/redirect')) {
+          setTimeout(() => window.close(), 100)
+          clearInterval(interval)
+        }
+      }
+
+      const interval = setInterval(poll, 50)
+    `,
   },
   reactions: {
     supported: {},
