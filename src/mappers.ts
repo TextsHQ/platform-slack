@@ -375,6 +375,10 @@ const mapTweetAttachment = ({
   return tweet
 }
 
+const ACTION_MESSAGE_TYPES = new Set([
+  'joiner_notification_for_inviter',
+])
+
 export const mapMessage = (
   slackMessage: CHRMessage,
   accountID: string,
@@ -436,6 +440,7 @@ export const mapMessage = (
       linkURL: `texts://platform-callback/${accountID}/show-message-replies/${threadID}/${slackMessage.ts}/${slackMessage.latest_reply}/${truncate(mappedText, { length: 128 })}`,
     })
   }
+  const action = mapAction(slackMessage)
   return {
     _original: JSON.stringify(slackMessage),
     id: slackMessage.ts,
@@ -448,8 +453,8 @@ export const mapMessage = (
     isSender: currentUserId === senderID,
     textAttributes,
     buttons,
-    isAction: Boolean(mapAction(slackMessage)),
-    action: mapAction(slackMessage) || undefined,
+    isAction: !!action || ACTION_MESSAGE_TYPES.has(slackMessage.subtype),
+    action,
     tweets: tweetAttachments.map(mapTweetAttachment),
   }
 }
