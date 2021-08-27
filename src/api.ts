@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType } from '@textshq/platform-sdk'
+import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
 
 import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
@@ -65,12 +65,18 @@ export default class Slack implements PlatformAPI {
     this.threadTypes = onlyDMs ? ['dm'] : ['channel', 'dm']
   }
 
-  login = async ({ cookieJarJSON }): Promise<LoginResult> => {
+  login = async ({ cookieJarJSON, jsCodeResult }: LoginCreds): Promise<LoginResult> => {
     const cookieJar = CookieJar.fromJSON(cookieJarJSON as any)
+    // This is done because it may come as jsCodeResult a magic link to do the login. It'd be
+    // better to do the request here in the "texts-side" because otherwise in the login browser
+    // it'll redirect the user to Slack's app (directly to the deep-link), so this way we update
+    // the cookieJar directly from Texts.
+    if (jsCodeResult) await texts.fetch(jsCodeResult, { cookieJar })
+
     await this.api.setLoginState(cookieJar)
     await this.afterAuth()
 
-    if (this.currentUser?.auth.ok) return { type: 'success' }
+    if (this.api.userToken) return { type: 'success' }
     // FIXME: Add error message
     return { type: 'error', errorMessage: 'Error' }
   }
