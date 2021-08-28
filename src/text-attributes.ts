@@ -82,7 +82,7 @@ const findClosingIndex = (input: string[], curToken: string) => {
 }
 
 // When merging in nested entities, need to adjust the ranges.
-const offsetEntities = (entities: TextEntity[], offset: number): TextEntity[] =>
+export const offsetEntities = (entities: TextEntity[], offset: number): TextEntity[] =>
   entities.map(entity => ({
     ...entity,
     from: entity.from + offset,
@@ -254,6 +254,7 @@ type UserElement = {
   type: 'user'
   user_id: string
   profile: {
+    real_name: string
     display_name: string
   }
 }
@@ -371,7 +372,7 @@ const mapBlock = (block: Block) : {
     }
     case 'user': {
       const from = Array.from(output).length
-      const username = block.profile.display_name
+      const username = block.profile.display_name || block.profile.real_name
       entities.push({
         from,
         to: from + Array.from(username).length + 1,

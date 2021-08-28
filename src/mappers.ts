@@ -6,7 +6,7 @@ import type { Message as CHRMessage } from '@slack/web-api/dist/response/Convers
 
 import { BOLD_REGEX, LINK_REGEX } from './constants'
 import { removeCharactersAfterAndBefore } from './util'
-import { mapNativeEmojis, mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks } from './text-attributes'
+import { mapNativeEmojis, mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
   if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
@@ -146,107 +146,6 @@ const mapTextWithoutBlocks = (text: string) => {
   return { entities, text: mappedText }
 }
 
-const mapBlocks0 = (slackBlocks: any[], text = '', emojis: Record<string, string> = {}) => {
-  const attachments = slackBlocks?.map(mapAttachmentBlock).filter(Boolean)
-  const richElements = extractRichElements(slackBlocks)
-
-  let mappedText = text
-  let entities: TextEntity[] = []
-  const buttons: MessageButton[] = []
-
-  if (!richElements?.length && text) {
-    const mappedWithoutBlocks = mapTextWithoutBlocks(text)
-    entities = mappedWithoutBlocks.entities
-    mappedText = mappedWithoutBlocks.text
-  }
-
-  for (const element of richElements) {
-    const { type = '', style, text: blockText, url: blockUrl, user_id: blockUser, profile: blockProfile, name: blockEmojiName } = element
-
-    if (type === 'text' && style && blockText) {
-      mappedText = removeCharactersAfterAndBefore(mappedText, blockText)
-      const from = mappedText.indexOf(blockText)
-      entities.push({ from, to: from + blockText.length, ...style })
-    }
-
-    if (type === 'mrkdwn' && blockText) mappedText = `${mappedText}\n${blockText}`
-
-    if (type === 'link' && blockUrl) {
-      const linkAndText = blockText ? `${blockUrl}|${blockText}` : blockUrl
-      mappedText = removeCharactersAfterAndBefore(mappedText, linkAndText)
-
-      const linkText = blockText || blockUrl
-      if (blockText) mappedText = mappedText.replace(`${blockUrl}|`, '')
-
-      const from = mappedText.indexOf(linkText)
-      entities.push({ from, to: from + linkText.length, link: blockUrl })
-    }
-
-    if (type === 'user' && blockUser) {
-      const username = blockProfile?.display_name || blockProfile?.real_name || blockUser
-
-      if (!mappedText.includes(username)) mappedText = mappedText.replace(blockUser, username)
-      if (mappedText.includes('<@')) mappedText = removeCharactersAfterAndBefore(mappedText, `@${username}`)
-      else mappedText = mappedText.replace(username, `@${username}`)
-
-      const from = mappedText.indexOf(`@${username}`)
-      entities.push({ from, to: from + username.length + 1, mentionedUser: { id: blockUser, username } })
-    }
-
-    if (type === 'channel' && element?.channel_id) {
-      const initialIndex = mappedText.indexOf(`<#${element?.channel_id}`)
-      const finalIndex = mappedText.indexOf('>', initialIndex)
-      const channelLinkAndName = mappedText.slice(initialIndex + 1, finalIndex)
-      const channelName = channelLinkAndName.split('|').pop()
-
-      mappedText = removeCharactersAfterAndBefore(mappedText, channelLinkAndName)
-      mappedText = mappedText.replace(`#${element?.channel_id}`, '')
-      mappedText = mappedText.replace(`|${channelName}`, `#${channelName}`)
-
-      const from = mappedText.indexOf(channelName) - 1
-      const to = from + channelName.length + 1
-
-      entities.push({ from, to, link: `texts://select-thread/slack/${element?.channel_id}` })
-    }
-
-    if (type === 'emoji' && blockEmojiName && mappedText.includes(blockEmojiName)) {
-      mappedText = removeCharactersAfterAndBefore(mappedText, blockEmojiName)
-      const from = mappedText.indexOf(blockEmojiName)
-      entities.push({
-        from,
-        to: from + blockEmojiName.length,
-        replaceWithMedia: {
-          mediaType: 'img',
-          srcURL: emojis[blockEmojiName],
-          size: {
-            width: mappedText.length === blockEmojiName.length ? 32 : 16,
-            height: mappedText.length === blockEmojiName.length ? 32 : 16,
-          },
-        },
-      })
-    }
-    // This is added for some apps like "Zoom" or "Meet".
-    if (type === 'call' && element?.call?.v1) {
-      const { join_url } = element?.call?.v1
-      buttons.push({ linkURL: join_url, label: 'Join' })
-    }
-  }
-
-  const quotesEntities = getQuotesEntities(mappedText)
-  const entitiesWithQuotesOffset = entities.map(entity => ({
-    ...entity,
-    from: entity.from - quotesEntities.offset,
-    to: entity.to - quotesEntities.offset,
-  }))
-
-  return {
-    attachments,
-    textAttributes: { entities: [...entitiesWithQuotesOffset, ...quotesEntities.entities] },
-    mappedText: quotesEntities.mappedText,
-    buttons,
-  }
-}
-
 export const mapAction = (slackMessage: CHRMessage): MessageAction => {
   const actions = ['channel_join', 'channel_leave']
   if (!actions.includes(slackMessage.subtype)) return
@@ -331,7 +230,7 @@ const mapAttachmentsText = (attachments: any[]): string => {
   if (!attachments?.length) return ''
 
   return attachments
-    .map(x => x.pretext || x.text)
+    .map(x => x.pretext || x.text || x.title || x.fallback)
     .filter(Boolean)
     .join('\n')
 }
@@ -409,7 +308,6 @@ export const mapMessage = (
   customEmojis: Record<string, string>,
   disableReplyButton = false,
 ): Message => {
-  console.log('-- mapMessage', slackMessage, JSON.stringify(slackMessage))
   const senderID = slackMessage.user || slackMessage.bot_id || 'none'
   const tweetAttachments = []
   const linkAttachments = []
@@ -424,20 +322,14 @@ export const mapMessage = (
     }
   }
 
-  const text = mapNativeEmojis(slackMessage.text)
-    || mapNativeEmojis(otherAttachments.map(attachment => attachment.title).join(' '))
-    || ''
-  // This is done because bot messages have 'This content can't be displayed' as text field. So doing this
-  // we avoid to concatenate that to the real message (divided in sections).
-  const blocksText = text !== "This content can't be displayed" ? text : ''
-  // const blocks = mapBlocks(slackMessage.blocks, blocksText, customEmojis)
+  const attachmentsText = mapAttachmentsText(otherAttachments)
+  const text = slackMessage.text + attachmentsText
 
   const attachments = [
     ...(mapAttachments(slackMessage.files) || []),
-    // ...(blocks.attachments || []),
   ]
 
-  let mappedText = text
+  let mappedText
   let textAttributes
 
   if (slackMessage.blocks) {
@@ -445,25 +337,18 @@ export const mapMessage = (
     const data = mapBlocks(slackMessage.blocks)
     mappedText = data.text
     textAttributes = data.textAttributes
-    // const links = mapTextWithLinkEntities(mapNativeEmojis(blocks.mappedText) || text)
-    // mappedText = links.text
-    // textAttributes = {
-    //   entities: [
-    //     ...(blocks.textAttributes.entities || []),
-    //     ...(links.attributes.entities || []),
-    //   ],
-    //   heDecode: true,
-    // }
-  } else {
-    const attachmentsText = mapAttachmentsText(otherAttachments)
-    if (attachmentsText) {
-      const data = mapTextAttributes(attachmentsText, true)
-      mappedText = data.text
-      textAttributes = data.textAttributes
+  } else if (text) {
+    const data1 = mapTextAttributes(slackMessage.text, false)
+    const data2 = mapTextAttributes(attachmentsText, true)
+    mappedText = data1.text + data2.text
+    textAttributes = {
+      heDecode: true,
+      entities: data1.textAttributes.entities.concat(
+        offsetEntities(data2.textAttributes.entities, Array.from(data1.text).length)
+      )
     }
   }
 
-  // const buttons = [...(blocks.buttons || [])]
   const buttons = []
   if (slackMessage.reply_count && !disableReplyButton) {
     buttons.push({
