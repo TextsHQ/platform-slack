@@ -240,6 +240,14 @@ type MrkdwnElement = {
   verbatim: boolean
 }
 
+type UserElement = {
+  type: 'user'
+  user_id: string
+  profile: {
+    display_name: string
+  }
+}
+
 export type Block =
   RichTextBlock |
   QuoteBlock |
@@ -247,7 +255,8 @@ export type Block =
   LinkElement |
   EmojiElement |
   SectionBlock |
-  MrkdwnElement
+  MrkdwnElement |
+  UserElement
 
 const mapBlock = (block: Block) : {
   text: string
@@ -311,6 +320,20 @@ const mapBlock = (block: Block) : {
       const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       output += text
+      break;
+    }
+    case 'user': {
+      const from = Array.from(output).length
+      const username = block.profile.display_name
+      entities.push({
+        from,
+        to: from + Array.from(username).length + 1,
+        mentionedUser: {
+          username,
+          id: block.user_id
+        }
+      })
+      output += `@${username}`
       break;
     }
     default:
