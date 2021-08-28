@@ -213,6 +213,10 @@ interface QuoteBlock extends BaseParentBlock {
   type: 'rich_text_quote'
 }
 
+interface PreformattedBlock extends BaseParentBlock {
+  type: 'rich_text_preformatted'
+}
+
 type TextElement = {
   type: 'text'
   text: string
@@ -220,6 +224,7 @@ type TextElement = {
     bold?: boolean
     italic?: boolean
     strike?: boolean
+    code?: boolean
   }
 }
 
@@ -256,6 +261,7 @@ type UserElement = {
 export type Block =
   RichTextBlock |
   QuoteBlock |
+  PreformattedBlock |
   TextElement |
   LinkElement |
   EmojiElement |
@@ -285,12 +291,27 @@ const mapBlock = (block: Block) : {
       const nestedEntities = offsetEntities(textAttributes.entities, cursor)
       entities.push(...nestedEntities)
       if (text) {
-        console.log('rich_text_quote', cursor, typeof cursor)
         // Add a quote entity.
         entities.push({
           from: cursor,
           to: Array.from(text).length,
           quote: true,
+        })
+      }
+      output += text
+      break;
+    }
+    case 'rich_text_preformatted': {
+      const { text, textAttributes } = mapBlocks(block.elements)
+      const cursor = Array.from(output).length
+      const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+      entities.push(...nestedEntities)
+      if (text) {
+        // Add a pre entity.
+        entities.push({
+          from: cursor,
+          to: Array.from(text).length,
+          pre: true,
         })
       }
       output += text
@@ -312,6 +333,9 @@ const mapBlock = (block: Block) : {
         }
         if (block.style.strike) {
           entity.strikethrough = true
+        }
+        if (block.style.code) {
+          entity.code = true
         }
         entities.push(entity)
       }
