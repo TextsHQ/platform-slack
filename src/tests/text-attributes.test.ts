@@ -109,7 +109,7 @@ test('mapTextAttributes', () => {
   }
 })
 
-test.only('mapBlocks', () => {
+test('mapBlocks', () => {
   type Case = {
     blocks: Block[]
     result: {
