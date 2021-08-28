@@ -216,6 +216,11 @@ interface QuoteBlock extends BaseParentBlock {
 type TextElement = {
   type: 'text'
   text: string
+  style?: {
+    bold?: boolean
+    italic?: boolean
+    strike?: boolean
+  }
 }
 
 type LinkElement = {
@@ -291,9 +296,27 @@ const mapBlock = (block: Block) : {
       output += text
       break;
     }
-    case 'text':
+    case 'text': {
+      const from = Array.from(output).length
       output += block.text
+      if (block.style) {
+        const entity: TextEntity = {
+          from,
+          to: from + Array.from(block.text).length
+        }
+        if (block.style.bold) {
+          entity.bold = true
+        }
+        if (block.style.italic) {
+          entity.italic = true
+        }
+        if (block.style.strike) {
+          entity.strikethrough = true
+        }
+        entities.push(entity)
+      }
       break;
+    }
     case 'link': {
       const title = block.text || block.url
       const from = Array.from(output).length
