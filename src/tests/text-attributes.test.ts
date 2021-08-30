@@ -1,4 +1,10 @@
-import { mapNativeEmojis, mapTextAttributes } from '../text-attributes'
+import type { TextAttributes } from '../../../platform-sdk/dist'
+import {
+  Block,
+  mapBlocks,
+  mapNativeEmojis,
+  mapTextAttributes,
+} from '../text-attributes'
 
 test('mapNativeEmojis', () => {
   const cases = [
@@ -99,6 +105,94 @@ test('mapTextAttributes', () => {
   ]
   for (const c of cases) {
     const result = mapTextAttributes(c.src, c.wrapInQuote)
+    expect(result).toEqual(c.result)
+  }
+})
+
+test('mapBlocks', () => {
+  type Case = {
+    blocks: Block[]
+    result: {
+      text: string
+      textAttributes: TextAttributes
+    }
+  }
+  const customEmojis = {}
+  const cases: Case[] = [
+    {
+      blocks: [
+        {
+          type: 'rich_text',
+          elements: [
+            {
+              type: 'rich_text_quote',
+              elements: [
+                {
+                  type: 'text',
+                  text: 'WhatsApp is launching a public beta program\n\n',
+                },
+                {
+                  type: 'link',
+                  url: 'https://wabetainfo.com/whatsapp/',
+                },
+              ],
+            },
+            {
+              type: 'rich_text_section',
+              elements: [],
+            },
+          ],
+        },
+      ],
+      result: {
+        text:
+          'WhatsApp is launching a public beta program\n\nhttps://wabetainfo.com/whatsapp/',
+        textAttributes: {
+          entities: [
+            {
+              from: 45,
+              to: 77,
+              link: 'https://wabetainfo.com/whatsapp/',
+            },
+            {
+              from: 0,
+              to: 77,
+              quote: true,
+            },
+          ],
+          heDecode: true,
+        },
+      },
+    },
+    {
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text:
+              'Unsubscribed from <https://github.com/TextsHQ/texts-app-desktop|TextsHQ/texts-app-desktop>',
+            verbatim: false,
+          },
+        },
+      ],
+      result: {
+        text: 'Unsubscribed from TextsHQ/texts-app-desktop',
+        textAttributes: {
+          entities: [
+            {
+              from: 18,
+              to: 43,
+              link: 'https://github.com/TextsHQ/texts-app-desktop',
+            },
+          ],
+          heDecode: true,
+        },
+      },
+    },
+  ]
+  for (const c of cases) {
+    const result = mapBlocks(c.blocks, customEmojis)
     expect(result).toEqual(c.result)
   }
 })

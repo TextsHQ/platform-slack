@@ -81,6 +81,14 @@ const findClosingIndex = (input: string[], curToken: string) => {
   }
 }
 
+// When merging in nested entities, need to adjust the ranges.
+export const offsetEntities = (entities: TextEntity[], offset: number): TextEntity[] =>
+  entities.map(entity => ({
+    ...entity,
+    from: entity.from + offset,
+    to: entity.to + offset,
+  }))
+
 export function mapTextAttributes(
   src: string,
   wrapInQuote: boolean = false,
@@ -181,6 +189,250 @@ export function mapTextAttributes(
       to: Array.from(output).length,
       quote: true,
     })
+  }
+
+  return {
+    text: output,
+    textAttributes: {
+      entities,
+      heDecode: true,
+    },
+  }
+}
+
+interface BaseParentBlock {
+  type: string
+  elements: Block[]
+}
+
+interface RichTextBlock extends BaseParentBlock {
+  type: 'rich_text' | 'rich_text_section'
+}
+
+interface QuoteBlock extends BaseParentBlock {
+  type: 'rich_text_quote'
+}
+
+interface PreformattedBlock extends BaseParentBlock {
+  type: 'rich_text_preformatted'
+}
+
+type TextElement = {
+  type: 'text'
+  text: string
+  style?: {
+    bold?: boolean
+    italic?: boolean
+    strike?: boolean
+    code?: boolean
+  }
+}
+
+type LinkElement = {
+  type: 'link'
+  url: string
+  text?: string
+}
+
+type EmojiElement = {
+  type: 'emoji'
+  name: string
+}
+
+type SectionBlock = {
+  type: 'section'
+  text: MrkdwnElement
+}
+
+type MrkdwnElement = {
+  type: 'mrkdwn'
+  text: string
+  verbatim: boolean
+}
+
+type UserElement = {
+  type: 'user'
+  user_id: string
+  profile: {
+    real_name: string
+    display_name: string
+  }
+}
+
+export type Block =
+  RichTextBlock |
+  QuoteBlock |
+  PreformattedBlock |
+  TextElement |
+  LinkElement |
+  EmojiElement |
+  SectionBlock |
+  MrkdwnElement |
+  UserElement
+
+const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
+  text: string
+  textAttributes: TextAttributes
+} => {
+  let output = ''
+  const entities = []
+
+  switch (block.type) {
+    case 'rich_text':
+    case 'rich_text_section': {
+      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
+      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      entities.push(...nestedEntities)
+      output += text
+      break;
+    }
+    case 'rich_text_quote': {
+      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
+      const cursor = Array.from(output).length
+      const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+      entities.push(...nestedEntities)
+      if (text) {
+        // Add a quote entity.
+        entities.push({
+          from: cursor,
+          to: Array.from(text).length,
+          quote: true,
+        })
+      }
+      output += text
+      break;
+    }
+    case 'rich_text_preformatted': {
+      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
+      const cursor = Array.from(output).length
+      const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+      entities.push(...nestedEntities)
+      if (text) {
+        // Add a pre entity.
+        entities.push({
+          from: cursor,
+          to: Array.from(text).length,
+          pre: true,
+        })
+      }
+      output += text
+      break;
+    }
+    case 'text': {
+      const from = Array.from(output).length
+      output += block.text
+      if (block.style) {
+        const entity: TextEntity = {
+          from,
+          to: from + Array.from(block.text).length
+        }
+        if (block.style.bold) {
+          entity.bold = true
+        }
+        if (block.style.italic) {
+          entity.italic = true
+        }
+        if (block.style.strike) {
+          entity.strikethrough = true
+        }
+        if (block.style.code) {
+          entity.code = true
+        }
+        entities.push(entity)
+      }
+      break;
+    }
+    case 'link': {
+      const title = block.text || block.url
+      const from = Array.from(output).length
+      entities.push({
+        from,
+        to: from + Array.from(title).length,
+        link: block.url,
+      })
+      output += title
+      break;
+    }
+    case 'emoji': {
+      const emojiCode = `:${block.name}:`
+      const emoji = NodeEmoji.emojify(emojiCode)
+      if (emoji !== emojiCode) {
+        // Native emojis.
+        output += NodeEmoji.emojify(`:${block.name}:`)
+      } else {
+        // Custom emojis.
+        const from = Array.from(output).length
+        if (customEmojis[block.name]) {
+          entities.push({
+            from,
+            to: from + Array.from(block.name).length,
+            replaceWithMedia: {
+              mediaType: 'img',
+              srcURL: customEmojis[block.name],
+              size: {
+                width: 16,
+                height: 16,
+              }
+            }
+          })
+        }
+        output += block.name
+      }
+      break;
+    }
+    case 'section': {
+      const { text, textAttributes } = mapBlock(block.text, customEmojis)
+      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      entities.push(...nestedEntities)
+      output += text
+      break;
+    }
+    case 'mrkdwn': {
+      const { text, textAttributes } = mapTextAttributes(block.text)
+      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      entities.push(...nestedEntities)
+      output += text
+      break;
+    }
+    case 'user': {
+      const from = Array.from(output).length
+      const username = block.profile.display_name || block.profile.real_name
+      entities.push({
+        from,
+        to: from + Array.from(username).length + 1,
+        mentionedUser: {
+          username,
+          id: block.user_id
+        }
+      })
+      output += `@${username}`
+      break;
+    }
+    default:
+      console.log('Unrecognized block:', block)
+  }
+
+  return {
+    text: output,
+    textAttributes: {
+      entities,
+      heDecode: true,
+    },
+  }
+}
+
+export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>) : {
+  text: string
+  textAttributes: TextAttributes
+} => {
+  let output = ''
+  const entities = []
+
+  for (let block of blocks) {
+    const { text, textAttributes } = mapBlock(block, customEmojis)
+    const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+    entities.push(...nestedEntities)
+    output += text
   }
 
   return {
