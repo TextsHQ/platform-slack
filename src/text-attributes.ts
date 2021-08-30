@@ -1,6 +1,6 @@
 // node-emoji doesn't support skin tone, see https://github.com/omnidan/node-emoji/issues/57
 import NodeEmoji from 'node-emoji'
-import type { TextAttributes, TextEntity } from '@textshq/platform-sdk'
+import { texts, TextAttributes, TextEntity } from '@textshq/platform-sdk'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -409,7 +409,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       break
     }
     default:
-      console.log('Unrecognized block:', block)
+      texts.log('Unrecognized block:', block)
   }
 
   return {
