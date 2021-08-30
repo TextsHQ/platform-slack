@@ -270,7 +270,7 @@ export type Block =
   MrkdwnElement |
   UserElement
 
-const mapBlock = (block: Block) : {
+const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
   text: string
   textAttributes: TextAttributes
 } => {
@@ -280,14 +280,14 @@ const mapBlock = (block: Block) : {
   switch (block.type) {
     case 'rich_text':
     case 'rich_text_section': {
-      const { text, textAttributes } = mapBlocks(block.elements)
+      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
       const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       output += text
       break;
     }
     case 'rich_text_quote': {
-      const { text, textAttributes } = mapBlocks(block.elements)
+      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
       const cursor = Array.from(output).length
       const nestedEntities = offsetEntities(textAttributes.entities, cursor)
       entities.push(...nestedEntities)
@@ -303,7 +303,7 @@ const mapBlock = (block: Block) : {
       break;
     }
     case 'rich_text_preformatted': {
-      const { text, textAttributes } = mapBlocks(block.elements)
+      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
       const cursor = Array.from(output).length
       const nestedEntities = offsetEntities(textAttributes.entities, cursor)
       entities.push(...nestedEntities)
@@ -353,11 +353,35 @@ const mapBlock = (block: Block) : {
       output += title
       break;
     }
-    case 'emoji':
-      output += NodeEmoji.emojify(`:${block.name}:`)
+    case 'emoji': {
+      const emojiCode = `:${block.name}:`
+      const emoji = NodeEmoji.emojify(emojiCode)
+      if (emoji !== emojiCode) {
+        // Native emojis.
+        output += NodeEmoji.emojify(`:${block.name}:`)
+      } else {
+        // Custom emojis.
+        const from = Array.from(output).length
+        if (customEmojis[block.name]) {
+          entities.push({
+            from,
+            to: from + Array.from(block.name).length,
+            replaceWithMedia: {
+              mediaType: 'img',
+              srcURL: customEmojis[block.name],
+              size: {
+                width: 16,
+                height: 16,
+              }
+            }
+          })
+        }
+        output += block.name
+      }
       break;
+    }
     case 'section': {
-      const { text, textAttributes } = mapBlock(block.text)
+      const { text, textAttributes } = mapBlock(block.text, customEmojis)
       const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       output += text
@@ -397,7 +421,7 @@ const mapBlock = (block: Block) : {
   }
 }
 
-export const mapBlocks = (blocks: Block[]) : {
+export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>) : {
   text: string
   textAttributes: TextAttributes
 } => {
@@ -405,7 +429,7 @@ export const mapBlocks = (blocks: Block[]) : {
   const entities = []
 
   for (let block of blocks) {
-    const { text, textAttributes } = mapBlock(block)
+    const { text, textAttributes } = mapBlock(block, customEmojis)
     const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
     entities.push(...nestedEntities)
     output += text

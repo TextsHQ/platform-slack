@@ -117,6 +117,7 @@ test('mapBlocks', () => {
       textAttributes: TextAttributes
     }
   }
+  const customEmojis = {}
   const cases: Case[] = [
     {
       blocks: [
@@ -191,7 +192,7 @@ test('mapBlocks', () => {
     },
   ]
   for (const c of cases) {
-    const result = mapBlocks(c.blocks)
+    const result = mapBlocks(c.blocks, customEmojis)
     expect(result).toEqual(c.result)
   }
 })
