@@ -24,7 +24,7 @@ export default class SlackAPI {
 
   workspaceUsers: Record<string, any> = {}
 
-  setLoginState = async (cookieJar: CookieJar, clientToken: string = '') => {
+  setLoginState = async (cookieJar: CookieJar, clientToken = '') => {
     if (!cookieJar && !clientToken) throw TypeError()
     this.cookieJar = cookieJar || null
 
@@ -154,11 +154,11 @@ export default class SlackAPI {
     }
 
     const privateMessages = threadTypes.includes('dm')
-      ? (response.channels as any[]).filter(({ is_im, is_mpim }: { is_im: boolean; is_mpim?: boolean }) => is_im || is_mpim)
+      ? (response.channels as any[]).filter(({ is_im, is_mpim }: { is_im: boolean, is_mpim?: boolean }) => is_im || is_mpim)
       : []
 
     const publicChannels = threadTypes.includes('channel')
-      ? (response.channels as any[]).filter(({ is_channel, is_member }: { is_channel: boolean; is_member: boolean }) => is_channel && is_member)
+      ? (response.channels as any[]).filter(({ is_channel, is_member }: { is_channel: boolean, is_member: boolean }) => is_channel && is_member)
       : []
 
     await bluebird.map(publicChannels, this.loadPublicChannel)

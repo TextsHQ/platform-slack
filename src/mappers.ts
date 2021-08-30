@@ -1,12 +1,12 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread, Tweet } from '@textshq/platform-sdk'
 import type { ImageBlock, KnownBlock } from '@slack/web-api'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { BOLD_REGEX, LINK_REGEX } from './constants'
 import { removeCharactersAfterAndBefore } from './util'
-import { mapNativeEmojis, mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
+import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
   if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
@@ -207,7 +207,7 @@ export const shortcodeToEmoji = (shortcode: string) => {
 }
 
 const mapReactions = (
-  slackReactions: { name: string; users: string[]; count: number }[],
+  slackReactions: { name: string, users: string[], count: number }[],
   customEmojis: Record<string, string>,
 ): MessageReaction[] => {
   if (!slackReactions?.length) return []
@@ -297,7 +297,7 @@ const mapLinkAttachment = ({
     height: image_height,
   },
   title,
-  summary: text
+  summary: text,
 })
 
 export const mapMessage = (
@@ -344,8 +344,8 @@ export const mapMessage = (
     textAttributes = {
       heDecode: true,
       entities: data1.textAttributes.entities.concat(
-        offsetEntities(data2.textAttributes.entities, Array.from(data1.text).length)
-      )
+        offsetEntities(data2.textAttributes.entities, Array.from(data1.text).length),
+      ),
     }
   }
 

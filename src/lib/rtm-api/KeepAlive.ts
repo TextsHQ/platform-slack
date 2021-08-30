@@ -4,12 +4,12 @@ import type { RTMClient } from './RTMClient'
 import { ErrorCode, CodedError } from './errors'
 
 export interface KeepAliveOptions {
-  logger?: any;
-  logLevel?: any;
+  logger?: any
+  logLevel?: any
   /** How long (in ms) to wait before sending a ping message to keep the connection alive */
-  clientPingTimeout?: number;
+  clientPingTimeout?: number
   /** How long (in ms) to wait for the acknowledgement of a ping message before considering the connection dead */
-  serverPongTimeout?: number; // NOTE: this must be less than clientPingTimeout
+  serverPongTimeout?: number // NOTE: this must be less than clientPingTimeout
 }
 
 /**

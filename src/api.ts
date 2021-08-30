@@ -40,7 +40,7 @@ export default class Slack implements PlatformAPI {
 
   private threadTypes: ThreadType[]
 
-  init = async (serialized: { cookies: any; clientToken: string }, { accountID, dataDirPath }: AccountInfo) => {
+  init = async (serialized: { cookies: any, clientToken: string }, { accountID, dataDirPath }: AccountInfo) => {
     this.accountID = accountID
 
     const { cookies, clientToken } = serialized || {}

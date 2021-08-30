@@ -9,7 +9,7 @@ import type { RTMCallResult } from './RTMClient'
  * All errors produced by this package adhere to this interface
  */
 export interface CodedError extends NodeJS.ErrnoException {
-  code: ErrorCode;
+  code: ErrorCode
 }
 
 /**
@@ -31,25 +31,25 @@ export enum ErrorCode {
 export type RTMCallError = RTMPlatformError | RTMWebsocketError | RTMNoReplyReceivedError | RTMSendWhileDisconnectedError | RTMSendWhileNotReadyError
 
 export interface RTMPlatformError extends CodedError {
-  code: ErrorCode.SendMessagePlatformError;
-  data: RTMCallResult;
+  code: ErrorCode.SendMessagePlatformError
+  data: RTMCallResult
 }
 
 export interface RTMWebsocketError extends CodedError {
-  code: ErrorCode.WebsocketError;
-  original: Error;
+  code: ErrorCode.WebsocketError
+  original: Error
 }
 
 export interface RTMNoReplyReceivedError extends CodedError {
-  code: ErrorCode.NoReplyReceivedError;
+  code: ErrorCode.NoReplyReceivedError
 }
 
 export interface RTMSendWhileDisconnectedError extends CodedError {
-  code: ErrorCode.SendWhileDisconnectedError;
+  code: ErrorCode.SendWhileDisconnectedError
 }
 
 export interface RTMSendWhileNotReadyError extends CodedError {
-  code: ErrorCode.SendWhileNotReadyError;
+  code: ErrorCode.SendWhileNotReadyError
 }
 
 /**
@@ -77,7 +77,7 @@ export function websocketErrorWithOriginal(original: Error): RTMWebsocketError {
 /**
   * A factory to create RTMPlatformError objects.
   */
-export function platformErrorFromEvent(event: RTMCallResult & { error: { msg: string; } }): RTMPlatformError {
+export function platformErrorFromEvent(event: RTMCallResult & { error: { msg: string } }): RTMPlatformError {
   const error = errorWithCode(
     new Error(`An API error occurred: ${event.error.msg}`),
     ErrorCode.SendMessagePlatformError,

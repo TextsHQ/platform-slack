@@ -91,7 +91,7 @@ export const offsetEntities = (entities: TextEntity[], offset: number): TextEnti
 
 export function mapTextAttributes(
   src: string,
-  wrapInQuote: boolean = false,
+  wrapInQuote = false,
 ) : {
     text: string
     textAttributes: TextAttributes
@@ -284,7 +284,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       output += text
-      break;
+      break
     }
     case 'rich_text_quote': {
       const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
@@ -300,7 +300,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
         })
       }
       output += text
-      break;
+      break
     }
     case 'rich_text_preformatted': {
       const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
@@ -316,7 +316,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
         })
       }
       output += text
-      break;
+      break
     }
     case 'text': {
       const from = Array.from(output).length
@@ -324,7 +324,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       if (block.style) {
         const entity: TextEntity = {
           from,
-          to: from + Array.from(block.text).length
+          to: from + Array.from(block.text).length,
         }
         if (block.style.bold) {
           entity.bold = true
@@ -340,7 +340,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
         }
         entities.push(entity)
       }
-      break;
+      break
     }
     case 'link': {
       const title = block.text || block.url
@@ -351,7 +351,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
         link: block.url,
       })
       output += title
-      break;
+      break
     }
     case 'emoji': {
       const emojiCode = `:${block.name}:`
@@ -372,27 +372,27 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
               size: {
                 width: 16,
                 height: 16,
-              }
-            }
+              },
+            },
           })
         }
         output += block.name
       }
-      break;
+      break
     }
     case 'section': {
       const { text, textAttributes } = mapBlock(block.text, customEmojis)
       const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       output += text
-      break;
+      break
     }
     case 'mrkdwn': {
       const { text, textAttributes } = mapTextAttributes(block.text)
       const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       output += text
-      break;
+      break
     }
     case 'user': {
       const from = Array.from(output).length
@@ -402,11 +402,11 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
         to: from + Array.from(username).length + 1,
         mentionedUser: {
           username,
-          id: block.user_id
-        }
+          id: block.user_id,
+        },
       })
       output += `@${username}`
-      break;
+      break
     }
     default:
       console.log('Unrecognized block:', block)
@@ -428,7 +428,7 @@ export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>)
   let output = ''
   const entities = []
 
-  for (let block of blocks) {
+  for (const block of blocks) {
     const { text, textAttributes } = mapBlock(block, customEmojis)
     const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
     entities.push(...nestedEntities)

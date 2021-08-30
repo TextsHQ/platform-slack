@@ -32,11 +32,11 @@ enum UnrecoverableRTMStartError {
  */
 interface RTMStartResult extends WebAPICallResult {
   self: {
-    id: string;
-  };
+    id: string
+  }
   team: {
-    id: string;
-  };
+    id: string
+  }
 }
 
 /**
@@ -48,13 +48,13 @@ export class RTMClient extends EventEmitter {
   /**
    * Whether or not the client is currently connected to the RTM API
    */
-  public connected: boolean = false
+  public connected = false
 
   /**
    * Whether or not the client has authenticated to the RTM API. This occurs when the connect method
    * completes, and a WebSocket URL is available for the client's connection.
    */
-  public authenticated: boolean = false
+  public authenticated = false
 
   /**
    * The user ID for the connected client.
@@ -91,7 +91,7 @@ export class RTMClient extends EventEmitter {
    * The number of milliseconds to wait upon connection for reply messages from the previous connection. The default
    * value is 2 seconds.
    */
-  private replyAckOnReconnectTimeout: number = 2000
+  private replyAckOnReconnectTimeout = 2000
 
   /**
    * State machine that backs the transition and action behavior
@@ -457,7 +457,7 @@ export class RTMClient extends EventEmitter {
           if (event.reply_to === messageId) {
             this.off('slack_event', eventHandler)
             if (event.error !== undefined) {
-              const error = platformErrorFromEvent(event as RTMCallResult & { error: { msg: string; } })
+              const error = platformErrorFromEvent(event as RTMCallResult & { error: { msg: string } })
               return reject(error)
             }
             resolve(event)
@@ -610,31 +610,31 @@ export default RTMClient
  */
 
 export interface RTMClientOptions {
-  slackApiUrl?: string;
-  logger?: any;
-  logLevel?: any;
-  retryConfig?: RetryOptions;
-  agent?: Agent;
-  autoReconnect?: boolean; // this is a simple yes or no. there is no limit to the number or reconnections. a simple
+  slackApiUrl?: string
+  logger?: any
+  logLevel?: any
+  retryConfig?: RetryOptions
+  agent?: Agent
+  autoReconnect?: boolean // this is a simple yes or no. there is no limit to the number or reconnections. a simple
   // number is probably the wrong idea since reconnections can happen for uncontrollable
   // yet normal reasons such as team migrations and the keep-alive algorithm.
-  useRtmConnect?: boolean;
-  clientPingTimeout?: number;
-  serverPongTimeout?: number;
-  replyAckOnReconnectTimeout?: number;
-  tls?: TLSOptions;
-  webClient?: WebClient;
+  useRtmConnect?: boolean
+  clientPingTimeout?: number
+  serverPongTimeout?: number
+  replyAckOnReconnectTimeout?: number
+  tls?: TLSOptions
+  webClient?: WebClient
 }
 
 // TODO: define RTMClientEvent enum, use as generic parameter for EventEmitter (and probably still union with string)
 
 export interface RTMCallResult {
-  ts: string;
-  reply_to?: number;
+  ts: string
+  reply_to?: number
   error?: {
-    code: number;
-    msg: string;
-  };
+    code: number
+    msg: string
+  }
 }
 
 export type RTMStartOptions = RTMConnectArguments | RTMStartArguments
