@@ -76,7 +76,7 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('reaction_added', slackEvent => {
-      const participantID = slackEvent.item_user
+      const participantID = slackEvent.user
       const emoji = shortcodeToEmoji(slackEvent.reaction)
       const reactionKey = emoji || slackEvent.reaction
       this.onEvent([{
@@ -107,7 +107,7 @@ export default class SlackRealTime {
         },
         mutationType: 'delete',
         objectName: 'message_reaction',
-        entries: [`${slackEvent.item_user}${emoji || slackEvent.reaction}`],
+        entries: [`${slackEvent.user}${emoji || slackEvent.reaction}`],
       }])
     })
 
