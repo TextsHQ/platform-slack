@@ -208,7 +208,7 @@ export default class SlackAPI {
       if (typeof text === 'string') message.text = await this.loadMentions(text)
 
       const sharedParticipant = message?.user_profile
-        ? { profile: { ...message.user_profile } }
+        ? { profile: message.user_profile }
         : undefined
       // B01 === "Slackbot" but slack bot isn't a bot on slack so normal profile needs to be fetched instead the bot
       const user = sharedParticipant || (message?.bot_id && message?.bot_id !== 'B01' && !message?.user ? await this.getParticipantBot(message.bot_id) : await this.getParticipantProfile(messageUser))
