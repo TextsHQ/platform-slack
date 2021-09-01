@@ -381,6 +381,7 @@ export const mapParticipant = ({ profile }: any): Participant => profile && {
   username: profile.display_name || profile.real_name || profile.name,
   fullName: profile.real_name || profile.display_name,
   imgURL: profile.image_192 || profile.image_72,
+  email: profile.email,
 }
 
 export const mapCurrentUser = ({ user, team, auth }: any): CurrentUser => ({
