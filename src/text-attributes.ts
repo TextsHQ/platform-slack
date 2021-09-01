@@ -319,7 +319,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       break
     }
     case 'text': {
-      const from = Array.from(output || '').length
+      const from = Array.from(output).length
       output += block.text
       if (block.style) {
         const entity: TextEntity = {
