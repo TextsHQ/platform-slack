@@ -396,7 +396,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
     }
     case 'user': {
       const from = Array.from(output).length
-      const username = block?.profile?.display_name || block?.profile?.real_name || ''
+      const username = block.profile?.display_name || block.profile?.real_name || ''
       entities.push({
         from,
         to: from + Array.from(username).length + 1,
