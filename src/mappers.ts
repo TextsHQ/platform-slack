@@ -16,15 +16,22 @@ const getAttachmentType = (mimeType: string): MessageAttachmentType => {
 }
 
 const mapAttachment = (slackAttachment: any): MessageAttachment => {
-  if (!slackAttachment || !slackAttachment?.mimetype) return
+  let mimeType = slackAttachment?.mimetype
+  if (slackAttachment?.image_url) mimeType = 'image'
 
-  const type = getAttachmentType(slackAttachment.mimetype)
+  if (!slackAttachment || !mimeType) return
+
+  const type = getAttachmentType(mimeType)
+  const url = slackAttachment.url_private
+    ? 'asset://$accountID/proxy/' + Buffer.from(slackAttachment.url_private).toString('hex')
+    : slackAttachment.image_url
+
   return {
     id: slackAttachment.id,
-    fileName: slackAttachment.name,
+    fileName: slackAttachment.name || 'image',
     type,
-    srcURL: 'asset://$accountID/proxy/' + Buffer.from(slackAttachment.url_private).toString('hex'),
-    mimeType: slackAttachment.mimetype,
+    mimeType,
+    srcURL: url,
   }
 }
 
@@ -230,7 +237,13 @@ const mapAttachmentsText = (attachments: any[]): string => {
   if (!attachments?.length) return ''
 
   return attachments
-    .map(x => x.pretext || x.text || x.title || x.fallback)
+    .map(x => {
+      const text = x.text ? `${x.text}` : ''
+      const title = x.title ? `${x.title}${text ? '\n\n' : ''}` : ''
+      const pretext = x.pretext ? `${x.pretext}\n` : ''
+
+      return `${title}${pretext}${text}` || x.fallback
+    })
     .filter(Boolean)
     .join('\n')
 }
@@ -312,6 +325,7 @@ export const mapMessage = (
   const tweetAttachments = []
   const linkAttachments = []
   const otherAttachments = []
+
   for (const x of slackMessage.attachments || []) {
     if (x.service_name === 'twitter') {
       tweetAttachments.push(x)
@@ -327,7 +341,8 @@ export const mapMessage = (
 
   const attachments = [
     ...(mapAttachments(slackMessage.files) || []),
-  ]
+    ...(mapAttachments(slackMessage.attachments) || []),
+  ].filter(Boolean)
 
   let mappedText
   let textAttributes
