@@ -324,7 +324,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       if (block.style) {
         const entity: TextEntity = {
           from,
-          to: from + Array.from(block.text).length,
+          to: from + Array.from(block.text || '').length,
         }
         if (block.style.bold) {
           entity.bold = true
@@ -343,7 +343,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       break
     }
     case 'link': {
-      const title = block.text || block.url
+      const title = block.text || block.url || ''
       const from = Array.from(output).length
       entities.push({
         from,
@@ -396,7 +396,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
     }
     case 'user': {
       const from = Array.from(output).length
-      const username = block.profile.display_name || block.profile.real_name
+      const username = block.profile?.display_name || block.profile?.real_name || ''
       entities.push({
         from,
         to: from + Array.from(username).length + 1,
