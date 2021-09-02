@@ -217,6 +217,14 @@ interface PreformattedBlock extends BaseParentBlock {
   type: 'rich_text_preformatted'
 }
 
+interface ListBlock extends BaseParentBlock {
+  type: 'rich_text_list'
+}
+
+interface ListRichTextSectionBlock extends BaseParentBlock {
+  type: 'rich_text_section_list'
+}
+
 type TextElement = {
   type: 'text'
   text: string
@@ -227,6 +235,8 @@ type TextElement = {
     code?: boolean
   }
 }
+
+type TextList = Omit<TextElement, 'type'> & { type: 'text_list' }
 
 type LinkElement = {
   type: 'link'
@@ -262,6 +272,9 @@ type UserElement = {
 export type Block =
   RichTextBlock |
   QuoteBlock |
+  ListBlock |
+  ListRichTextSectionBlock |
+  TextList |
   PreformattedBlock |
   TextElement |
   LinkElement |
@@ -284,6 +297,22 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       output += text
+      break
+    }
+    case 'rich_text_list':
+    case 'rich_text_section_list': {
+      const elementsAux = block.elements.map(element => ({ ...element, type: `${element.type}_list` }))
+      const { text, textAttributes } = mapBlocks(elementsAux as Block[], customEmojis)
+      const cursor = Array.from(output).length
+      const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+      entities.push(...nestedEntities)
+
+      output += text
+      break
+    }
+    case 'text_list': {
+      // TODO: Use unicode
+      output += `• ${block.text}\n`
       break
     }
     case 'rich_text_quote': {
