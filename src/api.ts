@@ -40,8 +40,11 @@ export default class Slack implements PlatformAPI {
 
   private threadTypes: ThreadType[]
 
-  init = async (serialized: { cookies: any, clientToken: string }, { accountID, dataDirPath }: AccountInfo) => {
+  private showChannels = false
+
+  init = async (serialized: { cookies: any, clientToken: string }, { accountID, dataDirPath }: AccountInfo, prefs: Record<string, any>) => {
     this.accountID = accountID
+    this.showChannels = prefs?.show_channels
 
     const { cookies, clientToken } = serialized || {}
     if (!cookies && !clientToken) return
@@ -60,9 +63,7 @@ export default class Slack implements PlatformAPI {
 
     await this.api.setCustomEmojis()
 
-    const onlyDMs = fs.existsSync(path.join(dataDirPath, '../slack-only-dms'))
-    // TODO: Connect it with the platform-sdk user preference
-    this.threadTypes = onlyDMs ? ['dm'] : ['channel', 'dm']
+    this.threadTypes = this.showChannels ? ['channel', 'dm'] : ['dm']
   }
 
   login = async ({ cookieJarJSON, jsCodeResult }: LoginCreds): Promise<LoginResult> => {

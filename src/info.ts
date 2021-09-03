@@ -36,10 +36,10 @@ const info: PlatformInfo = {
 
         if (url.includes('signin')) {
           const elements = document.querySelectorAll('[href*="login"]')
-          
+
           elements.forEach((element) => {
             element.target = '';
-            
+
             const { href } = element;
             if (href.includes('login')) {
               element.onclick = () => handleButtonClick(href);
@@ -65,6 +65,13 @@ const info: PlatformInfo = {
     Attribute.SUPPORTS_PRESENCE,
     Attribute.SUPPORTS_CUSTOM_EMOJIS,
   ]),
+  prefs: {
+    show_channels: {
+      label: 'Show channels',
+      type: 'checkbox',
+      default: false,
+    },
+  },
 }
 
 export default info
