@@ -1,11 +1,8 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, TextEntity, Thread, Tweet } from '@textshq/platform-sdk'
-import type { ImageBlock, KnownBlock } from '@slack/web-api'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, Thread, Tweet } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
-import { BOLD_REGEX, LINK_REGEX } from './constants'
-import { removeCharactersAfterAndBefore } from './util'
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
@@ -40,17 +37,6 @@ const mapAttachments = (slackAttachments: any[]): MessageAttachment[] => {
   return slackAttachments.map(mapAttachment)
 }
 
-const mapAttachmentBlock = (slackBlock: KnownBlock) => {
-  const { type: slackType } = slackBlock
-  if (slackType !== 'image') return
-  const block = slackBlock as ImageBlock
-  return {
-    id: block.image_url,
-    type: MessageAttachmentType.IMG,
-    srcURL: 'asset://$accountID/proxy/' + Buffer.from(block.image_url).toString('hex'),
-  }
-}
-
 export const extractRichElements = (slackBlocks: any): any[] => {
   const validTypes = ['rich_text', 'context']
   const richTexts = slackBlocks?.filter(({ type }) => validTypes.includes(type)) || []
@@ -81,78 +67,6 @@ export const extractRichElements = (slackBlocks: any): any[] => {
   return [...richElements, ...sectionElements, ...calls]
 }
 
-/**
- * FIXME: This NEEDS to be refactored and fixed. It uses a lot of logic that needs to be generalized and documented
- *
- * @param text
- * @returns
- */
-const getQuotesEntities = (text: string): { entities: TextEntity[], mappedText: string, offset: number } => {
-  if (!text.includes('&gt;')) return { entities: [], mappedText: text, offset: 0 }
-
-  const quotesEntities: TextEntity[] = []
-  let mappedText = text.replace(/&gt;/g, '>')
-  let offset = 0
-
-  if (mappedText[0] === '>') {
-    mappedText = mappedText.slice(2)
-    offset += 5
-
-    const to = mappedText.includes('\n') ? Array.from(mappedText).indexOf('\n') : Array.from(mappedText).length
-    const isLink = mappedText.slice(0, to + 1).startsWith('<') && mappedText.slice(0, to).endsWith('>')
-
-    quotesEntities.push({
-      from: 0,
-      to: isLink ? to - 2 : to,
-      quote: true,
-    })
-  }
-
-  const newLineQuotes = mappedText.match(/(\n>)/g) || []
-  let previousFrom = Array.from(mappedText).indexOf('>') || 0
-  let counter = 1
-
-  while (counter <= newLineQuotes.length) {
-    const arrayText = Array.from(mappedText)
-
-    const from = arrayText.indexOf('>', previousFrom)
-    const to = arrayText.indexOf('\n', from)
-
-    if (arrayText[from - 1] === '\n') {
-      quotesEntities.push({
-        from,
-        to: to > 0 ? to : Array.from(mappedText).length,
-        quote: true,
-      })
-
-      mappedText = `${arrayText.slice(0, from).join('')}${arrayText.slice(from + 1).join('')}`
-      previousFrom = from
-      // offset += 2
-      counter += 1
-    } else {
-      previousFrom += 1
-    }
-  }
-
-  return { entities: quotesEntities, mappedText, offset }
-}
-
-const mapTextWithoutBlocks = (text: string) => {
-  const entities: TextEntity[] = []
-
-  let mappedText = text
-  const boldElements = text.match(BOLD_REGEX) || []
-
-  for (const element of boldElements) {
-    const onlyText = element.slice(1, -1)
-    mappedText = removeCharactersAfterAndBefore(mappedText, onlyText)
-    const from = mappedText.indexOf(onlyText)
-    entities.push({ from, to: from + onlyText.length, bold: true })
-  }
-
-  return { entities, text: mappedText }
-}
-
 export const mapAction = (slackMessage: CHRMessage): MessageAction => {
   const actions = ['channel_join', 'channel_leave']
   if (!actions.includes(slackMessage.subtype)) return
@@ -175,30 +89,6 @@ export const mapAction = (slackMessage: CHRMessage): MessageAction => {
     participantIDs: [slackMessage.user],
     actorParticipantID: slackMessage.user,
   }
-}
-
-const mapTextWithLinkEntities = (slackText: string): { attributes: TextAttributes, text: string } => {
-  const found = slackText?.match(LINK_REGEX)
-  if (!found) return { attributes: {}, text: slackText }
-
-  const entities: TextEntity[] = []
-  let finalText = slackText
-
-  for (const linkFound of found) {
-    const linkAndText = linkFound.slice(1, linkFound.length - 1)
-    finalText = removeCharactersAfterAndBefore(finalText, linkAndText)
-
-    const text = linkAndText.includes('|') ? linkAndText.split('|').pop() : ''
-    const link = linkAndText.includes('|') ? linkAndText.split('|')[0] : linkAndText
-
-    if (text) finalText = finalText.replace(`${link}|`, link.includes('#') ? '#' : '')
-
-    const from = text ? finalText.indexOf(text) : finalText.indexOf(link)
-    const to = from + (text ? text.length : link.length)
-    entities.push({ from, to, link })
-  }
-
-  return { attributes: { entities }, text: finalText }
 }
 
 export const mapReactionKey = (shortcode: string, customEmojis: Record<string, string>) =>
