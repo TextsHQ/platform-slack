@@ -219,10 +219,7 @@ interface PreformattedBlock extends BaseParentBlock {
 
 interface ListBlock extends BaseParentBlock {
   type: 'rich_text_list'
-}
-
-interface ListRichTextSectionBlock extends BaseParentBlock {
-  type: 'rich_text_section_list'
+  style: 'bullet' | 'ordered'
 }
 
 type TextElement = {
@@ -235,8 +232,6 @@ type TextElement = {
     code?: boolean
   }
 }
-
-type TextList = Omit<TextElement, 'type'> & { type: 'text_list' }
 
 type LinkElement = {
   type: 'link'
@@ -273,8 +268,6 @@ export type Block =
   RichTextBlock |
   QuoteBlock |
   ListBlock |
-  ListRichTextSectionBlock |
-  TextList |
   PreformattedBlock |
   TextElement |
   LinkElement |
@@ -299,20 +292,18 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       output += text
       break
     }
-    case 'rich_text_list':
-    case 'rich_text_section_list': {
-      const elementsAux = block.elements.map(element => ({ ...element, type: `${element.type}_list` }))
-      const { text, textAttributes } = mapBlocks(elementsAux as Block[], customEmojis)
-      const cursor = Array.from(output).length
-      const nestedEntities = offsetEntities(textAttributes.entities, cursor)
-      entities.push(...nestedEntities)
+    case 'rich_text_list': {
+      let i = 1;
+      for (const element of block.elements) {
+        const listStyle = block.style === 'ordered' ? `${i}. ` : '• '
+        const { text, textAttributes } = mapBlock(element, customEmojis)
+        const cursor = Array.from(output).length + listStyle.length
+        const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+        entities.push(...nestedEntities)
 
-      output += text
-      break
-    }
-    case 'text_list': {
-      // TODO: Use unicode
-      output += `• ${block.text}\n`
+        output += listStyle + text + '\n'
+        i++
+      }
       break
     }
     case 'rich_text_quote': {
