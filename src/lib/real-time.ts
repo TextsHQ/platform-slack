@@ -1,5 +1,5 @@
 import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType, texts } from '@textshq/platform-sdk'
-import { RTMClient } from './rtm-api'
+import { RTMClient } from '@slack/rtm-api'
 
 import { mapEmojiChangedEvent, mapMessage, mapReactionKey, shortcodeToEmoji } from '../mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from '../constants'
@@ -23,9 +23,7 @@ export default class SlackRealTime {
   ) {}
 
   subscribeToEvents = async (): Promise<void> => {
-    this.rtm = new RTMClient(undefined, {
-      webClient: this.api.webClient,
-    })
+    this.rtm = new RTMClient({ webClient: this.api.webClient })
 
     // fixtures/message_rtm_event.json
     // fixtures/messase_changed_rtm_event.json

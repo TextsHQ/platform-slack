@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "main": "dist/index.js",
   "scripts": {
-    "postinstall": "yarn tsc || true",
+    "postinstall": "patch-package && yarn tsc || true",
     "build": "yarn tsc",
     "lint": "eslint src --ext ts,tsx,js,jsx --cache",
     "test": "jest"
@@ -25,6 +25,8 @@
     "node-emoji": "^1.11.0",
     "p-cancelable": "^1.1.0",
     "p-queue": "^2.4.2",
+    "patch-package": "^6.4.7",
+    "postinstall-postinstall": "^2.1.0",
     "tough-cookie": "^4.0.0",
     "ws": "^5.2.0"
   },
