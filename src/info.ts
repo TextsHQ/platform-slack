@@ -64,6 +64,7 @@ const info: PlatformInfo = {
     Attribute.SUPPORTS_EDIT_MESSAGE,
     Attribute.SUPPORTS_PRESENCE,
     Attribute.SUPPORTS_CUSTOM_EMOJIS,
+    Attribute.SEARCH_ALL_USERS_FOR_GROUP_MENTIONS,
   ]),
   prefs: {
     show_channels: {
