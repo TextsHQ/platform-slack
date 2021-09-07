@@ -58,7 +58,7 @@ export default class SlackAPI {
     const emojisBody = emojisBodyBuffer.toString('utf-8')
     const tokens = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)
 
-    if (!emojisBody || !tokens?.length) throw new ReAuthError('There was an error trying to login to this workspace')
+    if (!emojisBody || !tokens?.length) throw new ReAuthError('There was an unknown error trying to login to this workspace')
 
     const clientToken = tokens[0]
     return clientToken
