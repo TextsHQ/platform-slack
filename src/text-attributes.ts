@@ -449,10 +449,12 @@ export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>)
   const entities = []
 
   for (const block of blocks) {
-    const { text, textAttributes } = mapBlock(block, customEmojis)
-    const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
-    entities.push(...nestedEntities)
-    output += text
+    if (block) {
+      const { text, textAttributes } = mapBlock(block, customEmojis)
+      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      entities.push(...nestedEntities)
+      output += text
+    }
   }
 
   return {
