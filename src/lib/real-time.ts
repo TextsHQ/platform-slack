@@ -7,7 +7,7 @@ import type SlackAPI from './slack'
 import type PAPI from '../api'
 
 function getThreadID(event: any) {
-  if (event.thread_ts) return `${MESSAGE_REPLY_THREAD_PREFIX}${event.channel}/${event.ts}`
+  if (event.thread_ts && event.message) return `${MESSAGE_REPLY_THREAD_PREFIX}${event.channel}/${event.message.ts}`
   return event.channel
 }
 
@@ -30,7 +30,7 @@ export default class SlackRealTime {
     /** https://api.slack.com/events/message */
     this.rtm.on('message', slackEvent => {
       const threadID = getThreadID(slackEvent)
-      // console.log(JSON.stringify(slackEvent, null, 2))
+
       switch (slackEvent.subtype) {
         case 'message_changed':
           this.onEvent([{
@@ -40,6 +40,12 @@ export default class SlackRealTime {
             mutationType: 'update',
             entries: [mapMessage(slackEvent.message, this.papi.accountID, threadID, this.papi.currentUserID, this.api.customEmojis)],
           }])
+          break
+        case 'message_replied':
+          this.onEvent([
+            { type: ServerEventType.THREAD_MESSAGES_REFRESH, threadID },
+            { type: ServerEventType.THREAD_MESSAGES_REFRESH, threadID: `${MESSAGE_REPLY_THREAD_PREFIX}${threadID}/${slackEvent.message?.ts}` },
+          ])
           break
         case 'message_deleted':
           this.onEvent([{
