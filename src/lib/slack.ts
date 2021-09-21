@@ -1,8 +1,9 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ReAuthError } from '@textshq/platform-sdk'
+import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import { WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import bluebird from 'bluebird'
-import { uniqBy } from 'lodash'
+import { uniqBy, memoize } from 'lodash'
 import type { CookieJar } from 'tough-cookie'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
@@ -10,7 +11,6 @@ import { emojiToShortcode } from '../text-attributes'
 import { NOT_USED_SLACK_URL } from './constants'
 import { MENTION_REGEX } from '../constants'
 import type { ThreadType } from '../api'
-import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -276,6 +276,10 @@ export default class SlackAPI {
     return participant
   }
 
+  _listUsers = async (cursor: string) => this.webClient.users.list({ limit: 100, cursor })
+
+  listUsersWithCursor = memoize(this._listUsers)
+
   searchUsers = async (typed: string) => {
     const allUsers = await this.webClient.users.list({ limit: 100 })
     const { members, response_metadata } = allUsers
@@ -294,7 +298,7 @@ export default class SlackAPI {
     let nextCursor = response_metadata.next_cursor
 
     while (!filteredMembers?.length && nextCursor) {
-      const moreMembers = await this.webClient.users.list({ limit: 100, cursor: nextCursor || undefined })
+      const moreMembers = await this.listUsersWithCursor(nextCursor)
       filteredMembers = moreMembers?.members?.filter(filterMembers) || []
       nextCursor = moreMembers?.response_metadata?.next_cursor || ''
     }
