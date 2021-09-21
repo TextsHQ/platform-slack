@@ -10,6 +10,7 @@ import { emojiToShortcode } from '../text-attributes'
 import { NOT_USED_SLACK_URL } from './constants'
 import { MENTION_REGEX } from '../constants'
 import type { ThreadType } from '../api'
+import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -277,12 +278,28 @@ export default class SlackAPI {
 
   searchUsers = async (typed: string) => {
     const allUsers = await this.webClient.users.list({ limit: 100 })
-    const { members } = allUsers
+    const { members, response_metadata } = allUsers
 
     if (!typed) return members.map(mapProfile)
-    return members
-      .filter(member => member.name.toLowerCase().includes(typed.toLowerCase()))
-      .map(mapProfile)
+
+    const filterMembers = (member: Member) => {
+      const names = [member.name, member.real_name]
+      return names.some(name => name?.toLowerCase().includes(typed.toLowerCase()))
+    }
+    // Slack doesn't have a "search" users method and the "list" users is limited to 100. So
+    // this way it'll "keep searching" until it reaches the end of the list or finds members.
+    // The `users.list` method is cached on Slack's side
+    // @see https://api.slack.com/methods/users.list#responses
+    let filteredMembers = members.filter(filterMembers)
+    let nextCursor = response_metadata.next_cursor
+
+    while (!filteredMembers?.length && nextCursor) {
+      const moreMembers = await this.webClient.users.list({ limit: 100, cursor: nextCursor || undefined })
+      filteredMembers = moreMembers?.members?.filter(filterMembers) || []
+      nextCursor = moreMembers?.response_metadata?.next_cursor || ''
+    }
+
+    return filteredMembers.map(mapProfile)
   }
 
   sendMessage = async (channel: string, thread_ts: string, content: MessageContent) => {
