@@ -329,8 +329,22 @@ export default class SlackAPI {
       attachments = [file.file] || []
     }
 
-    const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments })
-    return res.message
+    try {
+      const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments })
+      return res.message
+    } catch (error) {
+      if (error.message === 'An API error occurred: restricted_action_read_only_channel') {
+        this.onEvent([{
+          type: ServerEventType.STATE_SYNC,
+          objectIDs: { threadID: channel },
+          objectName: 'thread',
+          mutationType: 'update',
+          entries: [{ id: channel, isReadOnly: true }],
+        }])
+      }
+
+      return false
+    }
   }
 
   editMessage = async (channel: string, ts: string, thread_ts: string, text: string): Promise<boolean> => {

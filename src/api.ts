@@ -142,6 +142,8 @@ export default class Slack implements PlatformAPI {
   sendMessage = async (threadID: string, content: MessageContent) => {
     const { channel, thread_ts } = getIDs(threadID)
     const message = await this.api.sendMessage(channel, thread_ts, content)
+    if (!message) return false
+
     return [mapMessage(message as any, this.accountID, channel, this.currentUserID, this.api.customEmojis)]
   }
 
