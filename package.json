@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "main": "dist/index.js",
   "scripts": {
-    "postinstall": "patch-package && yarn tsc || true",
+    "prepack": "patch-package && tsc",
+    "postinstall": "patch-package && tsc",
     "build": "yarn tsc",
     "lint": "eslint src --ext ts,tsx,js,jsx --cache",
     "test": "jest"
