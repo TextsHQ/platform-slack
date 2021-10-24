@@ -68,18 +68,18 @@ export default class Slack implements PlatformAPI {
 
   login = async ({ cookieJarJSON, jsCodeResult }: LoginCreds): Promise<LoginResult> => {
     const cookieJar = CookieJar.fromJSON(cookieJarJSON as any)
-    // This is done because it may come as jsCodeResult a magic link to do the login. It'd be
-    // better to do the request here in the "texts-side" because otherwise in the login browser
-    // it'll redirect the user to Slack's app (directly to the deep-link), so this way we update
-    // the cookieJar directly from Texts.
-    if (jsCodeResult) await texts.fetch(jsCodeResult, { cookieJar })
+    if (!jsCodeResult) return { type: 'error', errorMessage: 'jsCodeResult was falsey' }
+    const { magicLink } = JSON.parse(jsCodeResult)
+
+    // this is to update the cookie jar with the auth cookies
+    if (magicLink) await this.api.httpClient.requestAsString(magicLink, { cookieJar })
 
     await this.api.setLoginState(cookieJar)
     await this.afterAuth()
 
     if (this.api.userToken) return { type: 'success' }
     // FIXME: Add error message
-    return { type: 'error', errorMessage: 'Error' }
+    return { type: 'error', errorMessage: 'Unknown error' }
   }
 
   serializeSession = () => ({

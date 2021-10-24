@@ -22,13 +22,18 @@ const info: PlatformInfo = {
   browserLogin: {
     loginURL: 'https://slack.com/signin#/signin',
     authCookieName: 'd',
-    runJSOnClose: 'magicLink',
+    runJSOnClose: 'JSON.stringify(__loginReturnValue)',
     runJSOnLaunch: `
-      let magicLink = "";
+      let __loginReturnValue = {}
+      // if (window.boot_data?.api_token) {
+      //   __loginReturnValue.apiToken = window.boot_data?.api_token
+      //   __loginReturnValue.teamID = window.boot_data?.team_id
+      //   window.close()
+      // }
 
       const handleButtonClick = (href) => {
-        magicLink = href;
-        setTimeout(() => window.close(), 1000);
+        __loginReturnValue.magicLink = href
+        setTimeout(() => window.close(), 1000)
       }
 
       window.addEventListener('hashchange', function(){
@@ -36,20 +41,19 @@ const info: PlatformInfo = {
 
         if (url.includes('signin')) {
           const elements = document.querySelectorAll('[href*="login"]')
-
           elements.forEach((element) => {
-            element.target = '';
+            element.target = ''
 
-            const { href } = element;
+            const { href } = element
             if (href.includes('login')) {
-              element.onclick = () => handleButtonClick(href);
-              element.removeAttribute('href');
+              element.onclick = () => handleButtonClick(href)
+              element.removeAttribute('href')
             }
 
             // TODO: Implement for 2-fa
           })
         }
-      });
+      })
     `,
   },
   reactions: {

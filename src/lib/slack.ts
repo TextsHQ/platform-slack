@@ -8,7 +8,6 @@ import type { CookieJar } from 'tough-cookie'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
-import { NOT_USED_SLACK_URL } from './constants'
 import { MENTION_REGEX } from '../constants'
 import type { ThreadType } from '../api'
 
@@ -38,31 +37,30 @@ export default class SlackAPI {
     this.webClient = client
   }
 
-  getCurrentWorkspace = async () => {
-    const { body: workspacesBodyBuffer } = await texts.fetch(NOT_USED_SLACK_URL, { cookieJar: this.cookieJar })
-    const workspacesBody = workspacesBodyBuffer.toString('utf-8')
-    const filteredSlackWorkspaces = [NOT_USED_SLACK_URL, 'dev.slack.com']
-    const alreadyConnectedUrls = workspacesBody?.match(/([a-zA-Z0-9-]+\.slack\.com)/g).filter((url: string) => !filteredSlackWorkspaces.includes(url)) || []
-    // If there's no already connected Slack workspace (on the browser) this will raise an error.
-    // TODO: Add error message
-    if (!alreadyConnectedUrls || !alreadyConnectedUrls?.length) throw new ReAuthError()
-    // Since the browser is initialized with fresh and new cookies and cache, the wanted workspace would be
-    // in the first place
-    const firstWorkspace = alreadyConnectedUrls[0] || ''
-    return firstWorkspace
+  httpClient = texts.createHttpClient()
+
+  requestAsString = (url: string) =>
+    this.httpClient.requestAsString(url, { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT } })
+
+  getFirstTeamURL = async () => {
+    const { body: html } = await this.requestAsString('https://app.slack.com/')
+    // TD.boot_data.team_url = "https:\/\/texts-co.slack.com\/";
+    const [, domain] = html?.match(/TD\.boot_data\.team_url = (.+?);/) || []
+    if (!domain) throw Error('Could not find team URL')
+    return JSON.parse(domain) // 'https://texts-co.slack.com/'
   }
 
   getClientToken = async () => {
-    const firstWorkspace = await this.getCurrentWorkspace()
-
-    const { body: emojisBodyBuffer } = await texts.fetch(`https://${firstWorkspace}/customize/emoji`, { cookieJar: this.cookieJar })
-    const emojisBody = emojisBodyBuffer.toString('utf-8')
-    const tokens = emojisBody?.match(/(xox[a-zA-Z]-[a-zA-Z0-9-]+)/g)
-
-    if (!emojisBody || !tokens?.length) throw new ReAuthError('There was an unknown error trying to login to this workspace')
-
-    const clientToken = tokens[0]
-    return clientToken
+    const teamURL = await this.getFirstTeamURL()
+    for (const pathname of ['customize/emoji', 'home']) {
+      texts.log('fetching', teamURL + pathname)
+      const { body: html } = await this.requestAsString(teamURL + pathname)
+      if (html.includes('"is_unsupported_webclient_browser":true')) console.log('slack unsupported browser issue')
+      // "api_token":"xoxc-2837734959632-2807131363654-1044634777490-836bed83bf8aa7ebcaf06a70df3df6ec7153d219003a75f2dce10db1fc1db50f"
+      const [, token] = html?.match(/"api_token":"(.+?)"/) || []
+      if (token) return token
+    }
+    throw new Error('Unable to find API token')
   }
 
   setCustomEmojis = async () => {
