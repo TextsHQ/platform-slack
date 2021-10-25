@@ -69,7 +69,7 @@ export default class Slack implements PlatformAPI {
 
   login = async ({ cookieJarJSON, jsCodeResult }: LoginCreds): Promise<LoginResult> => {
     const cookieJar = CookieJar.fromJSON(cookieJarJSON as any)
-    if (!jsCodeResult) return { type: 'error', errorMessage: 'jsCodeResult was falsey' }
+    if (!jsCodeResult) return { type: 'error', errorMessage: 'jsCodeResult was false' }
     const { magicLink } = JSON.parse(jsCodeResult)
 
     this.api.cookieJar = cookieJar
