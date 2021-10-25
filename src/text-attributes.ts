@@ -41,7 +41,8 @@ export const emojiToShortcode = (emoji: string) => {
     }
   }
   // @ts-expect-error missing type defs
-  return NodeEmoji.findByCode(emoji)?.key + skinTone
+  const key = NodeEmoji.findByCode(emoji)?.key
+  if (key) return key + skinTone
 }
 
 const getClosingToken = (token: string): string => (
