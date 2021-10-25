@@ -24,13 +24,10 @@ export default class SlackAPI {
 
   workspaceUsers: Record<string, any> = {}
 
-  setLoginState = async (cookieJar: CookieJar, clientToken = '') => {
-    if (!cookieJar && !clientToken) throw TypeError()
-    this.cookieJar = cookieJar || null
-
+  init = async (clientToken: string) => {
     const token = clientToken || await this.getClientToken()
 
-    const cookie = await cookieJar.getCookieString('https://slack.com')
+    const cookie = await this.cookieJar.getCookieString('https://slack.com')
     const client = new WebClient(token, { headers: { cookie } })
 
     this.userToken = token
@@ -39,11 +36,14 @@ export default class SlackAPI {
 
   httpClient = texts.createHttpClient()
 
-  requestAsString = (url: string) =>
-    this.httpClient.requestAsString(url, { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT } })
+  fetchHTML = async (url: string) => {
+    const { body: html } = await this.httpClient.requestAsString(url, { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT } })
+    if (html.includes('"is_unsupported_webclient_browser":true')) console.log('slack unsupported browser issue', url)
+    return html
+  }
 
   getFirstTeamURL = async () => {
-    const { body: html } = await this.requestAsString('https://app.slack.com/')
+    const html = await this.fetchHTML('https://app.slack.com/')
     // TD.boot_data.team_url = "https:\/\/texts-co.slack.com\/";
     const [, domain] = html?.match(/TD\.boot_data\.team_url = (.+?);/) || []
     if (!domain) throw Error('Could not find team URL')
@@ -54,8 +54,7 @@ export default class SlackAPI {
     const teamURL = await this.getFirstTeamURL()
     for (const pathname of ['customize/emoji', 'home']) {
       texts.log('fetching', teamURL + pathname)
-      const { body: html } = await this.requestAsString(teamURL + pathname)
-      if (html.includes('"is_unsupported_webclient_browser":true')) console.log('slack unsupported browser issue')
+      const html = await this.fetchHTML(teamURL + pathname)
       // "api_token":"xoxc-2837734959632-2807131363654-1044634777490-836bed83bf8aa7ebcaf06a70df3df6ec7153d219003a75f2dce10db1fc1db50f"
       const [, token] = html?.match(/"api_token":"(.+?)"/) || []
       if (token) return token

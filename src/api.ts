@@ -50,7 +50,8 @@ export default class Slack implements PlatformAPI {
     if (!cookies && !clientToken) return
 
     const cookieJar = CookieJar.fromJSON(cookies) || null
-    await this.api.setLoginState(cookieJar, clientToken)
+    this.api.cookieJar = cookieJar
+    await this.api.init(clientToken)
     await this.afterAuth(dataDirPath)
     // eslint-disable-next-line
     if (!this.currentUser?.auth.ok) throw new ReAuthError()
@@ -71,10 +72,22 @@ export default class Slack implements PlatformAPI {
     if (!jsCodeResult) return { type: 'error', errorMessage: 'jsCodeResult was falsey' }
     const { magicLink } = JSON.parse(jsCodeResult)
 
-    // this is to update the cookie jar with the auth cookies
-    if (magicLink) await this.api.httpClient.requestAsString(magicLink, { cookieJar })
+    this.api.cookieJar = cookieJar
+    // this updates the cookie jar with the auth cookies
+    if (magicLink) {
+      /*
+        magicLink looks something like https://app.slack.com/t/textsdotcom/login/z-app-3840962440-2666413463120-bb7866a4b475fcf2328573f31307b77bd2b1445f34e96a87e51522514311e7e1?
+        302 redirect to https://textsdotcom.slack.com/app-redir/login/z-app-3840962440-2666413463120-bb7866a4b475fcf2328573f31307b77bd2b1445f34e96a87e51522514311e7e1
+        302 redirect to https://textsdotcom.slack.com/z-app-3840962440-2666413463120-bb7866a4b475fcf2328573f31307b77bd2b1445f34e96a87e51522514311e7e1
+        302 redirect to https://slack.com/checkcookie?redir=https%3A%2F%2Ftextsdotcom.slack.com%2Fssb%2Fredirect (contains set-cookie headers)
+      */
+      texts.log('fetching magic link', magicLink)
+      // todo: texts.fetch and texts.createHttpClient().requestAsString act differently here
+      // await this.api.fetchHTML(magicLink)
+      await texts.fetch(magicLink, { cookieJar })
+    }
 
-    await this.api.setLoginState(cookieJar)
+    await this.api.init(undefined)
     await this.afterAuth()
 
     if (this.api.userToken) return { type: 'success' }
