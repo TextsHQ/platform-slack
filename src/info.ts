@@ -26,7 +26,7 @@ const info: PlatformInfo = {
     runJSOnNavigate: `
       window.__loginReturnValue = {}
 
-      const changeListener = function(){
+      window.__changeListener = window.__changeListener || function() {
         const url = window.location.href
         const form = document.getElementById('signin_form')
 
@@ -45,9 +45,9 @@ const info: PlatformInfo = {
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                 "cache-control": "max-age=0",
                 "content-type": "application/x-www-form-urlencoded",
-                "sec-ch-ua": "\"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"",
+                "sec-ch-ua": '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"',
                 "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-ch-ua-platform": '"macOS"',
                 "sec-fetch-dest": "document",
                 "sec-fetch-mode": "navigate",
                 "sec-fetch-site": "same-origin",
@@ -55,8 +55,8 @@ const info: PlatformInfo = {
                 "upgrade-insecure-requests": "1"
               },
               body: new URLSearchParams(new FormData(form)).toString()
-            });
-            
+            })
+
             if (res.status === 302) {
               window.__loginReturnValue.method = 'password'
               setTimeout(() => window.close(), 1000)
@@ -67,12 +67,14 @@ const info: PlatformInfo = {
         }
       }
 
-      const addNavigationListener = () => {
-        window.addEventListener('hashchange', changeListener)
+      window.__addedListener = false
+      window.__addNavigationListener = window.__addNavigationListener || function() {
+        if (window.__addedListener) return
+        window.addEventListener('hashchange', window.__changeListener)
+        window.__addedListener = true
       }
-
-      addNavigationListener()
-      changeListener()
+      window.__addNavigationListener()
+      window.__changeListener()
     `,
     runJSOnLaunch: `
       window.__loginReturnValue = {}
@@ -85,25 +87,25 @@ const info: PlatformInfo = {
       const addEventsListeners = () => {
         window.addEventListener('hashchange', function(){
           const url = window.location.href
-  
-          if (url.includes('signin')) {            
+
+          if (url.includes('signin')) {
             const elements = document.querySelectorAll('[href*="login"]')
             elements.forEach((element) => {
               element.target = ''
-  
+
               const { href } = element
               if (href.includes('login')) {
                 element.onclick = () => handleButtonClick(href)
                 element.removeAttribute('href')
               }
-  
+
               // TODO: Implement for 2-fa
             })
           }
         })
       }
 
-      addEventsListeners();
+      addEventsListeners()
     `,
   },
   reactions: {
