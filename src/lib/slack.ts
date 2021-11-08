@@ -24,8 +24,8 @@ export default class SlackAPI {
 
   workspaceUsers: Record<string, any> = {}
 
-  init = async (clientToken: string) => {
-    const token = clientToken || await this.getClientToken()
+  init = async ({ clientToken = '', domain = '' }: { clientToken?: string, domain?: string }) => {
+    const token = clientToken || await this.getClientToken(domain)
 
     const cookie = await this.cookieJar.getCookieString('https://slack.com')
     const client = new WebClient(token, { headers: { cookie } })
@@ -50,8 +50,8 @@ export default class SlackAPI {
     return JSON.parse(domain) // 'https://texts-co.slack.com/'
   }
 
-  getClientToken = async () => {
-    const teamURL = await this.getFirstTeamURL()
+  getClientToken = async (domain: string) => {
+    const teamURL = domain || await this.getFirstTeamURL()
     for (const pathname of ['customize/emoji', 'home']) {
       texts.log('fetching', teamURL + pathname)
       const html = await this.fetchHTML(teamURL + pathname)

@@ -51,7 +51,7 @@ export default class Slack implements PlatformAPI {
 
     const cookieJar = CookieJar.fromJSON(cookies) || null
     this.api.cookieJar = cookieJar
-    await this.api.init(clientToken)
+    await this.api.init({ clientToken })
     await this.afterAuth(dataDirPath)
     // eslint-disable-next-line
     if (!this.currentUser?.auth.ok) throw new ReAuthError()
@@ -70,9 +70,10 @@ export default class Slack implements PlatformAPI {
   login = async ({ cookieJarJSON, jsCodeResult }: LoginCreds): Promise<LoginResult> => {
     const cookieJar = CookieJar.fromJSON(cookieJarJSON as any)
     if (!jsCodeResult) return { type: 'error', errorMessage: 'jsCodeResult was falsey' }
-    const { magicLink } = JSON.parse(jsCodeResult)
+    const { magicLink, domain } = JSON.parse(jsCodeResult)
 
     this.api.cookieJar = cookieJar
+    console.log({ jsCodeResult })
     // this updates the cookie jar with the auth cookies
     if (magicLink) {
       /*
@@ -87,7 +88,7 @@ export default class Slack implements PlatformAPI {
       await texts.fetch(magicLink, { cookieJar })
     }
 
-    await this.api.init(undefined)
+    await this.api.init({ domain: domain ?? undefined })
     await this.afterAuth()
 
     if (this.api.userToken) return { type: 'success' }
