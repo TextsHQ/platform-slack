@@ -156,7 +156,8 @@ const info: PlatformInfo = {
                 domain: team.url,
               };
 
-              window.close()
+              alert('Testing');
+              setTimeout(() => window.close(), 500);
             }
           }
         };
