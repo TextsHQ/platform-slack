@@ -6,6 +6,7 @@
     "dist/**/*"
   ],
   "scripts": {
+    "prepack": "patch-package && tsc",
     "postinstall": "patch-package && tsc",
     "build": "yarn tsc",
     "lint": "eslint src --ext ts,tsx,js,jsx --cache",
