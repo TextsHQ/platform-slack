@@ -1,4 +1,4 @@
-import type { TextAttributes } from '../../../platform-sdk/dist'
+import type { TextAttributes } from '@textshq/platform-sdk'
 import {
   Block,
   mapBlocks,
