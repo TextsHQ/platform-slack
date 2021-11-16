@@ -141,12 +141,14 @@ export default class SlackRealTime {
 
     this.rtm.on('presence_change', slackEvent => {
       const { user, presence } = slackEvent
+      const isActive = presence === 'active'
 
       this.onEvent([{
         type: ServerEventType.USER_PRESENCE_UPDATED,
         presence: {
           userID: user,
-          isActive: presence === 'active',
+          isActive,
+          status: isActive ? 'online' : 'offline',
           lastActive: undefined,
         },
       }])
