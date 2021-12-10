@@ -265,6 +265,13 @@ type UserElement = {
   }
 }
 
+type ImageBlock = {
+  type: 'image'
+  image_url: string
+  alt_text?: string
+  fallback: string
+}
+
 export type Block =
   RichTextBlock |
   QuoteBlock |
@@ -275,7 +282,8 @@ export type Block =
   EmojiElement |
   SectionBlock |
   MrkdwnElement |
-  UserElement
+  UserElement |
+  ImageBlock
 
 const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
   text: string
@@ -294,7 +302,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       break
     }
     case 'rich_text_list': {
-      let i = 1;
+      let i = 1
       for (const element of block.elements) {
         const listStyle = block.style === 'ordered' ? `${i}. ` : '• '
         const { text, textAttributes } = mapBlock(element, customEmojis)
@@ -427,6 +435,21 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
         },
       })
       output += `@${username}`
+      break
+    }
+    case 'image': {
+      const text = block.alt_text || block.fallback || block.image_url
+      const from = Array.from(output).length
+
+      entities.push({
+        from,
+        to: from + Array.from(text).length,
+        replaceWithMedia: {
+          mediaType: 'img',
+          srcURL: block.image_url,
+        },
+      })
+      output += text
       break
     }
     default:
