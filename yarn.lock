@@ -876,11 +876,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@textshq/platform-sdk@link:../platform-sdk::locator=%40textshq%2Fplatform-slack%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@textshq/platform-sdk@link:../platform-sdk::locator=%40textshq%2Fplatform-slack%40workspace%3A."
+"@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk#main":
+  version: 0.4.4
+  resolution: "@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk.git#commit=2bf82906c85d3b6f2a6b41bf8be9105bef556499"
+  dependencies:
+    form-data: ^4.0.0
+  checksum: 92db381b976bad64da90abebd1af0d4c15a352423a689654a50387f8108cc6ceeb85c418a933941116434b74b0f4e6f7a0800fe0e97bc87f25c5ab01d99ff19f
   languageName: node
-  linkType: soft
+  linkType: hard
 
 "@textshq/platform-slack@workspace:.":
   version: 0.0.0-use.local
@@ -890,7 +893,7 @@ __metadata:
     "@slack/rtm-api": ^6.0.0
     "@slack/web-api": ^6.3.0
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config"
-    "@textshq/platform-sdk": "link:../platform-sdk"
+    "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#main"
     "@types/bluebird": ^3.5.36
     "@types/eslint": ^7.28.0
     "@types/jest": ^27.0.1
@@ -2932,6 +2935,17 @@ __metadata:
     combined-stream: ^1.0.8
     mime-types: ^2.1.12
   checksum: b019e8d35c8afc14a2bd8a7a92fa4f525a4726b6d5a9740e8d2623c30e308fbb58dc8469f90415a856698933c8479b01646a9dff33c87cc4e76d72aedbbf860d
+  languageName: node
+  linkType: hard
+
+"form-data@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "form-data@npm:4.0.0"
+  dependencies:
+    asynckit: ^0.4.0
+    combined-stream: ^1.0.8
+    mime-types: ^2.1.12
+  checksum: 01135bf8675f9d5c61ff18e2e2932f719ca4de964e3be90ef4c36aacfc7b9cb2fceb5eca0b7e0190e3383fe51c5b37f4cb80b62ca06a99aaabfcfd6ac7c9328c
   languageName: node
   linkType: hard
 
