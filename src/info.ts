@@ -23,6 +23,7 @@ const info: PlatformInfo = {
     loginURL: 'https://slack.com/signin#/signin',
     authCookieName: 'd',
     runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:95.0) Gecko/20100101 Firefox/95.0',
     runJSOnNavigate: `
       window.__loginReturnValue = {}
 
