@@ -24,6 +24,8 @@ export default class SlackAPI {
 
   workspaceUsers: Record<string, any> = {}
 
+  httpClient = texts.createHttpClient()
+
   init = async (clientToken: string) => {
     const token = clientToken || await this.getClientToken()
 
@@ -33,8 +35,6 @@ export default class SlackAPI {
     this.userToken = token
     this.webClient = client
   }
-
-  httpClient = texts.createHttpClient()
 
   fetchHTML = async (url: string) => {
     const { body: html } = await this.httpClient.requestAsString(url, { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT } })
@@ -165,8 +165,20 @@ export default class SlackAPI {
     await bluebird.map(publicChannels, this.loadPublicChannel)
     await bluebird.map(privateMessages, this.loadPrivateMessage)
 
-    response.channels = [...privateMessages, ...publicChannels]
+    response.channels = uniqBy([...privateMessages, ...publicChannels], 'id')
     return response
+  }
+
+  markAsUnread = async (threadID: string, messageID: string) => {
+    let messageTs = messageID
+
+    if (!messageID) {
+      const messages = await this.getMessages(threadID, 2)
+      const [latest] = messages?.messages?.reverse() || []
+      messageTs = latest.ts || ''
+    }
+
+    await this.webClient.conversations.mark({ channel: threadID, ts: messageTs })
   }
 
   messageReplies = (channel: string, ts: string) =>
