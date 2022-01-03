@@ -405,4 +405,14 @@ export default class SlackAPI {
     const name = emojiToShortcode(reactionKey) || reactionKey
     await this.webClient.reactions.remove({ name, channel, timestamp })
   }
+
+  getParticipants = async (threadID: string, limit = 50): Promise<string[]> => {
+    const res = await this.webClient.conversations.members({ channel: threadID, limit })
+    return res.members || []
+  }
+
+  getUserPresence = async (userID: string) => {
+    const res = await this.webClient.users.getPresence({ user: userID })
+    return { userID, presence: res.presence }
+  }
 }
