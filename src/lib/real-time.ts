@@ -16,6 +16,8 @@ export default class SlackRealTime {
 
   public userPresence: PresenceMap = {}
 
+  private presenceSubscribedUsersIDs = []
+
   constructor(
     private readonly api: SlackAPI,
     private readonly papi: InstanceType<typeof PAPI>,
@@ -141,41 +143,58 @@ export default class SlackRealTime {
 
     this.rtm.on('presence_change', slackEvent => {
       const { user, presence } = slackEvent
+      const isOnline = presence === 'active'
+
       this.onEvent([{
         type: ServerEventType.USER_PRESENCE_UPDATED,
         presence: {
           userID: user,
-          status: presence === 'active' ? 'online' : 'offline',
-          isActive: undefined,
+          status: isOnline ? 'online' : 'offline',
+          isActive: isOnline,
+          lastActive: isOnline ? new Date() : undefined,
         },
       }])
     })
 
     this.rtm.on('dnd_updated_user', slackEvent => {
-      const { user, dnd_status } = slackEvent
-      this.onEvent([{
-        type: ServerEventType.USER_PRESENCE_UPDATED,
-        presence: {
-          userID: user,
-          // We're assuming that if this change to false it's because the user
-          // it's online. Presence event will change too so it'll change user
-          // preference to offline if that's not the case.
-          status: dnd_status?.dnd_enabled ? 'dnd' : 'online',
-          isActive: undefined,
-        },
-      }])
+      const { user, dnd_status, event_ts } = slackEvent
+      const { next_dnd_start_ts, next_dnd_end_ts } = dnd_status
+      // The event timestamp it's between the do not disturb start and the do not disturb end
+      const dndEnabled = next_dnd_start_ts < event_ts && next_dnd_end_ts > event_ts
+
+      if (dndEnabled) {
+        this.onEvent([{
+          type: ServerEventType.USER_PRESENCE_UPDATED,
+          presence: {
+            userID: user,
+            status: 'dnd',
+            isActive: undefined,
+          },
+        }])
+      } else {
+        this.requestUsersPresence([user])
+      }
     })
 
     // This is added because Slack has changed their policies and now you'll need to subscribe for each user
     // @see https://api.slack.com/changelog/2017-10-making-rtm-presence-subscription-only
     // @ts-expect-error
-    await this.rtm.start({ batch_presence_aware: 1 })
+    await this.rtm.start({ batch_presence_aware: 1, presence_sub: true })
   }
 
   subscribeToPresence = async (users: string[]): Promise<void> => {
     if (!this.rtm?.connected) return texts.log('slack rtm not connected')
-    const alreadySubscribed = Object.keys(this.userPresence)
-    await this.rtm.subscribePresence(users.filter(id => !alreadySubscribed.includes(id)))
+
+    const filteredUsers = users.filter(id => !this.presenceSubscribedUsersIDs.includes(id))
+    this.presenceSubscribedUsersIDs = [...this.presenceSubscribedUsersIDs, ...filteredUsers]
+    // We need to send the whole array with all the users because according to Slack's it'll only
+    // subcribe to the latest array sent on this 'presence_sub' event
+    this.rtm.send('presence_sub', { ids: this.presenceSubscribedUsersIDs })
+  }
+
+  requestUsersPresence = async (users: string[]): Promise<void> => {
+    if (!this.rtm?.connected) return texts.log('slack rtm not connected')
+    this.rtm.send('presence_query', { ids: users })
   }
 
   async dispose() {
