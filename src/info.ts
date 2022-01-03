@@ -123,6 +123,7 @@ const info: PlatformInfo = {
     Attribute.SUPPORTS_CUSTOM_EMOJIS,
     Attribute.SUPPORTS_MARK_AS_UNREAD,
     Attribute.SEARCH_ALL_USERS_FOR_GROUP_MENTIONS,
+    Attribute.SUBSCRIBE_TO_THREAD_SELECTION,
   ]),
   prefs: {
     show_channels: {
