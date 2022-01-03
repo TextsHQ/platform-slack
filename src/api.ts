@@ -1,5 +1,3 @@
-import path from 'path'
-import fs from 'fs'
 import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
 
@@ -112,16 +110,17 @@ export default class Slack implements PlatformAPI {
 
   searchUsers = async (typed: string) => this.api.searchUsers(typed)
 
+  onThreadSelected = async (threadID: string) => {
+    const members = await this.api.getParticipants(threadID)
+    const filteredIds = members.filter(id => id !== this.currentUserID)
+
+    this.realTimeApi?.subscribeToPresence(filteredIds)
+  }
+
   getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
     const { cursor } = pagination || { cursor: null }
-
     const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
-
     const items = mapThreads(channels as any[], this.accountID, this.currentUserID, this.api.customEmojis)
-
-    const participants = items.filter(item => ['group', 'single'].includes(item.type)).flatMap(item => item.participants.items) || []
-    const participantsIDs = participants.flatMap(item => item.id) || []
-    await this.realTimeApi?.subscribeToPresence(participantsIDs)
 
     return {
       items,
