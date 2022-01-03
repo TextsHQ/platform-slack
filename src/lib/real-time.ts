@@ -146,7 +146,22 @@ export default class SlackRealTime {
         presence: {
           userID: user,
           status: presence === 'active' ? 'online' : 'offline',
-          lastActive: undefined,
+          isActive: undefined,
+        },
+      }])
+    })
+
+    this.rtm.on('dnd_updated_user', slackEvent => {
+      const { user, dnd_status } = slackEvent
+      this.onEvent([{
+        type: ServerEventType.USER_PRESENCE_UPDATED,
+        presence: {
+          userID: user,
+          // We're assuming that if this change to false it's because the user
+          // it's online. Presence event will change too so it'll change user
+          // preference to offline if that's not the case.
+          status: dnd_status?.dnd_enabled ? 'dnd' : 'online',
+          isActive: undefined,
         },
       }])
     })
