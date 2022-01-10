@@ -23,7 +23,7 @@ const info: PlatformInfo = {
     loginURL: 'https://slack.com/signin#/signin',
     authCookieName: 'd',
     runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
-    userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_x64; rv:95.0) Gecko/20100101 Firefox/95.0',
+    userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/95.0',
     runJSOnNavigate: `
       window.__loginReturnValue = {}
 
@@ -74,39 +74,37 @@ const info: PlatformInfo = {
         window.addEventListener('hashchange', window.__changeListener)
         window.__addedListener = true
       }
-      window.__addNavigationListener()
-      window.__changeListener()
-    `,
-    runJSOnLaunch: `
-      window.__loginReturnValue = {}
 
-      const handleButtonClick = (href) => {
+      window.__handleButtonClick = window.__handleButtonClick || function (href) {
         window.__loginReturnValue.magicLink = href
         setTimeout(() => window.close(), 1000)
       }
 
-      const addEventsListeners = () => {
-        window.addEventListener('hashchange', function(){
+      window.__addEventsListeners = window.__addEventsListeners || function () {
           const url = window.location.href
 
           if (url.includes('signin')) {
-            const elements = document.querySelectorAll('[href*="login"]')
+            const elements = document.querySelectorAll('.p-workspaces_list__link')
+            console.log(elements)
             elements.forEach((element) => {
               element.target = ''
 
               const { href } = element
               if (href.includes('login')) {
-                element.onclick = () => handleButtonClick(href)
+                element.onclick = () => window.__handleButtonClick(href)
                 element.removeAttribute('href')
               }
-
               // TODO: Implement for 2-fa
             })
           }
-        })
       }
 
-      addEventsListeners()
+      window.__addNavigationListener()
+      window.__changeListener()
+      window.__addEventsListeners()
+    `,
+    runJSOnLaunch: `
+      window.__loginReturnValue = {}
     `,
   },
   reactions: {
