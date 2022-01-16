@@ -304,7 +304,7 @@ export const mapProfile = (user: any): Participant => ({
   imgURL: user?.profile?.image_192 || '',
 })
 
-const mapThread = (channel: any, accountID: string, currentUserId: string, customEmojis: Record<string, string>): Thread => {
+const mapThread = (channel: any, accountID: string, currentUserId: string, customEmojis: Record<string, string>, teamName = ''): Thread => {
   const messages = (channel.messages as any[])?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
   const participants = (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
 
@@ -314,11 +314,16 @@ const mapThread = (channel: any, accountID: string, currentUserId: string, custo
     return 'single'
   }
 
+  const getTitle = (): string => {
+    if (channel.is_channel) return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
+    return channel.name || participants[0]?.username || channel.user
+  }
+
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
     type: getType(),
-    title: channel.name || participants[0]?.username || channel.user,
+    title: getTitle(),
     timestamp: messages[0]?.timestamp || channel.timestamp,
     isUnread: channel.unread || false,
     isReadOnly: channel.is_user_deleted || false,
@@ -327,8 +332,13 @@ const mapThread = (channel: any, accountID: string, currentUserId: string, custo
   }
 }
 
-export const mapThreads = (slackChannels: any[], accountID: string, currentUserId: string, customEmojis: Record<string, string>) =>
-  slackChannels.map(thread => mapThread(thread, accountID, currentUserId, customEmojis))
+export const mapThreads = (
+  slackChannels: any[],
+  accountID: string,
+  currentUserId: string,
+  customEmojis: Record<string, string>,
+  teamName = '',
+) => slackChannels.map(thread => mapThread(thread, accountID, currentUserId, customEmojis, teamName))
 
 export function mapEmojiChangedEvent(event: any): ServerEvent[] {
   if (event.value?.startsWith('alias:')) return []
