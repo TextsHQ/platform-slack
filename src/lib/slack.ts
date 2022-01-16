@@ -407,6 +407,8 @@ export default class SlackAPI {
   }
 
   getParticipants = async (threadID: string, limit = 50): Promise<string[]> => {
+    if (!threadID) return []
+
     const res = await this.webClient.conversations.members({ channel: threadID, limit })
     return res.members || []
   }
