@@ -24,7 +24,7 @@ const mapAttachment = (slackAttachment: any): MessageAttachment => {
     : slackAttachment.image_url
 
   return {
-    id: slackAttachment.id,
+    id: `${slackAttachment.id}`,
     fileName: slackAttachment.name || 'image',
     type,
     mimeType,
