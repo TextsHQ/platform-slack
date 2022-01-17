@@ -1,6 +1,6 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, Thread, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
@@ -308,22 +308,21 @@ const mapThread = (channel: any, accountID: string, currentUserId: string, custo
   const messages = (channel.messages as any[])?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
   const participants = (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
 
-  const getType = () => {
+  const type = ((): ThreadType => {
     if (channel.is_group) return 'group'
     if (channel.is_channel) return 'channel'
     return 'single'
-  }
-
-  const getTitle = (): string => {
+  })()
+  const title = ((): string => {
     if (channel.is_channel) return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
     return channel.name || participants[0]?.username || channel.user
-  }
+  })()
 
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
-    type: getType(),
-    title: getTitle(),
+    type,
+    title,
     timestamp: messages[0]?.timestamp || channel.timestamp,
     isUnread: channel.unread || false,
     isReadOnly: channel.is_user_deleted || false,
