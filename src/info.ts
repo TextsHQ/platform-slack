@@ -122,6 +122,16 @@ const info: PlatformInfo = {
     Attribute.SEARCH_ALL_USERS_FOR_GROUP_MENTIONS,
     Attribute.SUBSCRIBE_TO_THREAD_SELECTION,
   ]),
+  attachments: {
+    maxSize: {
+      // https://slack.com/intl/en-us/help/articles/201330736-Add-files-to-Slack
+      // "Note: Files added to Slack may not exceed 1 GB in size."
+      image: 1 * 1024 * 1024 * 1024,
+      video: 1 * 1024 * 1024 * 1024,
+      audio: 1 * 1024 * 1024 * 1024,
+      files: 1 * 1024 * 1024 * 1024,
+    },
+  },
   prefs: {
     show_channels: {
       label: 'Show channels',
