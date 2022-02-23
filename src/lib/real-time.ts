@@ -150,7 +150,6 @@ export default class SlackRealTime {
         presence: {
           userID: user,
           status: isOnline ? 'online' : 'offline',
-          isActive: isOnline,
           lastActive: isOnline ? new Date() : undefined,
         },
       }])
@@ -168,7 +167,6 @@ export default class SlackRealTime {
           presence: {
             userID: user,
             status: 'dnd',
-            isActive: undefined,
           },
         }])
       } else {
