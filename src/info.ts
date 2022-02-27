@@ -15,7 +15,6 @@ const info: PlatformInfo = {
   version: '0.0.1',
   displayName: 'Slack',
   icon,
-  tags: ['Beta'],
   typingDurationMs: 3000,
   deletionMode: MessageDeletionMode.DELETE_FOR_EVERYONE,
   loginMode: 'browser',
