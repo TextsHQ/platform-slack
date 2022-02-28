@@ -345,7 +345,7 @@ export default class SlackAPI {
       if (error.message === 'An API error occurred: restricted_action_read_only_channel') {
         this.onEvent([{
           type: ServerEventType.STATE_SYNC,
-          objectIDs: { threadID: channel },
+          objectIDs: {},
           objectName: 'thread',
           mutationType: 'update',
           entries: [{ id: channel, isReadOnly: true }],

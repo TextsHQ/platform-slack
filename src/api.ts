@@ -227,7 +227,7 @@ export default class Slack implements PlatformAPI {
     this.api.onEvent([{
       type: ServerEventType.STATE_SYNC,
       mutationType: 'upsert',
-      objectIDs: { threadID: thread.id },
+      objectIDs: {},
       objectName: 'thread',
       entries: [thread],
     }])
