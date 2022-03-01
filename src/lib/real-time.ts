@@ -18,6 +18,8 @@ export default class SlackRealTime {
 
   private presenceSubscribedUsersIDs = []
 
+  private ready = false
+
   constructor(
     private readonly api: SlackAPI,
     private readonly papi: InstanceType<typeof PAPI>,
@@ -26,10 +28,20 @@ export default class SlackRealTime {
 
   subscribeToEvents = async (): Promise<void> => {
     this.rtm = new RTMClient({ webClient: this.api.webClient })
+    this.rtm.on('ready', () => {
+      texts.log('rtm ready')
+      this.ready = true
+    })
+
+    this.rtm.on('disconnected', error => {
+      texts.log(error)
+      this.ready = false
+    })
 
     // fixtures/message_rtm_event.json
     // fixtures/messase_changed_rtm_event.json
     /** https://api.slack.com/events/message */
+
     this.rtm.on('message', slackEvent => {
       const threadID = getThreadID(slackEvent)
 
@@ -181,7 +193,7 @@ export default class SlackRealTime {
   }
 
   subscribeToPresence = async (users: string[]): Promise<void> => {
-    if (!this.rtm?.connected) return texts.log('slack rtm not connected')
+    if (!this.ready) return texts.log('slack rtm not connected')
 
     const filteredUsers = users.filter(id => !this.presenceSubscribedUsersIDs.includes(id))
     this.presenceSubscribedUsersIDs = [...this.presenceSubscribedUsersIDs, ...filteredUsers]
@@ -191,7 +203,7 @@ export default class SlackRealTime {
   }
 
   requestUsersPresence = async (users: string[]): Promise<void> => {
-    if (!this.rtm?.connected) return texts.log('slack rtm not connected')
+    if (!this.ready) return texts.log('slack rtm not connected')
     this.rtm.send('presence_query', { ids: users })
   }
 
