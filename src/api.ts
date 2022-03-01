@@ -113,7 +113,8 @@ export default class Slack implements PlatformAPI {
   onThreadSelected = async (threadID: string) => {
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
-    if (this.realTimeApi?.rtm.connected) this.realTimeApi?.subscribeToPresence(filteredIds)
+
+    this.realTimeApi?.subscribeToPresence(filteredIds)
   }
 
   getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
