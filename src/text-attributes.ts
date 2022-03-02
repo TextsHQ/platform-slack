@@ -440,12 +440,12 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
         const cursor = Array.from(output).length
         const nestedEntities = offsetEntities(textAttributes.entities, cursor)
         entities.push(...nestedEntities)
-        output +=  text + '\n'
+        output += text + '\n'
       }
       break
     }
     case 'mrkdwn': {
-      const { text, textAttributes } = mapTextAttributes(block.text)
+      const { text, textAttributes } = mapTextAttributes(block.text, false, customEmojis)
       const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       output += text
