@@ -243,7 +243,7 @@ export const mapMessage = (
     mappedText = data.text
     textAttributes = data.textAttributes
   } else if (text) {
-    const data1 = mapTextAttributes(slackMessage.text, false)
+    const data1 = mapTextAttributes(slackMessage.text, false, customEmojis)
     const data2 = mapTextAttributes(attachmentsText, true)
     mappedText = data1.text + data2.text
     textAttributes = {

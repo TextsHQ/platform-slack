@@ -93,6 +93,7 @@ export const offsetEntities = (entities: TextEntity[], offset: number): TextEnti
 export function mapTextAttributes(
   src: string,
   wrapInQuote = false,
+  customEmojis: Record<string, string> = {},
 ) : {
     text: string
     textAttributes: TextAttributes
@@ -105,7 +106,8 @@ export function mapTextAttributes(
   while (input.length) {
     const c1 = input[0]
     let curToken
-    if ('*_~`<'.includes(c1)) {
+
+    if (':*_~`<'.includes(c1)) {
       if (c1 === '`') {
         if (input[1] === '`' && input[2] === '`') {
           curToken = '```'
@@ -116,9 +118,11 @@ export function mapTextAttributes(
         curToken = c1
       }
     }
+
     if (curToken) {
       input = input.slice(curToken.length)
       const { closingIndex, data } = findClosingIndex(input, curToken)
+
       if (closingIndex > 0) {
         // A valid closingIndex is found, it's a valid token!
         const content = input.slice(0, closingIndex).join('')
@@ -165,6 +169,19 @@ export function mapTextAttributes(
             output += title
             entity.to = from + Array.from(title).length
             entity.link = link
+            break
+          }
+          case ':': {
+            if (customEmojis[content]) {
+              entity.replaceWithMedia = {
+                mediaType: 'img',
+                srcURL: customEmojis[content],
+                size: {
+                  width: 16,
+                  height: 16,
+                },
+              }
+            }
             break
           }
           default:
