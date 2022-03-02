@@ -247,7 +247,8 @@ type EmojiElement = {
 
 type SectionBlock = {
   type: 'section'
-  text: MrkdwnElement
+  text?: MrkdwnElement
+  fields?: MrkdwnElement[]
 }
 
 type MrkdwnElement = {
@@ -272,6 +273,11 @@ type ImageBlock = {
   fallback: string
 }
 
+type ChannelBlock = {
+  type: 'channel'
+  channel_id?: string
+}
+
 export type Block =
   RichTextBlock |
   QuoteBlock |
@@ -283,7 +289,8 @@ export type Block =
   SectionBlock |
   MrkdwnElement |
   UserElement |
-  ImageBlock
+  ImageBlock |
+  ChannelBlock
 
 const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
   text: string
@@ -410,10 +417,14 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       break
     }
     case 'section': {
-      const { text, textAttributes } = mapBlock(block.text, customEmojis)
-      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
-      entities.push(...nestedEntities)
-      output += text
+      const fields = block.fields ?? [block.text]
+      for (const field of fields) {
+        const { text, textAttributes } = mapBlock(field, customEmojis)
+        const cursor = Array.from(output).length
+        const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+        entities.push(...nestedEntities)
+        output +=  text + '\n'
+      }
       break
     }
     case 'mrkdwn': {
