@@ -70,10 +70,9 @@ export default class SlackAPI {
     this.customEmojis = res.emoji
   }
 
-
   getCurrentUser = async () => {
     if (this.currentUser) return this.currentUser
-    
+
     const [auth, user, team] = await Promise.all([
       this.webClient.auth.test(),
       this.webClient.users.profile.get(),
@@ -81,9 +80,9 @@ export default class SlackAPI {
     ])
 
     this.currentUser = {
-      auth: auth,
+      auth,
       user: user.profile,
-      team: team.team
+      team: team.team,
     }
 
     return this.currentUser
@@ -164,7 +163,6 @@ export default class SlackAPI {
       })
     }
 
-
     const privateMessages = threadTypes.includes('dm')
       ? (response.channels as any[]).filter(({ is_im, is_mpim }: { is_im: boolean, is_mpim?: boolean }) => is_im || is_mpim)
       : []
@@ -210,7 +208,7 @@ export default class SlackAPI {
     return finalText
   }
 
-  getMessages = async (threadID: string, limit = 20, latest = undefined) => {
+  getMessages = async (threadID: string, limit = 100, latest = undefined) => {
     const response = await this.webClient.conversations.history({
       channel: threadID,
       limit,
@@ -372,8 +370,10 @@ export default class SlackAPI {
     return res.ok
   }
 
-  deleteMessage = async (channel: string, messageID: string) =>
-    this.webClient.chat.delete({ channel, ts: messageID })
+  deleteMessage = async (channel: string, messageID: string) => {
+    const res = await this.webClient.chat.delete({ channel, ts: messageID })
+    return res.ok
+  }
 
   createThread = async (userIDs: string[]): Promise<Thread> => {
     const res = await this.webClient.conversations.open({ users: userIDs.join(','), return_im: true })

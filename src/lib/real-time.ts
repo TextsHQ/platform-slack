@@ -198,8 +198,7 @@ export default class SlackRealTime {
     const filteredUsers = users.filter(id => !this.presenceSubscribedUsersIDs.includes(id))
     const newPresenceSubscriberUserIDs = [...this.presenceSubscribedUsersIDs, ...filteredUsers].sort()
     if (isEqual(newPresenceSubscriberUserIDs, this.presenceSubscribedUsersIDs)) {
-      texts.log('skipping presence_sub')
-      return
+      return texts.log('skipping presence_sub')
     }
     this.presenceSubscribedUsersIDs = newPresenceSubscriberUserIDs
     // We need to send the whole array with all the users because according to Slack's it'll only

@@ -121,12 +121,14 @@ export default class Slack implements PlatformAPI {
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
 
-    this.realTimeApi?.subscribeToPresence(filteredIds)
+    await this.realTimeApi?.subscribeToPresence(filteredIds)
   }
 
   getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
     const { cursor } = pagination || { cursor: null }
+
     const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
+
     const { team } = this.currentUser
 
     const items = mapThreads(channels as any[], this.accountID, this.currentUserID, this.api.customEmojis, team.name)
@@ -193,7 +195,7 @@ export default class Slack implements PlatformAPI {
 
   deleteMessage = async (threadID: string, messageID: string) => {
     const res = await this.api.deleteMessage(threadID, messageID)
-    return res.ok
+    return res
   }
 
   markAsUnread = this.api.markAsUnread
