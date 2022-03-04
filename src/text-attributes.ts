@@ -295,6 +295,11 @@ type ChannelBlock = {
   channel_id?: string
 }
 
+type ContextBlock = {
+  type: 'context'
+  elements: MrkdwnElement[]
+}
+
 export type Block =
   RichTextBlock |
   QuoteBlock |
@@ -307,14 +312,15 @@ export type Block =
   MrkdwnElement |
   UserElement |
   ImageBlock |
-  ChannelBlock
+  ChannelBlock |
+  ContextBlock
 
 const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
   text: string
   textAttributes: TextAttributes
 } => {
   let output = ''
-  const entities = []
+  const entities : TextEntity[] = []
 
   switch (block.type) {
     case 'rich_text':
@@ -465,7 +471,21 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       output += `@${username}`
       break
     }
-    case 'image': {
+    case 'context':
+        const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
+        const cursor = Array.from(output).length
+        const nestedEntities = offsetEntities(textAttributes.entities,cursor)
+        entities.push(...nestedEntities)
+        if (text) {
+          entities.push({
+            from: cursor,
+            to: Array.from(text).length,
+            pre: true,
+          })
+        }
+        output += text 
+      break
+   case 'image': {
       const text = block.alt_text || block.fallback || block.image_url
       const from = Array.from(output).length
 
