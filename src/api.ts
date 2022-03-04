@@ -1,10 +1,11 @@
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts } from '@textshq/platform-sdk'
+import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, GetAssetOptions } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
 
 import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
 import SlackAPI from './lib/slack'
 import SlackRealTime from './lib/real-time'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
+import { textsTime } from './util'
 
 if (texts.IS_DEV) {
   // eslint-disable-next-line import/no-extraneous-dependencies, global-require
@@ -46,6 +47,7 @@ export default class Slack implements PlatformAPI {
   private showChannels = false
 
   init = async (serialized: { cookies: any, clientToken: string }, { accountID, dataDirPath }: AccountInfo, prefs: Record<string, any>) => {
+    const timer = textsTime('init')
     this.accountID = accountID
     this.showChannels = prefs?.show_channels
 
@@ -58,9 +60,11 @@ export default class Slack implements PlatformAPI {
     await this.afterAuth(dataDirPath)
     // eslint-disable-next-line
     if (!this.currentUser?.auth.ok) throw new ReAuthError()
+    timer.timeEnd()
   }
 
   afterAuth = async (dataDirPath = '') => {
+    const timer = textsTime('afterAuth')
     const currentUser = await this.api.getCurrentUser()
     this.currentUser = currentUser
     this.currentUserID = currentUser.auth.user_id
@@ -68,6 +72,7 @@ export default class Slack implements PlatformAPI {
     await this.api.setCustomEmojis()
 
     this.threadTypes = this.showChannels ? ['channel', 'dm'] : ['dm']
+    timer.timeEnd()
   }
 
   login = async ({ cookieJarJSON, jsCodeResult }: LoginCreds): Promise<LoginResult> => {
@@ -118,21 +123,23 @@ export default class Slack implements PlatformAPI {
   onThreadSelected = async (threadID: string) => {
     // nothing needed for slack threads
     if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) return
+    const timer = textsTime('onThreadSelected')
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
-
+    timer.timeEnd()
     await this.realTimeApi?.subscribeToPresence(filteredIds)
   }
 
   getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
+    const timer = textsTime('getThreads')
     const { cursor } = pagination || { cursor: null }
 
     const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
-
     const { team } = this.currentUser
 
     const items = mapThreads(channels as any[], this.accountID, this.currentUserID, this.api.customEmojis, team.name)
 
+    timer.timeEnd()
     return {
       items,
       hasMore: items.length > 0 && Boolean(response_metadata?.next_cursor),
@@ -142,6 +149,7 @@ export default class Slack implements PlatformAPI {
 
   getMessages = async (threadID: string, pagination: PaginationArg): Promise<Paginated<Message>> => {
     const { cursor } = pagination || { cursor: null }
+    const timer = textsTime('getMessages')
 
     if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) {
       const { mainThreadID, messageID } = mapThreadID(threadID)
@@ -155,6 +163,8 @@ export default class Slack implements PlatformAPI {
 
     const { messages, response_metadata } = await this.api.getMessages(threadID, 20, cursor)
     const items = messages.map(message => mapMessage(message, this.accountID, threadID, this.currentUserID, this.api.customEmojis)).reverse()
+
+    timer.timeEnd()
 
     return {
       items,

@@ -10,6 +10,7 @@ import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
 import type { ThreadType } from '../api'
+import { textsTime } from '../util'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -29,6 +30,7 @@ export default class SlackAPI {
   httpClient = texts.createHttpClient()
 
   init = async (clientToken: string) => {
+    const timer = textsTime('slack.init')
     const token = clientToken || await this.getClientToken()
 
     const cookie = await this.cookieJar.getCookieString('https://slack.com')
@@ -36,6 +38,7 @@ export default class SlackAPI {
 
     this.userToken = token
     this.webClient = client
+    timer.timeEnd()
   }
 
   fetchHTML = async (url: string) => {
@@ -89,6 +92,7 @@ export default class SlackAPI {
   }
 
   loadPublicChannel = async (channel: any) => {
+    const timer = textsTime(`loadPublicChannel Id:${channel.id}`)
     const { id } = channel
     const threadInfo = await this.webClient.conversations.info({ channel: id })
 
@@ -99,9 +103,11 @@ export default class SlackAPI {
     channel.unread = channelInfo?.unread_count || undefined
     channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
     channel.participants = []
+    timer.timeEnd()
   }
 
   loadPrivateMessage = async (thread: any, currentUser: any) => {
+    const timer = textsTime(`loadPrivateMessage Id:${thread.id}`)
     const { id, user: userId } = thread
 
     const [user, threadInfo] = await Promise.all([
@@ -120,6 +126,7 @@ export default class SlackAPI {
     thread.participants = (thread?.is_im || thread?.is_shared) ? [user] : []
     // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
     thread.name = thread?.is_mpim ? thread?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
+    timer.timeEnd()
   }
 
   getThreads = async (cursor = undefined, threadTypes: ThreadType[] = []) => {
@@ -194,6 +201,7 @@ export default class SlackAPI {
     this.webClient.conversations.replies({ channel, ts })
 
   loadMentions = async (text: string): Promise<string> => {
+    const timer = textsTime(`loadMentions text:${text}`)
     const matches = text?.match(MENTION_REGEX)
     if (!matches) return text
 
@@ -205,6 +213,7 @@ export default class SlackAPI {
       finalText = finalText.replace(mentionedUser, foundUserProfile?.display_name || foundUserProfile?.real_name)
     }
 
+    timer.timeEnd()
     return finalText
   }
 
@@ -261,8 +270,8 @@ export default class SlackAPI {
   }
 
   getParticipantProfile = async (userId: string) => {
+    const timer = textsTime(`getParticipantProfile Id:${userId}`)
     if (this.workspaceUsers[userId]) return this.workspaceUsers[userId]
-
     const user: any = await this.webClient.users.profile
       .get({ user: userId })
       .catch(async () => {
@@ -277,6 +286,7 @@ export default class SlackAPI {
 
     user.profile.id = userId
     this.workspaceUsers[userId] = user
+    timer.timeEnd()
     return user
   }
 
