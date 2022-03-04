@@ -116,6 +116,8 @@ export default class Slack implements PlatformAPI {
   searchUsers = async (typed: string) => this.api.searchUsers(typed)
 
   onThreadSelected = async (threadID: string) => {
+    // nothing needed for slack threads
+    if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) return
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
 
