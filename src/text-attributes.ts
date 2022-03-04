@@ -472,9 +472,10 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
       break
     }
     case 'context':
+      {
         const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
         const cursor = Array.from(output).length
-        const nestedEntities = offsetEntities(textAttributes.entities,cursor)
+        const nestedEntities = offsetEntities(textAttributes.entities, cursor)
         entities.push(...nestedEntities)
         if (text) {
           entities.push({
@@ -483,9 +484,10 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
             pre: true,
           })
         }
-        output += text 
+        output += text
+      }
       break
-   case 'image': {
+    case 'image': {
       const text = block.alt_text || block.fallback || block.image_url
       const from = Array.from(output).length
 
