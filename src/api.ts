@@ -191,7 +191,7 @@ export default class Slack implements PlatformAPI {
 
   markAsUnread = this.api.markAsUnread
 
-  getAsset = (type: string, uri: string) => {
+  getAsset = (_, type: string, uri: string) => {
     if (type !== 'proxy') return
     const url = Buffer.from(uri, 'hex').toString()
     return this.api.fetchStream(url)
