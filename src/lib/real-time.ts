@@ -1,6 +1,7 @@
 import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType, texts } from '@textshq/platform-sdk'
 import { RTMClient } from '@slack/rtm-api'
 
+import { isEqual } from 'lodash'
 import { mapEmojiChangedEvent, mapMessage, mapReactionKey, shortcodeToEmoji } from '../mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from '../constants'
 import type SlackAPI from './slack'
@@ -16,7 +17,7 @@ export default class SlackRealTime {
 
   public userPresence: PresenceMap = {}
 
-  private presenceSubscribedUsersIDs = []
+  private presenceSubscribedUsersIDs : string[] = []
 
   private ready = false
 
@@ -167,7 +168,7 @@ export default class SlackRealTime {
       }])
     })
 
-    this.rtm.on('dnd_updated_user', slackEvent => {
+    this.rtm.on('dnd_updated_user', async slackEvent => {
       const { user, dnd_status, event_ts } = slackEvent
       const { next_dnd_start_ts, next_dnd_end_ts } = dnd_status
       // The event timestamp it's between the do not disturb start and the do not disturb end
@@ -182,29 +183,33 @@ export default class SlackRealTime {
           },
         }])
       } else {
-        this.requestUsersPresence([user])
+        await this.requestUsersPresence([user])
       }
     })
 
     // This is added because Slack has changed their policies and now you'll need to subscribe for each user
     // @see https://api.slack.com/changelog/2017-10-making-rtm-presence-subscription-only
-    // @ts-expect-error
-    await this.rtm.start({ batch_presence_aware: 1, presence_sub: true })
+    await this.rtm.start({ batch_presence_aware: true, presence_sub: true })
   }
 
-  subscribeToPresence = async (users: string[]): Promise<void> => {
+  subscribeToPresence = async (users: string[]) => {
     if (!this.ready) return texts.log('slack rtm not connected')
 
     const filteredUsers = users.filter(id => !this.presenceSubscribedUsersIDs.includes(id))
-    this.presenceSubscribedUsersIDs = [...this.presenceSubscribedUsersIDs, ...filteredUsers]
+    const newPresenceSubscriberUserIDs = [...this.presenceSubscribedUsersIDs, ...filteredUsers].sort()
+    if (isEqual(newPresenceSubscriberUserIDs, this.presenceSubscribedUsersIDs)) {
+      texts.log('skipping presence_sub')
+      return
+    }
+    this.presenceSubscribedUsersIDs = newPresenceSubscriberUserIDs
     // We need to send the whole array with all the users because according to Slack's it'll only
     // subcribe to the latest array sent on this 'presence_sub' event
-    this.rtm.send('presence_sub', { ids: this.presenceSubscribedUsersIDs })
+    await this.rtm.send('presence_sub', { ids: this.presenceSubscribedUsersIDs })
   }
 
-  requestUsersPresence = async (users: string[]): Promise<void> => {
+  requestUsersPresence = async (users: string[]) => {
     if (!this.ready) return texts.log('slack rtm not connected')
-    this.rtm.send('presence_query', { ids: users })
+    await this.rtm.send('presence_query', { ids: users })
   }
 
   async dispose() {
