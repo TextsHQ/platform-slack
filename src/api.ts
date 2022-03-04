@@ -15,7 +15,7 @@ if (texts.IS_DEV) {
 export type ThreadType = 'channel' | 'dm'
 
 function mapThreadID(threadID: string) {
-  if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) { // message replies
+  if (threadID?.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) { // message replies
     const [, mainThreadID, messageID] = threadID.split('/')
     return { mainThreadID, messageID }
   }
