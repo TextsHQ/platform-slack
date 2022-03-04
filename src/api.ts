@@ -6,6 +6,11 @@ import SlackAPI from './lib/slack'
 import SlackRealTime from './lib/real-time'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
 
+if (texts.IS_DEV) {
+  // eslint-disable-next-line import/no-extraneous-dependencies, global-require
+  require('source-map-support').install()
+}
+
 export type ThreadType = 'channel' | 'dm'
 
 function mapThreadID(threadID: string) {
