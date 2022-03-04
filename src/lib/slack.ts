@@ -24,6 +24,8 @@ export default class SlackAPI {
 
   workspaceUsers: Record<string, any> = {}
 
+  currentUser?
+
   httpClient = texts.createHttpClient()
 
   init = async (clientToken: string) => {
@@ -68,14 +70,23 @@ export default class SlackAPI {
     this.customEmojis = res.emoji
   }
 
+
   getCurrentUser = async () => {
+    if (this.currentUser) return this.currentUser
+    
     const [auth, user, team] = await Promise.all([
       this.webClient.auth.test(),
       this.webClient.users.profile.get(),
       this.webClient.team.info(),
     ])
 
-    return { auth, user: user.profile, team: team.team }
+    this.currentUser = {
+      auth: auth,
+      user: user.profile,
+      team: team.team
+    }
+
+    return this.currentUser
   }
 
   loadPublicChannel = async (channel: any) => {
@@ -123,7 +134,6 @@ export default class SlackAPI {
     // We cannot use users.conversations neither (this could change in a future)
     // @see https://api.slack.com/docs/conversations-api
     // @see https://api.slack.com/methods/channels.list
-    // @ts-expect-error
     if (currentUser?.profile?.guest_invited_by) {
       if (threadTypes.includes('dm')) {
         const { ims = [], response_metadata: imMetadata } = (await this.webClient.im.list()) as any
@@ -148,11 +158,12 @@ export default class SlackAPI {
 
       response = await this.webClient.conversations.list({
         types,
-        limit: 10,
+        limit: 100,
         cursor: cursor || undefined,
         exclude_archived: true,
       })
     }
+
 
     const privateMessages = threadTypes.includes('dm')
       ? (response.channels as any[]).filter(({ is_im, is_mpim }: { is_im: boolean, is_mpim?: boolean }) => is_im || is_mpim)
