@@ -83,17 +83,21 @@ const info: PlatformInfo = {
           const url = window.location.href
 
           if (url.includes('signin')) {
-            const elements = document.querySelectorAll('.p-workspaces_list__link')
-            elements.forEach((element) => {
-              element.target = ''
+            const observer = new MutationObserver((mutation) => {
+                const elements = document.querySelectorAll('.p-workspaces_list__link')
+                elements.forEach((element) => {
+                element.target = ''
+                const { href } = element
 
-              const { href } = element
-              if (href.includes('login')) {
-                element.onclick = () => window.__handleButtonClick(href)
-                element.removeAttribute('href')
-              }
-              // TODO: Implement for 2-fa
+                if (href.includes('login')) {
+                  element.onclick = () => window.__handleButtonClick(href)
+                  element.removeAttribute('href')
+                }
+                // TODO: Implement for 2-fa
+              })
             })
+            const container = document.documentElement || document.body;
+            observer.observe(container, { childList: true, subtree: true })
           }
       }
 
