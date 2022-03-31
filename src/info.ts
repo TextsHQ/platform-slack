@@ -75,6 +75,7 @@ const info: PlatformInfo = {
       }
 
       window.__handleButtonClick = window.__handleButtonClick || function (href) {
+        window.__handleButtonClick = (x) => {}
         window.__loginReturnValue.magicLink = href
         setTimeout(() => window.close(), 1000)
       }
