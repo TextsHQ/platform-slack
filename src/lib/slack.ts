@@ -1,16 +1,16 @@
-import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ReAuthError } from '@textshq/platform-sdk'
-import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
-import { WebClient } from '@slack/web-api'
+import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant } from '@textshq/platform-sdk'
+import { FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import bluebird from 'bluebird'
 import { uniqBy, memoize } from 'lodash'
+import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
-import type { ThreadType } from '../api'
 import { textsTime } from '../util'
+import type { ThreadType } from '../api'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -339,7 +339,7 @@ export default class SlackAPI {
 
     let buffer: Buffer
     let attachments: any[]
-    let file
+    let file: FilesUploadResponse
 
     if (content.mimeType) {
       buffer = content.fileBuffer || await fs.readFile(content.filePath)
@@ -351,7 +351,7 @@ export default class SlackAPI {
           thread_ts,
           title: content.fileName,
           filename: content.fileName,
-        }) || {}
+        }) || {} as FilesUploadResponse
       }
 
       attachments = [file.file] || []
@@ -361,7 +361,8 @@ export default class SlackAPI {
       const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments })
       return res.message
     } catch (error) {
-      if (error.message === 'An API error occurred: restricted_action_read_only_channel') {
+      // todo: hack, improve
+      if (error.message.includes('restricted_action_read_only_channel')) {
         this.onEvent([{
           type: ServerEventType.STATE_SYNC,
           objectIDs: {},
@@ -369,9 +370,9 @@ export default class SlackAPI {
           mutationType: 'update',
           entries: [{ id: channel, isReadOnly: true }],
         }])
+        return false
       }
-
-      return false
+      throw error
     }
   }
 
