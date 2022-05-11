@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 5
+  version: 6
   cacheKey: 8
 
 "@babel/code-frame@npm:7.12.11":
@@ -876,12 +876,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk#1fecb954d2530c482aad8c40b4ef5d4be6b2ae23":
+"@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk#2dc321597a9ed232946e3d7bb2c3831cb527b7ba":
   version: 0.4.4
-  resolution: "@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk.git#commit=1fecb954d2530c482aad8c40b4ef5d4be6b2ae23"
+  resolution: "@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk.git#commit=2dc321597a9ed232946e3d7bb2c3831cb527b7ba"
   dependencies:
     form-data: ^4.0.0
-  checksum: af400f2813b085010608fb2b09f89e642d7f97094a6cdde4c9ae4554c9b65ac31b839a0b6fc54215fe4e90b0037089e9e4d163a0b424e95b5ffcbb0a82ce60e2
+  checksum: d5868c2e98835a9dbce3141d3e63879ae5804d1739122b6ed9db7ce624381996e67d44e4741bfea3fecff4c71d3800d92313ee036310d766ded9cf4c476dad3f
   languageName: node
   linkType: hard
 
@@ -893,7 +893,7 @@ __metadata:
     "@slack/rtm-api": ^6.0.0
     "@slack/web-api": ^6.3.0
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config"
-    "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#1fecb954d2530c482aad8c40b4ef5d4be6b2ae23"
+    "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#2dc321597a9ed232946e3d7bb2c3831cb527b7ba"
     "@types/bluebird": ^3.5.36
     "@types/eslint": ^7.28.0
     "@types/jest": ^27.0.1
@@ -6139,11 +6139,11 @@ __metadata:
 
 "typescript@patch:typescript@^4.3.5#~builtin<compat/typescript>":
   version: 4.4.4
-  resolution: "typescript@patch:typescript@npm%3A4.4.4#~builtin<compat/typescript>::version=4.4.4&hash=ddd1e8"
+  resolution: "typescript@patch:typescript@npm%3A4.4.4#~builtin<compat/typescript>::version=4.4.4&hash=bda367"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: bd629ad0da4a15d79aaad56baf3ee7d96f6a181760d430ae77f8c5325df7bffd9edee57544a3970e3651e8b796fe03a5838a7eb39c6d46cc3866c0b23d36a0dd
+  checksum: 3d1b04449662193544b81d055479d03b4c5dca95f1a82f8922596f089d894c9fefbe16639d1d9dfe26a7054419645530cef44001bc17aed1fe1eb3c237e9b3c7
   languageName: node
   linkType: hard
 
