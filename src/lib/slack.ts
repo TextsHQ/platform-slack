@@ -157,6 +157,7 @@ export default class SlackAPI {
 
   getThreadsNonPaginated = async (threadTypes: ThreadType[] = []) => {
     const allThreads = []
+    // https://api.slack.com/docs/pagination#cursors
     let cursor : string
     do {
       const { channels, response_metadata } = await this.getThreads(cursor, threadTypes)
@@ -201,6 +202,7 @@ export default class SlackAPI {
 
       response = await this.webClient.conversations.list({
         types,
+        limit: 100,
         cursor: cursor || undefined,
         exclude_archived: true,
       })
