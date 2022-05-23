@@ -309,7 +309,7 @@ const mapThread = (
   accountID: string,
   currentUserId: string,
   customEmojis: Record<string, string>,
-  mutedChannels: Set<string>,
+  mutedChannels: Set<string> = new Set(),
   teamName = '',
 ): Thread => {
   const messages = (channel.messages as any[])?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
