@@ -125,6 +125,7 @@ const info: PlatformInfo = {
     Attribute.SUPPORTS_MARK_AS_UNREAD,
     Attribute.SEARCH_ALL_USERS_FOR_GROUP_MENTIONS,
     Attribute.SUBSCRIBE_TO_THREAD_SELECTION,
+    Attribute.SUBSCRIBE_TO_ONLINE_OFFLINE_ACTIVITY,
   ]),
   attachments: {
     maxSize: {
