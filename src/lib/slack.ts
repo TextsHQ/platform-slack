@@ -155,6 +155,17 @@ export default class SlackAPI {
     timer.timeEnd()
   }
 
+  getThreadsNonPaginated = async (threadTypes: ThreadType[] = []) => {
+    const allThreads = []
+    let cursor : string
+    do {
+      const { channels, response_metadata } = await this.getThreads(cursor, threadTypes)
+      allThreads.push(...channels)
+      cursor = response_metadata?.next_cursor
+    } while (cursor)
+    return allThreads
+  }
+
   getThreads = async (cursor = undefined, threadTypes: ThreadType[] = []) => {
     const currentUser = await this.getCurrentUser()
     let response: any = { channels: [] }
@@ -190,7 +201,6 @@ export default class SlackAPI {
 
       response = await this.webClient.conversations.list({
         types,
-        limit: 100,
         cursor: cursor || undefined,
         exclude_archived: true,
       })
