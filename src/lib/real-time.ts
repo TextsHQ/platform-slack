@@ -206,8 +206,7 @@ export default class SlackRealTime {
 
         const entries = channels.map(channel => ({
           id: channel.id,
-          /** If we pass it as undefined it won't update the value */
-          mutedUntil: channel.muted ? 'forever' : new Date(),
+          mutedUntil: channel.muted ? 'forever' : undefined,
         }))
 
         this.onEvent([{
