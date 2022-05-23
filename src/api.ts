@@ -199,6 +199,7 @@ export default class Slack implements PlatformAPI {
 
   sendActivityIndicator = async (type: ActivityType, threadID: string) => {
     if (type === ActivityType.TYPING) await this.realTimeApi.rtm.sendTyping(threadID)
+    if (type === ActivityType.OFFLINE || type === ActivityType.ONLINE) await this.api.setUserPresence(type)
   }
 
   sendReadReceipt = (threadID: string, messageID: string) => this.api.sendReadReceipt(threadID, messageID)
@@ -226,6 +227,12 @@ export default class Slack implements PlatformAPI {
       }
     }
     return map
+  }
+
+  updateThread = async (threadID: string, updates: Partial<Thread>) => {
+    if (updates.mutedUntil || updates.mutedUntil === null) await this.api.muteConversation(threadID, updates.mutedUntil)
+
+    return true
   }
 
   handleDeepLink = (link: string) => {
