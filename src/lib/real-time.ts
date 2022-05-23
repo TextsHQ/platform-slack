@@ -187,6 +187,38 @@ export default class SlackRealTime {
       }
     })
 
+    this.rtm.on('pref_change', async slackEvent => {
+      /**
+       * There's no way to get if only one channel pref has changed. But we get the 'all_notifications_pref'
+       * event everytime we mute/unmute a channel from Slack's App or any other client.
+       *
+       * This event includes an object with the latests channels with changes, so we'll map those channels
+       * and sync the 'muted' status
+       *
+       * @see https://api.slack.com/events/pref_change
+       */
+      if (slackEvent.name === 'all_notifications_prefs') {
+        const value = JSON.parse(slackEvent.value || '{}')
+        const channels = Object.entries(value?.channels || {}).map((channel: [string, Record<string, boolean | string>]) => ({
+          id: channel[0],
+          muted: channel?.[1]?.muted,
+        }))
+
+        const entries = channels.map(channel => ({
+          id: channel.id,
+          mutedUntil: channel.muted ? 'forever' : undefined,
+        }))
+
+        this.onEvent([{
+          type: ServerEventType.STATE_SYNC,
+          objectIDs: {},
+          mutationType: 'update',
+          objectName: 'thread',
+          entries,
+        }])
+      }
+    })
+
     // This is added because Slack has changed their policies and now you'll need to subscribe for each user
     // @see https://api.slack.com/changelog/2017-10-making-rtm-presence-subscription-only
     await this.rtm.start({ batch_presence_aware: true, presence_sub: true })

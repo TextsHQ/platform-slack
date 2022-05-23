@@ -137,9 +137,11 @@ export default class Slack implements PlatformAPI {
     const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
     const { team } = this.currentUser
 
-    const items = mapThreads(channels as any[], this.accountID, this.currentUserID, this.api.customEmojis, team.name)
+    const mutedChannels = this.api.getMutedChannels()
+    const items = mapThreads(channels as any[], this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
 
     timer.timeEnd()
+
     return {
       items,
       hasMore: items.length > 0 && Boolean(response_metadata?.next_cursor),
@@ -198,10 +200,18 @@ export default class Slack implements PlatformAPI {
   createThread = (userIDs: string[]) => this.api.createThread(userIDs)
 
   sendActivityIndicator = async (type: ActivityType, threadID: string) => {
-    if (type === ActivityType.TYPING) await this.realTimeApi.rtm.sendTyping(threadID)
+    switch (type) {
+      case ActivityType.TYPING:
+        await this.realTimeApi.rtm.sendTyping(threadID)
+        break
+      case ActivityType.ONLINE:
+      case ActivityType.OFFLINE:
+        await this.api.setUserPresence(type)
+    }
   }
 
-  sendReadReceipt = (threadID: string, messageID: string) => this.api.sendReadReceipt(threadID, messageID)
+  sendReadReceipt = (threadID: string, messageID: string) =>
+    this.api.sendReadReceipt(threadID, messageID)
 
   deleteMessage = async (threadID: string, messageID: string) => {
     const res = await this.api.deleteMessage(threadID, messageID)
@@ -226,6 +236,13 @@ export default class Slack implements PlatformAPI {
       }
     }
     return map
+  }
+
+  updateThread = async (threadID: string, updates: Partial<Thread>) => {
+    if ('mutedUntil' in updates) {
+      await this.api.muteConversation(threadID, updates.mutedUntil)
+      return true
+    }
   }
 
   handleDeepLink = (link: string) => {

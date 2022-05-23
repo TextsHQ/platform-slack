@@ -304,7 +304,14 @@ export const mapProfile = (user: any): Participant => ({
   imgURL: user?.profile?.image_192 || '',
 })
 
-const mapThread = (channel: any, accountID: string, currentUserId: string, customEmojis: Record<string, string>, teamName = ''): Thread => {
+const mapThread = (
+  channel: any,
+  accountID: string,
+  currentUserId: string,
+  customEmojis: Record<string, string>,
+  mutedChannels: Set<string> = new Set(),
+  teamName = '',
+): Thread => {
   const messages = (channel.messages as any[])?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
   const participants = (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
 
@@ -313,16 +320,20 @@ const mapThread = (channel: any, accountID: string, currentUserId: string, custo
     if (channel.is_channel) return 'channel'
     return 'single'
   })()
+
   const title = ((): string => {
     if (channel.is_channel) return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
     return channel.name || participants[0]?.username || channel.user
   })()
+
+  const isMuted = mutedChannels.has(channel.id)
 
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
     type,
     title,
+    mutedUntil: isMuted ? 'forever' : undefined,
     timestamp: messages[0]?.timestamp || channel.timestamp,
     isUnread: channel.unread || false,
     isReadOnly: channel.is_user_deleted || false,
@@ -336,8 +347,9 @@ export const mapThreads = (
   accountID: string,
   currentUserId: string,
   customEmojis: Record<string, string>,
+  mutedChannels: Set<string>,
   teamName = '',
-) => slackChannels.map(thread => mapThread(thread, accountID, currentUserId, customEmojis, teamName))
+) => slackChannels.map(thread => mapThread(thread, accountID, currentUserId, customEmojis, mutedChannels, teamName))
 
 export function mapEmojiChangedEvent(event: any): ServerEvent[] {
   if (event.value?.startsWith('alias:')) return []
