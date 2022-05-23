@@ -313,6 +313,7 @@ const mapThread = (channel: any, accountID: string, currentUserId: string, custo
     if (channel.is_channel) return 'channel'
     return 'single'
   })()
+
   const title = ((): string => {
     if (channel.is_channel) return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
     return channel.name || participants[0]?.username || channel.user
@@ -323,6 +324,7 @@ const mapThread = (channel: any, accountID: string, currentUserId: string, custo
     id: channel.id,
     type,
     title,
+    mutedUntil: channel.muted ? 'forever' : undefined,
     timestamp: messages[0]?.timestamp || channel.timestamp,
     isUnread: channel.unread || false,
     isReadOnly: channel.is_user_deleted || false,
