@@ -464,13 +464,18 @@ export default class SlackAPI {
 
   setUserPresence = async (type: ActivityType.OFFLINE | ActivityType.ONLINE): Promise<void> => {
     /**
-     * We can't force the presence to be active (it only accepts away or auto), but setting this to
-     * auto should change the status to active since we have the real-time client already connected.
+     * Using the webClient.users.setPresence method we cannot force the user to be active, but we can
+     * use directly the apiCall and set the presence as active.
      *
-     * @todo research workaround and test if setting the presence to auto changes it to active
+     * @see https://api.slack.com/methods/users.setPresence
      */
-    const presence = type === ActivityType.OFFLINE ? 'away' : 'auto'
-    await this.webClient.users.setPresence({ presence })
+    const presence = type === ActivityType.OFFLINE ? 'away' : 'active'
+    await this.webClient.apiCall('presence.set', {
+      presence,
+      token: this.webClient.token,
+      _x_mode: 'online',
+      _x_sonic: true,
+    })
   }
 
   muteConversation = async (threadID: string, mutedUntil: 'forever' | null | Date): Promise<void> => {
