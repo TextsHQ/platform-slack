@@ -198,11 +198,18 @@ export default class Slack implements PlatformAPI {
   createThread = (userIDs: string[]) => this.api.createThread(userIDs)
 
   sendActivityIndicator = async (type: ActivityType, threadID: string) => {
-    if (type === ActivityType.TYPING) await this.realTimeApi.rtm.sendTyping(threadID)
-    if (type === ActivityType.OFFLINE || type === ActivityType.ONLINE) await this.api.setUserPresence(type)
+    switch (type) {
+      case ActivityType.TYPING:
+        await this.realTimeApi.rtm.sendTyping(threadID)
+        break
+      case ActivityType.ONLINE:
+      case ActivityType.OFFLINE:
+        await this.api.setUserPresence(type)
+    }
   }
 
-  sendReadReceipt = (threadID: string, messageID: string) => this.api.sendReadReceipt(threadID, messageID)
+  sendReadReceipt = (threadID: string, messageID: string) =>
+    this.api.sendReadReceipt(threadID, messageID)
 
   deleteMessage = async (threadID: string, messageID: string) => {
     const res = await this.api.deleteMessage(threadID, messageID)
@@ -230,9 +237,10 @@ export default class Slack implements PlatformAPI {
   }
 
   updateThread = async (threadID: string, updates: Partial<Thread>) => {
-    if (updates.mutedUntil || updates.mutedUntil === null) await this.api.muteConversation(threadID, updates.mutedUntil)
-
-    return true
+    if ('mutedUntil' in updates) {
+      await this.api.muteConversation(threadID, updates.mutedUntil)
+      return true
+    }
   }
 
   handleDeepLink = (link: string) => {

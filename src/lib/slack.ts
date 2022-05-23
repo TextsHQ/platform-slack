@@ -474,7 +474,7 @@ export default class SlackAPI {
   }
 
   muteConversation = async (threadID: string, mutedUntil: 'forever' | null | Date): Promise<void> => {
-    const value = !!(mutedUntil === 'forever')
+    const value = mutedUntil === 'forever'
     /**
      * WebClient doesn't have a built-in method to setNotifications or mute a conversation (since their
      * clients changes) but they're still using the users.prefs.setNotifications method on their clients
