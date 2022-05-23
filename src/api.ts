@@ -137,9 +137,11 @@ export default class Slack implements PlatformAPI {
     const { channels, response_metadata } = await this.api.getThreads(cursor, this.threadTypes)
     const { team } = this.currentUser
 
-    const items = mapThreads(channels as any[], this.accountID, this.currentUserID, this.api.customEmojis, team.name)
+    const mutedChannels = this.api.getMutedChannels()
+    const items = mapThreads(channels as any[], this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
 
     timer.timeEnd()
+
     return {
       items,
       hasMore: items.length > 0 && Boolean(response_metadata?.next_cursor),

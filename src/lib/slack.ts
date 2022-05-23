@@ -29,7 +29,7 @@ export default class SlackAPI {
 
   httpClient = texts.createHttpClient()
 
-  initialMutedChannels: string[] = []
+  private initialMutedChannels = new Set<string>()
 
   init = async (clientToken: string) => {
     const timer = textsTime('slack.init')
@@ -55,11 +55,15 @@ export default class SlackAPI {
     const res = await this.webClient.apiCall('users.prefs.get', {
       token: this.webClient.token,
     })
+
     // @ts-expect-error this is not typed on Slack's WebClient
-    this.initialMutedChannels = res?.prefs?.muted_channels?.split(',')
+    const mutedChannels: string[] = res?.prefs?.muted_channels?.split(',')
+    this.initialMutedChannels = new Set([...mutedChannels])
 
     timer.timeEnd()
   }
+
+  getMutedChannels = () => this.initialMutedChannels
 
   fetchHTML = async (url: string) => {
     const { body: html } = await this.httpClient.requestAsString(url, { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT } })
@@ -202,8 +206,8 @@ export default class SlackAPI {
 
     await bluebird.map(publicChannels, this.loadPublicChannel)
     await bluebird.map(privateMessages, this.loadPrivateMessage)
-    // Map threads and set the 'muted' field checkinf if the id is included on the initialMutedChannels
-    response.channels = uniqBy([...privateMessages, ...publicChannels], 'id').map(channel => ({ ...channel, muted: this.initialMutedChannels.includes(channel.id) }))
+    response.channels = uniqBy([...privateMessages, ...publicChannels], 'id')
+
     return response
   }
 
