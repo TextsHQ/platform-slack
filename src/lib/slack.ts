@@ -1,7 +1,7 @@
-import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant } from '@textshq/platform-sdk'
+import bluebird from 'bluebird'
+import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
 import { FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
-import bluebird from 'bluebird'
 import { uniqBy, memoize } from 'lodash'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
@@ -29,6 +29,8 @@ export default class SlackAPI {
 
   httpClient = texts.createHttpClient()
 
+  initialMutedChannels: string[] = []
+
   init = async (clientToken: string) => {
     const timer = textsTime('slack.init')
     const token = clientToken || await this.getClientToken()
@@ -38,6 +40,24 @@ export default class SlackAPI {
 
     this.userToken = token
     this.webClient = client
+    /**
+     * Get user all user preferences to get all the muted channels.
+     *
+     * @description
+     *  Slack's WebClient doesn't implement the 'users.prefs.get' method since they're
+     *  changing all their clients (not APIs) so this is not implemented yet
+     *  This is cached on Slack's side so it won't take too much time to get a
+     *  response.
+     *
+     * @see https://github.com/IPA-CyberLab/IPA-DN-Cores/blob/master/Cores.NET/Cores.Basic/Json/WebApi/ClientApi/SlackApi.cs#L386-L393
+     * @see https://github.com/ErikKalkoken/slackApiDoc/blob/master/users.prefs.get.md
+     */
+    const res = await this.webClient.apiCall('users.prefs.get', {
+      token: this.webClient.token,
+    })
+    // @ts-expect-error this is not typed on Slack's WebClient
+    this.initialMutedChannels = res?.prefs?.muted_channels?.split(',')
+
     timer.timeEnd()
   }
 
@@ -57,6 +77,7 @@ export default class SlackAPI {
 
   getClientToken = async () => {
     const teamURL = await this.getFirstTeamURL()
+
     for (const pathname of ['customize/emoji', 'home']) {
       texts.log('fetching', teamURL + pathname)
       const html = await this.fetchHTML(teamURL + pathname)
@@ -64,6 +85,7 @@ export default class SlackAPI {
       const [, token] = html?.match(/"api_token":"(.+?)"/) || []
       if (token) return token
     }
+
     throw new Error('Unable to find API token')
   }
 
@@ -180,8 +202,8 @@ export default class SlackAPI {
 
     await bluebird.map(publicChannels, this.loadPublicChannel)
     await bluebird.map(privateMessages, this.loadPrivateMessage)
-
-    response.channels = uniqBy([...privateMessages, ...publicChannels], 'id')
+    // Map threads and set the 'muted' field checkinf if the id is included on the initialMutedChannels
+    response.channels = uniqBy([...privateMessages, ...publicChannels], 'id').map(channel => ({ ...channel, muted: this.initialMutedChannels.includes(channel.id) }))
     return response
   }
 
@@ -438,5 +460,35 @@ export default class SlackAPI {
   getUserPresence = async (userID: string) => {
     const res = await this.webClient.users.getPresence({ user: userID })
     return { userID, presence: res.presence }
+  }
+
+  setUserPresence = async (type: ActivityType.OFFLINE | ActivityType.ONLINE): Promise<void> => {
+    /**
+     * We can't force the presence to be active (it only accepts away or auto), but setting this to
+     * auto should change the status to active since we have the real-time client already connected.
+     *
+     * @todo research workaround and test if setting the presence to auto changes it to active
+     */
+    const presence = type === ActivityType.OFFLINE ? 'away' : 'auto'
+    await this.webClient.users.setPresence({ presence })
+  }
+
+  muteConversation = async (threadID: string, mutedUntil: 'forever' | null | Date): Promise<void> => {
+    const value = !!(mutedUntil === 'forever')
+    /**
+     * WebClient doesn't have a built-in method to setNotifications or mute a conversation (since their
+     * clients changes) but they're still using the users.prefs.setNotifications method on their clients
+     * and they'll keep using that.
+     *
+     * @see https://github.com/lamw/vmware-scripts/blob/master/powershell/slack_notifications.ps1#L65-L81
+     */
+    await this.webClient.apiCall('users.prefs.setNotifications', {
+      token: this.webClient.token,
+      name: 'muted',
+      value,
+      channel_id: threadID,
+      global: false,
+      sync: false,
+    })
   }
 }
