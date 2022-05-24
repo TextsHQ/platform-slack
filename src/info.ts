@@ -137,6 +137,11 @@ const info: PlatformInfo = {
       files: 1 * 1024 * 1024 * 1024,
     },
   },
+  notifications: {
+    android: {
+      senderID: '508767403424',
+    },
+  },
   prefs: {
     show_channels: {
       label: 'Show channels',
