@@ -512,4 +512,15 @@ export default class SlackAPI {
       sync: false,
     })
   }
+
+  registerPush = async (pushToken: string, add: boolean): Promise<void> => {
+    await this.webClient.apiCall(add ? 'push.add' : 'push.remove', {
+      payload_version: '9',
+      os_notifs_off: '0',
+      is_work_profile: '0',
+      app_id: 'slackandroid',
+      push_token: pushToken,
+      token: this.webClient.token,
+    })
+  }
 }

@@ -1,0 +1,44 @@
+POST /api/push.add HTTP/2
+Host: slack.com
+User-Agent: slack/22.05.10.0.30011557 (Google sdk_gphone64_arm64; Android 12)
+Accept-Language: en-US,en;
+Slack-Route: T01QMMLU7JL
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 472
+Accept-Encoding: gzip, deflate
+Uuid: 7fd024210b1d5044
+
+payload_version=9&os_notifs_off=0&device_id=7fd024210b1d5044&is_work_profile=0&app_id=slackandroid&push_token=e-fVao9nR2Csu2klO25mnB%3AAPA91bEq92RRdPqSdh1TnmiRoQ70iC1z6dQetNVcGQIBaDvkDghoEcBHpMeDfiv1EjnMF0UcELR8C8agJicGQot4OtzQUDZMu7JdZ3FN-UiVjIgE6iI2_Gw2TLTXyP9tmtNSrWyXGkev&token=xoxs-1837734959632-1807131363654-3577709231975-d956e1ceb5e6df2d9ddce479ba95847924db9cf2546308b8a4cb4394c466190b&desc=slack%2F22.05.10.0.30011557+%28Google+sdk_gphone64_arm64%3B+Android+12%29
+
+---
+
+HTTP/2 200 OK
+Date: Sun, 29 May 2022 08:56:22 GMT
+Server: Apache
+X-Powered-By: HHVM/4.153.1
+Access-Control-Allow-Origin: *
+Referrer-Policy: no-referrer
+X-Slack-Backend: r
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Access-Control-Allow-Headers: slack-route, x-slack-version-ts, x-b3-traceid, x-b3-spanid, x-b3-parentspanid, x-b3-sampled, x-b3-flags
+Access-Control-Expose-Headers: x-slack-req-id, retry-after
+X-Oauth-Scopes: identify,read,post,client,apps,admin
+X-Accepted-Oauth-Scopes: post
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+Cache-Control: private, no-cache, no-store, must-revalidate
+Pragma: no-cache
+X-Xss-Protection: 0
+X-Content-Type-Options: nosniff
+X-Slack-Req-Id: 9c936c3cff5a92ff1e57bacf04fb2099
+Vary: Accept-Encoding
+Content-Length: 11
+Content-Type: application/json; charset=utf-8
+X-Envoy-Upstream-Service-Time: 232
+X-Backend: main_normal main_bedrock_normal_with_overflow main_canary_with_overflow main_bedrock_canary_with_overflow main_control_with_overflow main_bedrock_control_with_overflow
+X-Server: slack-www-hhvm-main-iad-7lyv
+X-Slack-Shared-Secret-Outcome: no-match
+Via: envoy-www-iad-b61w, envoy-edge-bom-xa31
+X-Edge-Backend: envoy-www
+X-Slack-Edge-Shared-Secret-Outcome: no-match
+
+{"ok":true}
