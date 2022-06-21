@@ -485,7 +485,7 @@ export default class SlackAPI {
      *
      * @see https://api.slack.com/methods/users.setPresence
      */
-    const presence = type === ActivityType.OFFLINE ? 'away' : 'active'
+    const presence = type === ActivityType.OFFLINE ? 'auto' : 'active'
     await this.webClient.apiCall('presence.set', {
       presence,
       token: this.webClient.token,
