@@ -1,11 +1,12 @@
 import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
-
-import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
-import SlackAPI from './lib/slack'
-import SlackRealTime from './lib/real-time'
+import bluebird from 'bluebird'
+import { mapCurrentUser, mapThreads, mapMessage, mapParticipant } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
 import { textsTime } from './util'
+
+import SlackRealTime from './lib/real-time'
+import SlackAPI from './lib/slack'
 
 if (texts.IS_DEV) {
   // eslint-disable-next-line import/no-extraneous-dependencies, global-require
@@ -120,14 +121,30 @@ export default class Slack implements PlatformAPI {
 
   searchUsers = async (typed: string) => this.api.searchUsers(typed)
 
-  onThreadSelected = async (threadID: string) => {
+  onThreadSelected = async (threadID: string): Promise<void> => {
     // nothing needed for slack threads
     if (threadID?.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) return
-    const timer = textsTime('onThreadSelected')
+
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
-    timer.timeEnd()
+
     await this.realTimeApi?.subscribeToPresence(filteredIds)
+
+    // All DMs starts with D, and in that case we don't need to fetch participants
+    if (threadID?.startsWith('D')) return
+    // The slice is to get the first 5 users that are members of the channel / group.
+    // Those first 5 members should be the "more active" ones, will need to double check
+    // reading Slack's API code.
+    const users = await bluebird.map(filteredIds.slice(0, 5), this.api.getParticipantProfile)
+    const participants = users.map(mapParticipant)
+
+    this.api.onEvent([{
+      type: ServerEventType.STATE_SYNC,
+      mutationType: 'upsert',
+      objectName: 'participant',
+      objectIDs: { threadID },
+      entries: participants,
+    }])
   }
 
   getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
@@ -211,9 +228,8 @@ export default class Slack implements PlatformAPI {
   sendReadReceipt = (threadID: string, messageID: string) =>
     this.api.sendReadReceipt(threadID, messageID)
 
-  deleteMessage = async (threadID: string, messageID: string) => {
-    const res = await this.api.deleteMessage(threadID, messageID)
-    return res
+  deleteMessage = async (threadID: string, messageID: string): Promise<void> => {
+    await this.api.deleteMessage(threadID, messageID)
   }
 
   markAsUnread = this.api.markAsUnread
@@ -239,7 +255,6 @@ export default class Slack implements PlatformAPI {
   updateThread = async (threadID: string, updates: Partial<Thread>) => {
     if ('mutedUntil' in updates) {
       await this.api.muteConversation(threadID, updates.mutedUntil)
-      return true
     }
   }
 
