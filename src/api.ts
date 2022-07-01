@@ -129,6 +129,9 @@ export default class Slack implements PlatformAPI {
     const filteredIds = members.filter(id => id !== this.currentUserID)
 
     await this.realTimeApi?.subscribeToPresence(filteredIds)
+
+    // All DMs starts with D, and in that case we don't need to fetch participants
+    if (threadID?.startsWith('D')) return
     // The slice is to get the first 5 users that are members of the channel / group.
     // Those first 5 members should be the "more active" ones, will need to double check
     // reading Slack's API code.
