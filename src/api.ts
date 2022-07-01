@@ -124,7 +124,6 @@ export default class Slack implements PlatformAPI {
   onThreadSelected = async (threadID: string): Promise<void> => {
     // nothing needed for slack threads
     if (threadID?.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) return
-    const timer = textsTime('onThreadSelected')
 
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
@@ -143,8 +142,6 @@ export default class Slack implements PlatformAPI {
       objectIDs: { threadID },
       entries: participants,
     }])
-
-    timer.timeEnd()
   }
 
   getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
