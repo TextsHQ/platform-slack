@@ -316,13 +316,15 @@ const mapThread = (
   const participants = (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
 
   const type = ((): ThreadType => {
-    if (channel.is_group) return 'group'
+    if (channel.is_group || channel.is_mpim) return 'group'
     if (channel.is_channel) return 'channel'
     return 'single'
   })()
 
+  console.log(type, channel)
+
   const title = ((): string => {
-    if (channel.is_channel) return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
+    if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
     return channel.name || participants[0]?.username || channel.user
   })()
 
