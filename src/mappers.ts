@@ -321,8 +321,6 @@ const mapThread = (
     return 'single'
   })()
 
-  console.log(type, channel)
-
   const title = ((): string => {
     if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
     return channel.name || participants[0]?.username || channel.user
