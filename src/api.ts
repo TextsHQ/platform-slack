@@ -225,9 +225,8 @@ export default class Slack implements PlatformAPI {
   sendReadReceipt = (threadID: string, messageID: string) =>
     this.api.sendReadReceipt(threadID, messageID)
 
-  deleteMessage = async (threadID: string, messageID: string) => {
-    const res = await this.api.deleteMessage(threadID, messageID)
-    return res
+  deleteMessage = async (threadID: string, messageID: string): Promise<void> => {
+    await this.api.deleteMessage(threadID, messageID)
   }
 
   markAsUnread = this.api.markAsUnread
@@ -253,7 +252,6 @@ export default class Slack implements PlatformAPI {
   updateThread = async (threadID: string, updates: Partial<Thread>) => {
     if ('mutedUntil' in updates) {
       await this.api.muteConversation(threadID, updates.mutedUntil)
-      return true
     }
   }
 
