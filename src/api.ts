@@ -1,4 +1,4 @@
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, GetAssetOptions, Awaitable, NotificationsInfo } from '@textshq/platform-sdk'
+import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
 
 import { mapCurrentUser, mapThreads, mapMessage } from './mappers'
@@ -276,4 +276,8 @@ export default class Slack implements PlatformAPI {
     if (type !== 'android') throw Error('invalid type')
     await this.api.registerPush(token, false)
   }
+
+  addParticipant = this.api.addParticipant
+
+  removeParticipant = this.api.removeParticipant
 }

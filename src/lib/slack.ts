@@ -95,7 +95,6 @@ export default class SlackAPI {
 
   setCustomEmojis = async () => {
     const res = await this.webClient.emoji.list()
-    // @ts-expect-error res.emoji's type is incorrect
     this.customEmojis = res.emoji
   }
 
@@ -521,6 +520,20 @@ export default class SlackAPI {
       app_id: 'slackandroid',
       push_token: pushToken,
       token: this.webClient.token,
+    })
+  }
+
+  addParticipant = async (threadID: string, participantID: string): Promise<void> => {
+    await this.webClient.conversations.invite({
+      users: participantID,
+      channel: threadID,
+    })
+  }
+
+  removeParticipant = async (threadID: string, participantID: string): Promise<void> => {
+    await this.webClient.conversations.kick({
+      user: participantID,
+      channel: threadID,
     })
   }
 }
