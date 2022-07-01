@@ -293,7 +293,6 @@ export default class SlackAPI {
     response.messages = uniqBy(messages, 'ts')
 
     const participants = Object.values(participantsMap)
-
     if (participants.length > 0) {
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
