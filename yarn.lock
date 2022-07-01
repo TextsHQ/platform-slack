@@ -1939,22 +1939,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:^6.3.0":
-  version: 6.7.1
-  resolution: "@slack/web-api@npm:6.7.1"
+"@slack/web-api@npm:^6.7.2":
+  version: 6.7.2
+  resolution: "@slack/web-api@npm:6.7.2"
   dependencies:
     "@slack/logger": ^3.0.0
     "@slack/types": ^2.0.0
     "@types/is-stream": ^1.1.0
     "@types/node": ">=12.0.0"
-    axios: ^0.26.1
+    axios: ^0.27.2
     eventemitter3: ^3.1.0
     form-data: ^2.5.0
     is-electron: 2.2.0
     is-stream: ^1.1.0
     p-queue: ^6.6.1
     p-retry: ^4.0.0
-  checksum: 178bb156ba703637d2a2ce7700a161730c5d8293fab18308c46d06a5b23bbe8eb5b2a7358c78a7cf2e995f5a36a1c0d25e4df016727ad86f351dbb0c40fd868d
+  checksum: caa82f3bb25d43a6a9434be659d74a41a35dbcc347a9ae356266da58982d42a7280d25f82a24d208c39c687038707747e5d6e415617412abd21e79c99a32c22e
   languageName: node
   linkType: hard
 
@@ -1990,16 +1990,16 @@ __metadata:
   dependencies:
     "@slack/logger": ^3.0.0
     "@slack/rtm-api": ^6.0.0
-    "@slack/web-api": ^6.3.0
+    "@slack/web-api": ^6.7.2
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config"
     "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#main"
     "@types/bluebird": ^3.5.36
     "@types/eslint": ^7.28.0
     "@types/jest": ^27.0.1
-    "@types/lodash": ^4.14.172
+    "@types/lodash": ^4.14.182
     "@types/node-emoji": ^1.8.1
     "@types/p-queue": ^2.3.2
-    "@types/tough-cookie": ^4.0.1
+    "@types/tough-cookie": ^4.0.2
     "@types/ws": ^7.2.5
     bluebird: ^3.7.2
     eslint: ^7.32.0
@@ -2015,7 +2015,7 @@ __metadata:
     postinstall-postinstall: ^2.1.0
     source-map-support: ^0.5.21
     tough-cookie: ^4.0.0
-    typescript: ^4.6.4
+    typescript: ^4.7.4
     ws: ^5.2.0
   languageName: unknown
   linkType: soft
@@ -2166,7 +2166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.14.172":
+"@types/lodash@npm:^4.14.182":
   version: 4.14.182
   resolution: "@types/lodash@npm:4.14.182"
   checksum: 7dd137aa9dbabd632408bd37009d984655164fa1ecc3f2b6eb94afe35bf0a5852cbab6183148d883e9c73a958b7fec9a9bcf7c8e45d41195add6a18c34958209
@@ -2222,7 +2222,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/tough-cookie@npm:^4.0.1":
+"@types/tough-cookie@npm:^4.0.2":
   version: 4.0.2
   resolution: "@types/tough-cookie@npm:4.0.2"
   checksum: e055556ffdaa39ad85ede0af192c93f93f986f4bd9e9426efdc2948e3e2632db3a4a584d4937dbf6d7620527419bc99e6182d3daf2b08685e710f2eda5291905
@@ -2683,12 +2683,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.26.1":
-  version: 0.26.1
-  resolution: "axios@npm:0.26.1"
+"axios@npm:^0.27.2":
+  version: 0.27.2
+  resolution: "axios@npm:0.27.2"
   dependencies:
-    follow-redirects: ^1.14.8
-  checksum: d9eb58ff4bc0b36a04783fc9ff760e9245c829a5a1052ee7ca6013410d427036b1d10d04e7380c02f3508c5eaf3485b1ae67bd2adbfec3683704745c8d7a6e1a
+    follow-redirects: ^1.14.9
+    form-data: ^4.0.0
+  checksum: 38cb7540465fe8c4102850c4368053c21683af85c5fdf0ea619f9628abbcb59415d1e22ebc8a6390d2bbc9b58a9806c874f139767389c862ec9b772235f06854
   languageName: node
   linkType: hard
 
@@ -4161,7 +4162,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.0, follow-redirects@npm:^1.14.8":
+"follow-redirects@npm:^1.14.0, follow-redirects@npm:^1.14.9":
   version: 1.15.1
   resolution: "follow-redirects@npm:1.15.1"
   peerDependenciesMeta:
@@ -7447,23 +7448,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.6.4":
-  version: 4.7.2
-  resolution: "typescript@npm:4.7.2"
+"typescript@npm:^4.7.4":
+  version: 4.7.4
+  resolution: "typescript@npm:4.7.4"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 5163585e6b56410f77d5483b698d9489bbee8902c99029eb70cf6d21525a186530ce19a00951af84eefd4a131cc51d0959f5118e25e70ab61f45ac4057dbd1ef
+  checksum: 5750181b1cd7e6482c4195825547e70f944114fb47e58e4aa7553e62f11b3f3173766aef9c281783edfd881f7b8299cf35e3ca8caebe73d8464528c907a164df
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.6.4#~builtin<compat/typescript>":
-  version: 4.7.2
-  resolution: "typescript@patch:typescript@npm%3A4.7.2#~builtin<compat/typescript>::version=4.7.2&hash=7ad353"
+"typescript@patch:typescript@^4.7.4#~builtin<compat/typescript>":
+  version: 4.7.4
+  resolution: "typescript@patch:typescript@npm%3A4.7.4#~builtin<compat/typescript>::version=4.7.4&hash=7ad353"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 7e2b9a9f4a70fb7616f1b0d986977f8e34a74f046202fa7f24fdee79589598277810fa216b3776c20c0683a9235872c73be34fdb93f67f98c1efaca40999422f
+  checksum: 9096d8f6c16cb80ef3bf96fcbbd055bf1c4a43bd14f3b7be45a9fbe7ada46ec977f604d5feed3263b4f2aa7d4c7477ce5f9cd87de0d6feedec69a983f3a4f93e
   languageName: node
   linkType: hard
 
