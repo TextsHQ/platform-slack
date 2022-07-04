@@ -126,6 +126,7 @@ const info: PlatformInfo = {
     Attribute.SEARCH_ALL_USERS_FOR_GROUP_MENTIONS,
     Attribute.SUBSCRIBE_TO_THREAD_SELECTION,
     Attribute.SUBSCRIBE_TO_ONLINE_OFFLINE_ACTIVITY,
+    Attribute.SUPPORTS_PUSH_NOTIFICATIONS,
   ]),
   attachments: {
     maxSize: {
