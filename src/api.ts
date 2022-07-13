@@ -8,11 +8,6 @@ import { textsTime } from './util'
 import SlackRealTime from './lib/real-time'
 import SlackAPI from './lib/slack'
 
-if (texts.IS_DEV) {
-  // eslint-disable-next-line import/no-extraneous-dependencies, global-require
-  require('source-map-support').install()
-}
-
 export type ThreadType = 'channel' | 'dm'
 
 function mapThreadID(threadID: string) {
