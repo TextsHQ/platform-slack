@@ -148,7 +148,7 @@ export default class SlackAPI {
     // This filter is because sometimes the latest message hasn't timestamp and can be a response from a thread
     // so this way we filter only messages that aren't thread responses
     thread.messages = [channel?.latest].filter(x => x?.ts && !x?.thread_ts) || []
-    thread.participants = (thread?.is_im || thread?.is_shared) ? [user] : []
+    thread.participants = thread?.is_im ? [user] : []
     // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
     thread.name = thread?.is_mpim ? thread?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
     timer.timeEnd()
@@ -177,7 +177,7 @@ export default class SlackAPI {
     // We cannot use users.conversations neither (this could change in a future)
     // @see https://api.slack.com/docs/conversations-api
     // @see https://api.slack.com/methods/channels.list
-    if (currentUser?.profile?.guest_invited_by) {
+    if (currentUser?.user?.guest_invited_by) {
       if (threadTypes.includes('dm')) {
         const { ims = [], response_metadata: imMetadata } = (await this.webClient.im.list()) as any
         const { groups = [], response_metadata: groupsMetadata } = (await this.webClient.mpim.list()) as any
