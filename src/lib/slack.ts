@@ -177,20 +177,25 @@ export default class SlackAPI {
     // We cannot use users.conversations neither (this could change in a future)
     // @see https://api.slack.com/docs/conversations-api
     // @see https://api.slack.com/methods/channels.list
-    if (currentUser?.profile?.guest_invited_by) {
+    if (currentUser.user.guest_invited_by) {
       if (threadTypes.includes('dm')) {
-        const { ims = [], response_metadata: imMetadata } = (await this.webClient.im.list()) as any
-        const { groups = [], response_metadata: groupsMetadata } = (await this.webClient.mpim.list()) as any
-        response.channels = [...response.channels, ...groups, ...ims]
-        response.response_metadata = groupsMetadata || imMetadata || {}
+        const [imList, mpimList] = await Promise.all([
+          this.webClient.im.list(),
+          this.webClient.mpim.list(),
+        ])
+
+        response.channels = [...response.channels, ...mpimList.groups as any, ...imList.ims as any]
+        response.response_metadata = mpimList.response_metadata || imList.response_metadata || {}
       }
 
       if (threadTypes.includes('channel')) {
-        const promises = [this.webClient.channels.list(), this.webClient.conversations.list()]
-        const results = await Promise.all(promises)
+        const [channelsList, conversationsList] = await Promise.all([
+          this.webClient.channels.list(),
+          this.webClient.conversations.list(),
+        ])
 
-        response.channels = [...response.channels, ...(results[0] as any).channels, ...(results[1] as any).channels]
-        response.response_metadata = results[0].response_metadata || results[1].response_metadata || response.response_metadata || {}
+        response.channels = [...response.channels, ...(channelsList as any).channels, ...(conversationsList as any).channels]
+        response.response_metadata = channelsList.response_metadata || conversationsList.response_metadata || response.response_metadata || {}
       }
     } else {
       const types = threadTypes.map(t => {
