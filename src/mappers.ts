@@ -283,7 +283,7 @@ export const mapMessage = (
 }
 
 export const mapParticipant = ({ profile }: any): Participant => profile && {
-  id: profile.id || profile.bot_id || profile.api_app_id,
+  id: profile.id || profile.bot_id || profile.api_app_id || 'Unknown',
   username: profile.display_name || profile.real_name || profile.name,
   fullName: profile.real_name || profile.display_name,
   imgURL: profile.image_192 || profile.image_72,
