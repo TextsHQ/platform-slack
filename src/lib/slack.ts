@@ -23,11 +23,11 @@ export default class SlackAPI {
 
   customEmojis: Record<string, string>
 
-  workspaceUsers: Record<string, any> = {}
-
   currentUser?: { auth: any, user: any, team: any }
 
-  httpClient = texts.createHttpClient()
+  private workspaceUsers: Record<string, any> = {}
+
+  private httpClient = texts.createHttpClient()
 
   private initialMutedChannels = new Set<string>()
 
@@ -131,7 +131,7 @@ export default class SlackAPI {
     timer.timeEnd()
   }
 
-  loadPrivateMessage = async (thread: any, currentUser: any) => {
+  loadPrivateMessage = async (thread: any) => {
     const timer = textsTime(`loadPrivateMessage Id:${thread.id}`)
     const { id, user: userId } = thread
 

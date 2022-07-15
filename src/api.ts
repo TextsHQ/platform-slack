@@ -34,15 +34,13 @@ export default class Slack implements PlatformAPI {
 
   currentUserID: string
 
-  private currentUser: any = null
-
   private realTimeApi: null | SlackRealTime = null
 
   private threadTypes: ThreadType[]
 
   private showChannels = false
 
-  init = async (serialized: { cookies: any, clientToken: string }, { accountID, dataDirPath }: AccountInfo, prefs: Record<string, any>) => {
+  init = async (serialized: { cookies: any, clientToken: string }, { accountID }: AccountInfo, prefs: Record<string, any>) => {
     const timer = textsTime('init')
     this.accountID = accountID
     this.showChannels = prefs?.show_channels
@@ -53,17 +51,16 @@ export default class Slack implements PlatformAPI {
     const cookieJar = CookieJar.fromJSON(cookies) || null
     this.api.cookieJar = cookieJar
     await this.api.init(clientToken)
-    await this.afterAuth(dataDirPath)
+    await this.afterAuth()
     // eslint-disable-next-line
-    if (!this.currentUser?.auth.ok) throw new ReAuthError()
+    if (!this.api.currentUser?.auth.ok) throw new ReAuthError()
     timer.timeEnd()
   }
 
-  afterAuth = async (dataDirPath = '') => {
+  afterAuth = async () => {
     const timer = textsTime('afterAuth')
-    const currentUser = await this.api.getCurrentUser()
-    this.currentUser = currentUser
-    this.currentUserID = currentUser.auth.user_id
+    await this.api.getCurrentUser()
+    this.currentUserID = this.api.currentUser.auth.user_id
 
     await this.api.setCustomEmojis()
 
@@ -106,7 +103,7 @@ export default class Slack implements PlatformAPI {
 
   dispose = () => this.realTimeApi?.dispose()
 
-  getCurrentUser = () => mapCurrentUser(this.currentUser)
+  getCurrentUser = () => mapCurrentUser(this.api.currentUser)
 
   subscribeToEvents = async (onEvent: OnServerEventCallback): Promise<void> => {
     this.api.onEvent = onEvent
@@ -146,7 +143,7 @@ export default class Slack implements PlatformAPI {
     const timer = textsTime('getThreads')
 
     const threads = await this.api.getThreadsNonPaginated(this.threadTypes)
-    const { team } = this.currentUser
+    const { team } = this.api.currentUser
 
     const mutedChannels = this.api.getMutedChannels()
     const items = mapThreads(threads as any[], this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
