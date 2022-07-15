@@ -25,7 +25,7 @@ export default class SlackAPI {
 
   workspaceUsers: Record<string, any> = {}
 
-  currentUser?
+  currentUser?: { auth: any, user: any, team: any }
 
   httpClient = texts.createHttpClient()
 
@@ -157,7 +157,7 @@ export default class SlackAPI {
   getThreadsNonPaginated = async (threadTypes: ThreadType[] = []) => {
     const allThreads = []
     // https://api.slack.com/docs/pagination#cursors
-    let cursor : string
+    let cursor: string
     do {
       const { channels, response_metadata } = await this.getThreads(cursor, threadTypes)
       allThreads.push(...channels)
@@ -208,15 +208,17 @@ export default class SlackAPI {
     }
 
     const privateMessages = threadTypes.includes('dm')
-      ? (response.channels as any[]).filter(({ is_im, is_mpim }: { is_im: boolean, is_mpim?: boolean }) => is_im || is_mpim)
+      ? (response.channels as { is_im: boolean, is_mpim?: boolean }[]).filter(({ is_im, is_mpim }) => is_im || is_mpim)
       : []
 
     const publicChannels = threadTypes.includes('channel')
-      ? (response.channels as any[]).filter(({ is_channel, is_member }: { is_channel: boolean, is_member: boolean }) => is_channel && is_member)
+      ? (response.channels as { is_channel: boolean, is_member: boolean }[]).filter(({ is_channel, is_member }) => is_channel && is_member)
       : []
 
-    await bluebird.map(publicChannels, this.loadPublicChannel)
-    await bluebird.map(privateMessages, this.loadPrivateMessage)
+    await Promise.all([
+      bluebird.map(publicChannels, this.loadPublicChannel),
+      bluebird.map(privateMessages, this.loadPrivateMessage),
+    ])
     response.channels = uniqBy([...privateMessages, ...publicChannels], 'id')
 
     return response
@@ -254,7 +256,7 @@ export default class SlackAPI {
     return finalText
   }
 
-  getMessages = async (threadID: string, limit = 100, latest = undefined) => {
+  getMessages = async (threadID: string, limit = 100, latest: string = undefined) => {
     const response = await this.webClient.conversations.history({
       channel: threadID,
       limit,

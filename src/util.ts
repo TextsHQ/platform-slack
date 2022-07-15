@@ -9,5 +9,5 @@ export const textsTime = (() =>
     return {
       timeEnd: () => console.timeEnd(newLabel),
     }
-  } : (_: string) => ({ timeEnd: () => undefined }))
+  } : (_: string) => ({ timeEnd: () => {} }))
 )()

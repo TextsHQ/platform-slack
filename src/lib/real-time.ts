@@ -17,7 +17,7 @@ export default class SlackRealTime {
 
   public userPresence: PresenceMap = {}
 
-  private presenceSubscribedUsersIDs : string[] = []
+  private presenceSubscribedUsersIDs: string[] = []
 
   private ready = false
 

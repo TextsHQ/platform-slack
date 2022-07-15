@@ -54,7 +54,7 @@ const getClosingToken = (token: string): string => (
 const findClosingIndex = (input: string[], curToken: string) => {
   const closingToken = getClosingToken(curToken)
   const closingIndex = input.indexOf(closingToken[0])
-  let data
+  let data: string[]
   if (closingIndex > -1) {
     let tokenMatched = true
     for (let i = 1; i < closingToken.length; i++) {
@@ -94,7 +94,7 @@ export function mapTextAttributes(
   src: string,
   wrapInQuote = false,
   customEmojis: Record<string, string> = {},
-) : {
+): {
     text: string
     textAttributes: TextAttributes
   } {
@@ -105,7 +105,7 @@ export function mapTextAttributes(
   // Parse the input sequentially.
   while (input.length) {
     const c1 = input[0]
-    let curToken
+    let curToken: string
 
     if (':*_~`<'.includes(c1)) {
       if (c1 === '`') {
@@ -127,7 +127,7 @@ export function mapTextAttributes(
         // A valid closingIndex is found, it's a valid token!
         const content = input.slice(0, closingIndex).join('')
         // See if we can find nested entities.
-        let nestedAttributes = { text: '', textAttributes: undefined }
+        let nestedAttributes: { text: string, textAttributes: TextAttributes } = { text: '', textAttributes: undefined }
         if (!['```', '<'].includes(curToken)) {
           nestedAttributes = mapTextAttributes(content)
         }
@@ -315,12 +315,12 @@ export type Block =
   ChannelBlock |
   ContextBlock
 
-const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
+const mapBlock = (block: Block, customEmojis: Record<string, string>): {
   text: string
   textAttributes: TextAttributes
 } => {
   let output = ''
-  const entities : TextEntity[] = []
+  const entities: TextEntity[] = []
 
   switch (block.type) {
     case 'rich_text':
@@ -515,7 +515,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>) : {
   }
 }
 
-export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>) : {
+export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>): {
   text: string
   textAttributes: TextAttributes
 } => {
