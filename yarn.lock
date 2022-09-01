@@ -1996,14 +1996,12 @@ __metadata:
     "@slack/web-api": ^6.7.2
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config"
     "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#main"
-    "@types/bluebird": ^3.5.36
     "@types/eslint": ^7.28.0
     "@types/jest": ^27.0.1
     "@types/lodash": ^4.14.182
     "@types/node-emoji": ^1.8.1
     "@types/tough-cookie": ^4.0.2
     "@types/ws": ^7.2.5
-    bluebird: ^3.7.2
     eslint: ^7.32.0
     eventemitter3: ^3.1.0
     finity: ^0.5.4
@@ -2071,13 +2069,6 @@ __metadata:
   dependencies:
     "@babel/types": ^7.3.0
   checksum: 8992d8c1eaaf1c793e9184b930767883446939d2744c40ea4e9591086e79b631189dc519931ed8864f1e016742a189703c217db59b800aca84870b865009d8b4
-  languageName: node
-  linkType: hard
-
-"@types/bluebird@npm:^3.5.36":
-  version: 3.5.36
-  resolution: "@types/bluebird@npm:3.5.36"
-  checksum: efe7484e1f6c3443c083f052efb7688b461a9f43899b1891c10b1faf92e4932d686265d10c3e02b8c8fe0c8c371774e6a55ff6eec5e79525390a1ddeee7eb41b
   languageName: node
   linkType: hard
 
@@ -2867,13 +2858,6 @@ __metadata:
   version: 1.0.2
   resolution: "balanced-match@npm:1.0.2"
   checksum: 9706c088a283058a8a99e0bf91b0a2f75497f185980d9ffa8b304de1d9e58ebda7c72c07ebf01dadedaac5b2907b2c6f566f660d62bd336c3468e960403b9d65
-  languageName: node
-  linkType: hard
-
-"bluebird@npm:^3.7.2":
-  version: 3.7.2
-  resolution: "bluebird@npm:3.7.2"
-  checksum: 869417503c722e7dc54ca46715f70e15f4d9c602a423a02c825570862d12935be59ed9c7ba34a9b31f186c017c23cac6b54e35446f8353059c101da73eac22ef
   languageName: node
   linkType: hard
 

@@ -1,4 +1,3 @@
-import bluebird from 'bluebird'
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
 import { FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
@@ -221,8 +220,8 @@ export default class SlackAPI {
       : []
 
     await Promise.all([
-      bluebird.map(publicChannels, this.loadPublicChannel),
-      bluebird.map(privateMessages, this.loadPrivateMessage),
+      ...publicChannels.map(this.loadPublicChannel),
+      ...privateMessages.map(this.loadPrivateMessage),
     ])
     response.channels = uniqBy([...privateMessages, ...publicChannels], 'id')
 
@@ -275,10 +274,10 @@ export default class SlackAPI {
       const { blocks, text, user: messageUser } = message
       const richElements = extractRichElements(blocks)
 
-      await bluebird.map(richElements, async element => {
+      await Promise.all(richElements.map(async element => {
         if (element.type !== 'user') return
         element.profile = (await this.getParticipantProfile(element.user_id))?.profile
-      })
+      }))
 
       if (typeof text === 'string') message.text = await this.loadMentions(text)
 
@@ -295,7 +294,7 @@ export default class SlackAPI {
       if (!participantsMap[p.id]) participantsMap[p.id] = p
     }
 
-    await bluebird.map(messages, loadMessage)
+    await Promise.all(messages.map(loadMessage))
 
     response.messages = uniqBy(messages, 'ts')
 

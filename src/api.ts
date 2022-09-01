@@ -1,6 +1,5 @@
 import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
-import bluebird from 'bluebird'
 import { mapCurrentUser, mapThreads, mapMessage, mapParticipant } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
 import { textsTime } from './util'
@@ -127,7 +126,7 @@ export default class Slack implements PlatformAPI {
     // The slice is to get the first 5 users that are members of the channel / group.
     // Those first 5 members should be the "more active" ones, will need to double check
     // reading Slack's API code.
-    const users = await bluebird.map(filteredIds.slice(0, 5), this.api.getParticipantProfile)
+    const users = await Promise.all(filteredIds.slice(0, 5).map(this.api.getParticipantProfile))
     const participants = users.map(mapParticipant)
 
     this.api.onEvent([{
