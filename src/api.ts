@@ -1,6 +1,6 @@
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo } from '@textshq/platform-sdk'
+import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
-import { mapCurrentUser, mapThreads, mapMessage, mapParticipant } from './mappers'
+import { mapCurrentUser, mapThreads, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
 import { textsTime } from './util'
 
@@ -215,6 +215,12 @@ export default class Slack implements PlatformAPI {
         // await this.api.setUserPresence(type)
         break
     }
+  }
+
+  getLinkPreview = async (link: string): Promise<MessageLink> => {
+    const res = await this.api.unfurlLink(link)
+    const att = res.attachments[link]
+    if (att) return mapLinkAttachment(att)
   }
 
   sendReadReceipt = (threadID: string, messageID: string) =>

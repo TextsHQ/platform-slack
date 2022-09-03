@@ -181,7 +181,7 @@ const ACTION_MESSAGE_TYPES = new Set([
   'joiner_notification_for_inviter',
 ])
 
-const mapLinkAttachment = ({
+export const mapLinkAttachment = ({
   title,
   title_link,
   text,

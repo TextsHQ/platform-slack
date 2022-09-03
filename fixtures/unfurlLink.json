@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "attachments": {
+    "https://texts.com/": {
+      "from_url": "https://texts.com/",
+      "title": "Texts",
+      "title_link": "https://texts.com/",
+      "text": "The ultimate messaging app",
+      "image_url": "https://texts.com/ogcover.png",
+      "image_width": 500,
+      "image_height": 250,
+      "image_bytes": 139283,
+      "fallback": "Texts",
+      "service_icon": "https://texts.com/favicon.ico",
+      "service_name": "texts.com",
+      "id": 1,
+      "original_url": "https://texts.com/"
+    }
+  },
+  "response_metadata": {
+    "scopes": [
+      "identify",
+      "read",
+      "post",
+      "client",
+      "apps",
+      "admin"
+    ],
+    "acceptedScopes": [
+      "read"
+    ]
+  }
+}

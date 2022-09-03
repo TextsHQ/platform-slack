@@ -461,6 +461,9 @@ export default class SlackAPI {
     await this.webClient.conversations.mark({ channel: threadID, ts: messageID })
   }
 
+  unfurlLink = (link: string) =>
+    this.webClient.apiCall('chat.unfurlLink', { url: link })
+
   addReaction = async (channel: string, timestamp: string, reactionKey: string) => {
     const name = emojiToShortcode(reactionKey) || reactionKey
     await this.webClient.reactions.add({ name, channel, timestamp })
