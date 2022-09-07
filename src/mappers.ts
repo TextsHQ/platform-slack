@@ -238,7 +238,6 @@ export const mapMessage = (
   let textAttributes: TextAttributes
 
   if (slackMessage.blocks) {
-    // @ts-expect-error
     const data = mapBlocks(slackMessage.blocks, customEmojis)
     mappedText = data.text
     textAttributes = data.textAttributes

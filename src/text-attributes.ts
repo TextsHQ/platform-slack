@@ -1,6 +1,7 @@
 // node-emoji doesn't support skin tone, see https://github.com/omnidan/node-emoji/issues/57
 import NodeEmoji from 'node-emoji'
 import { texts, TextAttributes, TextEntity } from '@textshq/platform-sdk'
+import { sendWhileNotReadyError } from '@slack/rtm-api/dist/errors'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -290,6 +291,10 @@ type ImageBlock = {
   fallback: string
 }
 
+type VideoBlock = {
+  type: 'video'
+} & any
+
 type ChannelBlock = {
   type: 'channel'
   channel_id?: string
@@ -312,6 +317,7 @@ export type Block =
   MrkdwnElement |
   UserElement |
   ImageBlock |
+  VideoBlock |
   ChannelBlock |
   ContextBlock
 
@@ -502,7 +508,29 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): {
       output += text
       break
     }
+    case 'video': {
+      const text = block.title?.text
+      const from = Array.from(output).length
+
+      entities.push({
+        from,
+        to: from + Array.from(text).length,
+        replaceWithMedia: {
+          mediaType: 'img',
+          srcURL: block.thumbnail_url,
+        },
+      })
+      output += text
+      break
+    }
+    case 'plain_text':
+      output += block.text
+      break
+    case 'divider':
+      output += '\n---\n'
+      break
     default:
+      texts.Sentry.captureMessage('slack unrecognized block: ' + block.type)
       texts.log('Unrecognized block:', block)
   }
 
