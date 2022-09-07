@@ -1,6 +1,6 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
@@ -236,11 +236,13 @@ export const mapMessage = (
 
   let mappedText: string
   let textAttributes: TextAttributes
+  const buttons: MessageButton[] = []
 
   if (slackMessage.blocks) {
     const data = mapBlocks(slackMessage.blocks, customEmojis)
     mappedText = data.text
     textAttributes = data.textAttributes
+    buttons.push(...data.buttons)
   } else if (text) {
     const data1 = mapTextAttributes(slackMessage.text, false, customEmojis)
     const data2 = mapTextAttributes(attachmentsText, true, customEmojis)
@@ -253,7 +255,6 @@ export const mapMessage = (
     }
   }
 
-  const buttons = []
   if (slackMessage.reply_count && !disableReplyButton) {
     buttons.push({
       label: `Show ${slackMessage.reply_count} ${slackMessage.reply_count === 1 ? 'reply' : 'replies'}`,

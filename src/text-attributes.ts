@@ -1,7 +1,6 @@
 // node-emoji doesn't support skin tone, see https://github.com/omnidan/node-emoji/issues/57
 import NodeEmoji from 'node-emoji'
-import { texts, TextAttributes, TextEntity } from '@textshq/platform-sdk'
-import { sendWhileNotReadyError } from '@slack/rtm-api/dist/errors'
+import { texts, TextAttributes, TextEntity, Message, MessageButton } from '@textshq/platform-sdk'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -321,66 +320,67 @@ export type Block =
   ChannelBlock |
   ContextBlock
 
-const mapBlock = (block: Block, customEmojis: Record<string, string>): {
-  text: string
-  textAttributes: TextAttributes
-} => {
+const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> => {
   let output = ''
   const entities: TextEntity[] = []
+  const buttons: MessageButton[] = []
 
   switch (block.type) {
     case 'rich_text':
     case 'rich_text_section': {
-      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
-      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      const mapped = mapBlocks(block.elements, customEmojis)
+      const nestedEntities = offsetEntities(mapped.textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
-      output += text
+      buttons.push(...mapped.buttons)
+      output += mapped.text
       break
     }
     case 'rich_text_list': {
       let i = 1
       for (const element of block.elements) {
         const listStyle = block.style === 'ordered' ? `${i}. ` : '• '
-        const { text, textAttributes } = mapBlock(element, customEmojis)
+        const mapped = mapBlock(element, customEmojis)
         const cursor = Array.from(output).length + listStyle.length
-        const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+        const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
         entities.push(...nestedEntities)
-
-        output += listStyle + text + '\n'
+        buttons.push(...mapped.buttons)
+        output += listStyle + mapped.text + '\n'
         i++
       }
       break
     }
     case 'rich_text_quote': {
-      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
+      const mapped = mapBlocks(block.elements, customEmojis)
       const cursor = Array.from(output).length
-      const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+      const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
       entities.push(...nestedEntities)
-      if (text) {
+      buttons.push(...mapped.buttons)
+      if (mapped.text) {
         // Add a quote entity.
         entities.push({
           from: cursor,
-          to: Array.from(text).length,
+          to: Array.from(mapped.text).length,
           quote: true,
         })
       }
-      output += text
+      output += mapped.text
       break
     }
     case 'rich_text_preformatted': {
-      const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
+      const mapped = mapBlocks(block.elements, customEmojis)
       const cursor = Array.from(output).length
-      const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+      const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
       entities.push(...nestedEntities)
-      if (text) {
+      buttons.push(...mapped.buttons)
+      if (mapped.text) {
         // Add a pre entity.
         entities.push({
           from: cursor,
-          to: Array.from(text).length,
+          to: Array.from(mapped.text).length,
           pre: true,
         })
       }
-      output += text
+      output += mapped.text
       break
     }
     case 'text': {
@@ -448,19 +448,20 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): {
     case 'section': {
       const fields = block.fields ?? [block.text]
       for (const field of fields) {
-        const { text, textAttributes } = mapBlock(field, customEmojis)
+        const mapped = mapBlock(field, customEmojis)
         const cursor = Array.from(output).length
-        const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+        const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
         entities.push(...nestedEntities)
-        output += text + '\n'
+        buttons.push(...mapped.buttons)
+        output += mapped.text + '\n'
       }
       break
     }
     case 'mrkdwn': {
-      const { text, textAttributes } = mapTextAttributes(block.text, false, customEmojis)
-      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      const mapped = mapTextAttributes(block.text, false, customEmojis)
+      const nestedEntities = offsetEntities(mapped.textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
-      output += text
+      output += mapped.text
       break
     }
     case 'user': {
@@ -479,18 +480,19 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): {
     }
     case 'context':
       {
-        const { text, textAttributes } = mapBlocks(block.elements, customEmojis)
+        const mapped = mapBlocks(block.elements, customEmojis)
         const cursor = Array.from(output).length
-        const nestedEntities = offsetEntities(textAttributes.entities, cursor)
+        const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
         entities.push(...nestedEntities)
-        if (text) {
+        buttons.push(...mapped.buttons)
+        if (mapped.text) {
           entities.push({
             from: cursor,
-            to: Array.from(text).length,
+            to: Array.from(mapped.text).length,
             pre: true,
           })
         }
-        output += text
+        output += mapped.text
       }
       break
     case 'image': {
@@ -529,9 +531,21 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): {
     case 'divider':
       output += '\n---\n'
       break
+    case 'actions':
+      block.elements.forEach(element => {
+        if (element.type === 'button' && element.text) {
+          buttons.push({
+            label: element.text.text,
+            linkURL: 'texts://fill-textarea?text=Unsupported',
+          })
+        } else {
+          console.log('slack: unknown element type', element.type)
+        }
+      })
+      break
     default:
       texts.Sentry.captureMessage('slack unrecognized block: ' + block.type)
-      texts.log('Unrecognized block:', block)
+      texts.log('slack: unrecognized block', block)
   }
 
   return {
@@ -540,22 +554,22 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): {
       entities,
       heDecode: true,
     },
+    buttons,
   }
 }
 
-export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>): {
-  text: string
-  textAttributes: TextAttributes
-} => {
+export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> => {
   let output = ''
-  const entities = []
+  const entities: TextEntity[] = []
+  const buttons: MessageButton[] = []
 
   for (const block of blocks) {
     if (block) {
-      const { text, textAttributes } = mapBlock(block, customEmojis)
-      const nestedEntities = offsetEntities(textAttributes.entities, Array.from(output).length)
+      const mapped = mapBlock(block, customEmojis)
+      const nestedEntities = offsetEntities(mapped.textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
-      output += text
+      buttons.push(...mapped.buttons)
+      output += mapped.text
     }
   }
 
@@ -565,5 +579,6 @@ export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>)
       entities,
       heDecode: true,
     },
+    buttons,
   }
 }
