@@ -138,6 +138,7 @@ const info: PlatformInfo = {
       audio: 1 * 1024 * 1024 * 1024,
       files: 1 * 1024 * 1024 * 1024,
     },
+    gifMimeType: 'image/gif',
   },
   notifications: {
     android: {
