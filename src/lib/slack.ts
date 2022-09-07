@@ -2,6 +2,7 @@ import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, Ser
 import { FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import { uniqBy, memoize } from 'lodash'
+import type { File } from '@slack/web-api/dist/response/FilesUploadResponse'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
@@ -380,28 +381,21 @@ export default class SlackAPI {
   sendMessage = async (channel: string, thread_ts: string, content: MessageContent) => {
     const { text } = content
 
-    let buffer: Buffer
-    let attachments: any[]
-    let file: FilesUploadResponse
-
-    if (content.mimeType) {
-      buffer = content.fileBuffer || await fs.readFile(content.filePath)
-
-      if (buffer) {
-        file = await this.webClient.files.upload({
-          file: buffer,
-          channels: channel,
-          thread_ts,
-          title: content.fileName,
-          filename: content.fileName,
-        }) || {} as FilesUploadResponse
-      }
-
-      attachments = [file.file] || []
+    let attachments: File[]
+    if (content.fileBuffer || content.filePath) {
+      const buffer = content.fileBuffer || await fs.readFile(content.filePath)
+      const file = await this.webClient.files.upload({
+        file: buffer,
+        channels: channel,
+        thread_ts,
+        title: content.fileName,
+        filename: content.fileName,
+      }) || {} as FilesUploadResponse
+      attachments = [file.file]
     }
 
     try {
-      const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments })
+      const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments: attachments as any[] })
       return res.message
     } catch (error) {
       // todo: hack, improve
