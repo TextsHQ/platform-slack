@@ -27,6 +27,7 @@ const info: PlatformInfo = {
       window.__loginReturnValue = {}
 
       window.__changeListener = window.__changeListener || function() {
+    window.__loginReturnValue = window.__loginReturnValue || {}
         const url = window.location.href
         const form = document.getElementById('signin_form')
 
@@ -99,15 +100,11 @@ const info: PlatformInfo = {
             })
             const container = document.documentElement || document.body;
             observer.observe(container, { childList: true, subtree: true })
-          }
-      }
-
-      window.__addNavigationListener()
-      window.__changeListener()
-      window.__addEventsListeners()
-    `,
-    runJSOnLaunch: `
-      window.__loginReturnValue = {}
+        }
+    }
+    window.__addNavigationListener()
+    window.__changeListener()
+    window.__addEventsListeners()
     `,
   },
   reactions: {
