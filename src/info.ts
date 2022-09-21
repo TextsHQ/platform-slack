@@ -80,8 +80,6 @@ const info: PlatformInfo = {
     window.__addEventsListeners = window.__addEventsListeners || function () {
         const url = window.location.href
 
-        console.log(url)
-
         if (url.includes('signin.findWorkspaces')) {
             const observer = new MutationObserver((mutation) => {
                 const elements = document.querySelectorAll('.p-workspaces_list__link')
@@ -90,7 +88,6 @@ const info: PlatformInfo = {
                     const { href } = element
 
                     if (href.includes('login')) {
-                        console.log(href)
                         element.onclick = () => window.__handleButtonClick(href)
                         element.removeAttribute('href')
                     }
