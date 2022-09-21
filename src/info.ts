@@ -22,17 +22,14 @@ const info: PlatformInfo = {
     loginURL: 'https://slack.com/signin#/signin',
     authCookieName: 'd',
     runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
-    userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0',
+    userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
     runJSOnNavigate: `
-      window.__loginReturnValue = {}
-
-      window.__changeListener = window.__changeListener || function() {
+      window.__loginReturnValue = window.__loginReturnValue || {}
+      window.__changeListener = window.__changeListener || function () {
         const url = window.location.href
         const form = document.getElementById('signin_form')
-
         if (form) {
           const submitButton = document.getElementById('signin_btn')
-
           submitButton.type = 'reset'
           submitButton.onclick = async () => {
             submitButton.classList.toggle('c-button--disabled')
@@ -45,7 +42,7 @@ const info: PlatformInfo = {
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                 "cache-control": "max-age=0",
                 "content-type": "application/x-www-form-urlencoded",
-                "sec-ch-ua": '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"',
+                "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="102"',
                 "sec-ch-ua-mobile": "?0",
                 "sec-ch-ua-platform": '"macOS"',
                 "sec-fetch-dest": "document",
@@ -68,47 +65,42 @@ const info: PlatformInfo = {
       }
 
       window.__addedListener = false
-      window.__addNavigationListener = window.__addNavigationListener || function() {
+      window.__addNavigationListener = window.__addNavigationListener || function () {
         if (window.__addedListener) return
         window.addEventListener('hashchange', window.__changeListener)
         window.__addedListener = true
       }
 
       window.__handleButtonClick = window.__handleButtonClick || function (href) {
-        window.__handleButtonClick = (x) => {}
+        window.__handleButtonClick = (x) => { }
         window.__loginReturnValue.magicLink = href
         setTimeout(() => window.close(), 1000)
       }
 
       window.__addEventsListeners = window.__addEventsListeners || function () {
-          const url = window.location.href
+        const url = window.location.href
 
-          if (url.includes('signin')) {
-            const observer = new MutationObserver((mutation) => {
-                const elements = document.querySelectorAll('.p-workspaces_list__link')
-                elements.forEach((element) => {
-                element.target = ''
-                const { href } = element
+        if (url.includes('signin.findWorkspaces')) {
+          const observer = new MutationObserver((mutation) => {
+            const elements = document.querySelectorAll('.p-workspaces_list__link')
+            elements.forEach((element) => {
+              element.target = ''
+              const { href } = element
 
-                if (href.includes('login')) {
-                  element.onclick = () => window.__handleButtonClick(href)
-                  element.removeAttribute('href')
-                }
-                // TODO: Implement for 2-fa
-              })
+              if (href.includes('login')) {
+                element.onclick = () => window.__handleButtonClick(href)
+                element.removeAttribute('href')
+              }
+              // TODO: Implement for 2-fa
             })
-            const container = document.documentElement || document.body;
-            observer.observe(container, { childList: true, subtree: true })
-          }
+          })
+          const container = document.documentElement || document.body
+          observer.observe(container, { childList: true, subtree: true })
+        }
       }
-
       window.__addNavigationListener()
       window.__changeListener()
-      window.__addEventsListeners()
-    `,
-    runJSOnLaunch: `
-      window.__loginReturnValue = {}
-    `,
+      window.__addEventsListeners()`,
   },
   reactions: {
     supported: {},
