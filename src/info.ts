@@ -24,83 +24,83 @@ const info: PlatformInfo = {
     runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
     userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
     runJSOnNavigate: `
-    window.__loginReturnValue = window.__loginReturnValue || {}
-    window.__changeListener = window.__changeListener || function () {
-      const url = window.location.href
-      const form = document.getElementById('signin_form')
-      if (form) {
-        const submitButton = document.getElementById('signin_btn')
-        submitButton.type = 'reset'
-        submitButton.onclick = async () => {
-          submitButton.classList.toggle('c-button--disabled')
-          const res = await fetch('/', {
-            "method": "POST",
-            "mode": "cors",
-            "credentials": "include",
-            "referrerPolicy": "no-referrer",
-            headers: {
-              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-              "cache-control": "max-age=0",
-              "content-type": "application/x-www-form-urlencoded",
-              "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="102"',
-              "sec-ch-ua-mobile": "?0",
-              "sec-ch-ua-platform": '"macOS"',
-              "sec-fetch-dest": "document",
-              "sec-fetch-mode": "navigate",
-              "sec-fetch-site": "same-origin",
-              "sec-fetch-user": "?1",
-              "upgrade-insecure-requests": "1"
-            },
-            body: new URLSearchParams(new FormData(form)).toString()
-          })
+      window.__loginReturnValue = window.__loginReturnValue || {}
+      window.__changeListener = window.__changeListener || function () {
+        const url = window.location.href
+        const form = document.getElementById('signin_form')
+        if (form) {
+          const submitButton = document.getElementById('signin_btn')
+          submitButton.type = 'reset'
+          submitButton.onclick = async () => {
+            submitButton.classList.toggle('c-button--disabled')
+            const res = await fetch('/', {
+              "method": "POST",
+              "mode": "cors",
+              "credentials": "include",
+              "referrerPolicy": "no-referrer",
+              headers: {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                "cache-control": "max-age=0",
+                "content-type": "application/x-www-form-urlencoded",
+                "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="102"',
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": '"macOS"',
+                "sec-fetch-dest": "document",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-site": "same-origin",
+                "sec-fetch-user": "?1",
+                "upgrade-insecure-requests": "1"
+              },
+              body: new URLSearchParams(new FormData(form)).toString()
+            })
 
-          if (res.status === 302) {
-            window.__loginReturnValue.method = 'password'
-            setTimeout(() => window.close(), 1000)
+            if (res.status === 302) {
+              window.__loginReturnValue.method = 'password'
+              setTimeout(() => window.close(), 1000)
+            }
+
+            submitButton.classList.toggle('c-button--disabled')
           }
-
-          submitButton.classList.toggle('c-button--disabled')
         }
       }
-    }
 
-    window.__addedListener = false
-    window.__addNavigationListener = window.__addNavigationListener || function () {
-      if (window.__addedListener) return
-      window.addEventListener('hashchange', window.__changeListener)
-      window.__addedListener = true
-    }
-
-    window.__handleButtonClick = window.__handleButtonClick || function (href) {
-      window.__handleButtonClick = (x) => { }
-      window.__loginReturnValue.magicLink = href
-      setTimeout(() => window.close(), 1000)
-    }
-
-    window.__addEventsListeners = window.__addEventsListeners || function () {
-      const url = window.location.href
-
-      if (url.includes('signin.findWorkspaces')) {
-        const observer = new MutationObserver((mutation) => {
-          const elements = document.querySelectorAll('.p-workspaces_list__link')
-          elements.forEach((element) => {
-            element.target = ''
-            const { href } = element
-
-            if (href.includes('login')) {
-              element.onclick = () => window.__handleButtonClick(href)
-              element.removeAttribute('href')
-            }
-            // TODO: Implement for 2-fa
-          })
-        })
-        const container = document.documentElement || document.body
-        observer.observe(container, { childList: true, subtree: true })
+      window.__addedListener = false
+      window.__addNavigationListener = window.__addNavigationListener || function () {
+        if (window.__addedListener) return
+        window.addEventListener('hashchange', window.__changeListener)
+        window.__addedListener = true
       }
-    }
-    window.__addNavigationListener()
-    window.__changeListener()
-    window.__addEventsListeners()`,
+
+      window.__handleButtonClick = window.__handleButtonClick || function (href) {
+        window.__handleButtonClick = (x) => { }
+        window.__loginReturnValue.magicLink = href
+        setTimeout(() => window.close(), 1000)
+      }
+
+      window.__addEventsListeners = window.__addEventsListeners || function () {
+        const url = window.location.href
+
+        if (url.includes('signin.findWorkspaces')) {
+          const observer = new MutationObserver((mutation) => {
+            const elements = document.querySelectorAll('.p-workspaces_list__link')
+            elements.forEach((element) => {
+              element.target = ''
+              const { href } = element
+
+              if (href.includes('login')) {
+                element.onclick = () => window.__handleButtonClick(href)
+                element.removeAttribute('href')
+              }
+              // TODO: Implement for 2-fa
+            })
+          })
+          const container = document.documentElement || document.body
+          observer.observe(container, { childList: true, subtree: true })
+        }
+      }
+      window.__addNavigationListener()
+      window.__changeListener()
+      window.__addEventsListeners()`,
   },
   reactions: {
     supported: {},
