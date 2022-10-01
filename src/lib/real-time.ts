@@ -246,8 +246,7 @@ export default class SlackRealTime {
   async dispose() {
     // @see https://github.com/slackapi/node-slack-sdk/issues/842#issuecomment-606009261
     try {
-      await this.rtm.disconnect()
-      await this.rtm.disconnect()
+      if (this.rtm.connected) await this.rtm.disconnect()
     } catch (message) {
       return console.error(message)
     }
