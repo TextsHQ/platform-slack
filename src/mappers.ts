@@ -341,13 +341,15 @@ const mapThread = (
 
   let timestamp = lastRead ? new Date(Number(lastRead) * 1000) : created ? new Date(channel.created) : messages[0]?.timestamp
 
+  const timestamp : Date = messages[0]?.timestamp || channel.time
+
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
     type,
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
-    timestamp,
+    timestamp: timestamp?.valueOf() ? undefined : timestamp,
     isUnread: channel.info?.channel?.unread_count !== 0,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
