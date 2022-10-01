@@ -120,28 +120,27 @@ export default class SlackAPI {
   loadPublicChannel = async (channel: CustomListChannel): Promise<CustomListChannel> => {
     const timer = textsTime(`loadPublicChannel Id:${channel.id}`)
     const threadInfo = await this.webClient.conversations.info({ channel: channel.id })
-    const updatedChannel : CustomListChannel = {
+    const updatedChannel: CustomListChannel = {
       ...channel,
-      info: threadInfo
+      info: threadInfo,
     }
     timer.timeEnd()
     return updatedChannel
   }
 
-  loadPrivateMessage = async (channel: CustomListChannel): Promise<CustomListChannel> =>  {
+  loadPrivateMessage = async (channel: CustomListChannel): Promise<CustomListChannel> => {
     const timer = textsTime(`loadPrivateMessage Id:${channel.id}`)
     const { id, user: userId } = channel
 
     const threadInfo = await
-      this.webClient.conversations.info({ channel: id })
+    this.webClient.conversations.info({ channel: id })
 
     timer.timeEnd()
-    const updatedChannel : CustomListChannel = {
+    const updatedChannel: CustomListChannel = {
       ...channel,
-      info: threadInfo
+      info: threadInfo,
     }
     return updatedChannel
-
   }
 
   getThreadsNonPaginated = async (threadTypes: ThreadType[] = []) => {
@@ -156,7 +155,7 @@ export default class SlackAPI {
     return allThreads
   }
 
-  getThreads = async (cursor = undefined, threadTypes: ThreadType[] = [], limit = 100) : Promise<ConversationsListResponse> => {
+  getThreads = async (cursor = undefined, threadTypes: ThreadType[] = [], limit = 100): Promise<ConversationsListResponse> => {
     const currentUser = await this.getCurrentUser()
     let response: ConversationsListResponse
     // This is done this way because Slack's API doesn't support all requests for guests
@@ -184,7 +183,6 @@ export default class SlackAPI {
           this.webClient.conversations.list(),
         ])
 
-
         response.channels = [...response.channels, ...(channelsList as any).channels, ...(conversationsList as any).channels]
         response.response_metadata = channelsList.response_metadata || conversationsList.response_metadata || response.response_metadata || {}
       }
@@ -204,11 +202,11 @@ export default class SlackAPI {
     }
 
     const publicChannels = threadTypes.includes('channel')
-    ? response.channels.filter(c => c.is_channel && c.is_member)
-    : []
+      ? response.channels.filter(c => c.is_channel && c.is_member)
+      : []
 
     const privateMessages = threadTypes.includes('dm')
-      ? response.channels.filter(c => c.is_im ||c.is_mpim )
+      ? response.channels.filter(c => c.is_im || c.is_mpim)
       : []
 
     const updated = await Promise.all([
