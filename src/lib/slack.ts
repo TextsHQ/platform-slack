@@ -1,5 +1,5 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
-import { FilesUploadResponse, WebClient } from '@slack/web-api'
+import { ConversationsListResponse, FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import { uniqBy, memoize } from 'lodash'
 import type { File } from '@slack/web-api/dist/response/FilesUploadResponse'
@@ -11,6 +11,7 @@ import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
 import { textsTime } from '../util'
 import type { ThreadType } from '../api'
+import type { CustomListChannel } from '../types'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -116,46 +117,35 @@ export default class SlackAPI {
     return this.currentUser
   }
 
-  loadPublicChannel = async (channel: any) => {
+  loadPublicChannel = async (channel: CustomListChannel): Promise<CustomListChannel> => {
     const timer = textsTime(`loadPublicChannel Id:${channel.id}`)
-    const { id } = channel
-    const threadInfo = await this.webClient.conversations.info({ channel: id })
-
-    const { channel: channelInfo } = threadInfo as any || {}
-    if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo?.latest?.text)
-    // As we don't have the latest activity, we can use different fields to get the thread timestamp
-    channel.timestamp = new Date(Number(channelInfo?.last_read) * 1000) || new Date(channelInfo?.created) || undefined
-    channel.unread = channelInfo?.unread_count || undefined
-    channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
-    channel.participants = []
+    const threadInfo = await this.webClient.conversations.info({ channel: channel.id })
+    const updatedChannel : CustomListChannel = {
+      ...channel,
+      info: threadInfo
+    }
     timer.timeEnd()
+    return updatedChannel
   }
 
-  loadPrivateMessage = async (thread: any) => {
-    const timer = textsTime(`loadPrivateMessage Id:${thread.id}`)
-    const { id, user: userId } = thread
+  loadPrivateMessage = async (channel: CustomListChannel): Promise<CustomListChannel> =>  {
+    const timer = textsTime(`loadPrivateMessage Id:${channel.id}`)
+    const { id, user: userId } = channel
 
-    const [user, threadInfo] = await Promise.all([
-      this.getParticipantProfile(userId),
-      this.webClient.conversations.info({ channel: id }),
-    ])
+    const threadInfo = await
+      this.webClient.conversations.info({ channel: id })
 
-    const { channel } = threadInfo as any || {}
-    if (channel?.latest?.text) channel.latest.text = await this.loadMentions(channel?.latest?.text)
-
-    thread.timestamp = new Date(Number(channel?.last_read) * 1000) || new Date(channel?.created) || undefined
-    thread.unread = channel?.unread_count || undefined
-    // This filter is because sometimes the latest message hasn't timestamp and can be a response from a thread
-    // so this way we filter only messages that aren't thread responses
-    thread.messages = [channel?.latest].filter(x => x?.ts && !x?.thread_ts) || []
-    thread.participants = thread?.is_im ? [user] : []
-    // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
-    thread.name = thread?.is_mpim ? thread?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
     timer.timeEnd()
+    const updatedChannel : CustomListChannel = {
+      ...channel,
+      info: threadInfo
+    }
+    return updatedChannel
+
   }
 
   getThreadsNonPaginated = async (threadTypes: ThreadType[] = []) => {
-    const allThreads = []
+    const allThreads: CustomListChannel[] = []
     // https://api.slack.com/docs/pagination#cursors
     let cursor: string
     do {
@@ -168,7 +158,7 @@ export default class SlackAPI {
 
   getThreads = async (cursor = undefined, threadTypes: ThreadType[] = [], limit = 100) : Promise<ConversationsListResponse> => {
     const currentUser = await this.getCurrentUser()
-    let response: any = { channels: [] }
+    let response: ConversationsListResponse
     // This is done this way because Slack's API doesn't support all requests for guests
     // for those cases we'll use some deprecated endpoints (such as im, mpim and channels)
     // but this will allow us to retrieve all the data for guest users.
@@ -194,6 +184,7 @@ export default class SlackAPI {
           this.webClient.conversations.list(),
         ])
 
+
         response.channels = [...response.channels, ...(channelsList as any).channels, ...(conversationsList as any).channels]
         response.response_metadata = channelsList.response_metadata || conversationsList.response_metadata || response.response_metadata || {}
       }
@@ -212,21 +203,21 @@ export default class SlackAPI {
       })
     }
 
-    const privateMessages = threadTypes.includes('dm')
-      ? (response.channels as { is_im: boolean, is_mpim?: boolean }[]).filter(({ is_im, is_mpim }) => is_im || is_mpim)
-      : []
-
     const publicChannels = threadTypes.includes('channel')
-      ? (response.channels as { is_channel: boolean, is_member: boolean }[]).filter(({ is_channel, is_member }) => is_channel && is_member)
+    ? response.channels.filter(c => c.is_channel && c.is_member)
+    : []
+
+    const privateMessages = threadTypes.includes('dm')
+      ? response.channels.filter(c => c.is_im ||c.is_mpim )
       : []
 
-    await Promise.all([
+    const updated = await Promise.all([
       ...publicChannels.map(this.loadPublicChannel),
       ...privateMessages.map(this.loadPrivateMessage),
     ])
-    response.channels = uniqBy([...privateMessages, ...publicChannels], 'id')
 
-    return response
+    const channels = uniqBy([updated[0], updated[1]], 'id')
+    return { ...response, channels }
   }
 
   markAsUnread = async (threadID: string, messageID: string) => {

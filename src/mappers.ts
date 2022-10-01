@@ -1,9 +1,10 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, texts, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
+import type { CustomListChannel } from './types'
 
 const getAttachmentType = (mimeType: string): MessageAttachmentType => {
   if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
@@ -305,15 +306,13 @@ export const mapProfile = (user: any): Participant => ({
 })
 
 const mapThread = (
-  channel: any,
+  channel: CustomListChannel,
   accountID: string,
   currentUserId: string,
   customEmojis: Record<string, string>,
   mutedChannels: Set<string> = new Set(),
   teamName = '',
 ): Thread => {
-  const messages = (channel.messages as any[])?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
-  const participants = (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
 
   const type = ((): ThreadType => {
     if (channel.is_group || channel.is_mpim) return 'group'
@@ -321,12 +320,26 @@ const mapThread = (
     return 'single'
   })()
 
+  const channelInfo = channel.info?.channel
+  const channelMessages = [channelInfo?.latest].filter(x => x?.ts) || []
+
+  const messages = [] // (channelMessages)?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
+  const participants = [] // (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
+
+  // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
+  const channelName = channel?.is_mpim ? channel?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
+
   const title = ((): string => {
-    if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
-    return channel.name || participants[0]?.username || channel.user
+    if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channelName}`
+    return channelName || participants[0]?.username || channel
   })()
 
   const isMuted = mutedChannels.has(channel.id)
+
+  const lastRead = channelInfo?.last_read
+  const created = channelInfo?.created
+
+  let timestamp = lastRead ? new Date(Number(lastRead) * 1000) : created ? new Date(channel.created) : messages[0]?.timestamp
 
   return {
     _original: JSON.stringify(channel),
@@ -334,8 +347,8 @@ const mapThread = (
     type,
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
-    timestamp: messages[0]?.timestamp || channel.timestamp,
-    isUnread: channel.unread || false,
+    timestamp,
+    isUnread: channel.info?.channel?.unread_count !== 0,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
     participants: { items: participants, hasMore: false },
@@ -343,7 +356,7 @@ const mapThread = (
 }
 
 export const mapThreads = (
-  slackChannels: any[],
+  slackChannels: CustomListChannel[],
   accountID: string,
   currentUserId: string,
   customEmojis: Record<string, string>,

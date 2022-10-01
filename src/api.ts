@@ -6,6 +6,7 @@ import { textsTime } from './util'
 
 import SlackRealTime from './lib/real-time'
 import SlackAPI from './lib/slack'
+import type { CustomListChannel } from './types'
 
 export type ThreadType = 'channel' | 'dm'
 
@@ -145,7 +146,7 @@ export default class Slack implements PlatformAPI {
     const { team } = this.api.currentUser
 
     const mutedChannels = this.api.getMutedChannels()
-    const items = mapThreads(threads as any[], this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
+    const items = mapThreads(threads, this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
 
     timer.timeEnd()
 
