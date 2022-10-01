@@ -159,14 +159,14 @@ export default class SlackAPI {
     // https://api.slack.com/docs/pagination#cursors
     let cursor: string
     do {
-      const { channels, response_metadata } = await this.getThreads(cursor, threadTypes)
+      const { channels, response_metadata } = await this.getThreads(cursor, threadTypes, 1000)
       allThreads.push(...channels)
       cursor = response_metadata?.next_cursor
     } while (cursor)
     return allThreads
   }
 
-  getThreads = async (cursor = undefined, threadTypes: ThreadType[] = []) => {
+  getThreads = async (cursor = undefined, threadTypes: ThreadType[] = [], limit = 100) : Promise<ConversationsListResponse> => {
     const currentUser = await this.getCurrentUser()
     let response: any = { channels: [] }
     // This is done this way because Slack's API doesn't support all requests for guests
@@ -206,7 +206,7 @@ export default class SlackAPI {
 
       response = await this.webClient.conversations.list({
         types,
-        limit: 100,
+        limit,
         cursor: cursor || undefined,
         exclude_archived: true,
       })
