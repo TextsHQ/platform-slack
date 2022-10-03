@@ -121,6 +121,7 @@ const info: PlatformInfo = {
     Attribute.SUBSCRIBE_TO_ONLINE_OFFLINE_ACTIVITY,
     Attribute.SUPPORTS_PUSH_NOTIFICATIONS,
     Attribute.CAN_FETCH_LINK_PREVIEW,
+    Attribute.NO_SUPPORT_GROUP_TITLE_CHANGE,
   ]),
   attachments: {
     maxSize: {
