@@ -1,3 +1,5 @@
+import type { User as SlackUser } from '@slack/web-api/dist/response/UsersInfoResponse'
+
 interface WebAPICallResult {
   ok: boolean
   error?: string
@@ -55,22 +57,20 @@ export interface CustomListChannel {
   topic?: Purpose
   unlinked?: number
   user?: string
-  info?: ConversationsInfoResponse
-}
-export interface Purpose {
-  creator?: string
-  last_set?: number
-  value?: string
+  channelInfo?: CustomInfoChannel
+  timestamp?: number
+
 }
 export interface ResponseMetadata {
   next_cursor?: string
 }
 
 interface InfoLatest {
+  thread_ts: string
   type: string
   user: string
   text: string
-  ts: number
+  ts: string
 }
 export declare type ConversationsInfoResponse = WebAPICallResult & {
   channel?: CustomInfoChannel
@@ -120,9 +120,9 @@ export interface CustomInfoChannel {
   unlinked?: number
   unread_count?: number
   latest?: InfoLatest
+  participants?: SlackUser[]
 }
-
-export interface Purpose {
+interface Purpose {
   creator?: string
   last_set?: number
   value?: string

@@ -6,12 +6,13 @@ import type { File } from '@slack/web-api/dist/response/FilesUploadResponse'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
+import type { User, UsersInfoResponse } from '@slack/web-api/dist/response/UsersInfoResponse'
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
 import { textsTime } from '../util'
 import type { ThreadType } from '../api'
-import type { CustomListChannel } from '../types'
+import type { CustomInfoChannel, CustomListChannel } from '../types'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -120,9 +121,11 @@ export default class SlackAPI {
   loadPublicChannel = async (channel: CustomListChannel): Promise<CustomListChannel> => {
     const timer = textsTime(`loadPublicChannel Id:${channel.id}`)
     const threadInfo = await this.webClient.conversations.info({ channel: channel.id })
+    const channelInfo = threadInfo.channel as CustomInfoChannel
+    if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo.latest.text)
     const updatedChannel: CustomListChannel = {
       ...channel,
-      info: threadInfo,
+      channelInfo: { ...channelInfo, participants: [] },
     }
     timer.timeEnd()
     return updatedChannel
@@ -132,14 +135,13 @@ export default class SlackAPI {
     const timer = textsTime(`loadPrivateMessage Id:${channel.id}`)
     const { id, user: userId } = channel
 
-    const threadInfo = await
-    this.webClient.conversations.info({ channel: id })
-
-    timer.timeEnd()
+    const threadInfo = await this.webClient.conversations.info({ channel: id })
+    const participants = threadInfo.channel.is_im ? [await this.getParticipantProfile(userId)] : []
     const updatedChannel: CustomListChannel = {
       ...channel,
-      info: threadInfo,
+      channelInfo: { ...threadInfo.channel, participants },
     }
+    timer.timeEnd()
     return updatedChannel
   }
 
@@ -214,7 +216,7 @@ export default class SlackAPI {
       ...privateMessages.map(this.loadPrivateMessage),
     ])
 
-    const channels = uniqBy([updated[0], updated[1]], 'id')
+    const channels = uniqBy(updated, 'id')
     return { ...response, channels }
   }
 
@@ -302,7 +304,7 @@ export default class SlackAPI {
     return response
   }
 
-  getParticipantProfile = async (userId: string) => {
+  getParticipantProfile = async (userId: string): Promise<User> => {
     const timer = textsTime(`getParticipantProfile Id:${userId}`)
     if (this.workspaceUsers[userId]) return this.workspaceUsers[userId]
     const user: any = await this.webClient.users.profile
@@ -311,7 +313,7 @@ export default class SlackAPI {
         // Usually this is when the user is from another team, but this returns the user information
         // instead of the full profile
         // @see https://api.slack.com/methods/users.info
-        const info = await this.webClient.users.info({ user: userId })
+        const info: UsersInfoResponse = await this.webClient.users.info({ user: userId })
         return info.user
       })
 

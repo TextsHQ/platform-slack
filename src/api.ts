@@ -6,7 +6,6 @@ import { textsTime } from './util'
 
 import SlackRealTime from './lib/real-time'
 import SlackAPI from './lib/slack'
-import type { CustomListChannel } from './types'
 
 export type ThreadType = 'channel' | 'dm'
 
@@ -141,8 +140,7 @@ export default class Slack implements PlatformAPI {
 
   getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
     const timer = textsTime('getThreads')
-
-    const threads = await this.api.getThreadsNonPaginated(this.threadTypes)
+    const threads = (await this.api.getThreadsNonPaginated(this.threadTypes))
     const { team } = this.api.currentUser
 
     const mutedChannels = this.api.getMutedChannels()
@@ -224,8 +222,9 @@ export default class Slack implements PlatformAPI {
     if (att) return mapLinkAttachment(att)
   }
 
-  sendReadReceipt = (threadID: string, messageID: string) =>
+  sendReadReceipt = (threadID: string, messageID: string) => {
     this.api.sendReadReceipt(threadID, messageID)
+  }
 
   deleteMessage = async (threadID: string, messageID: string): Promise<void> => {
     await this.api.deleteMessage(threadID, messageID)

@@ -165,7 +165,8 @@ const mapTweetAttachment = ({
   }
   if (image_url) {
     tweet.attachments = [
-      { id: image_url,
+      {
+        id: image_url,
         type: MessageAttachmentType.IMG,
         srcURL: image_url,
         size: {
@@ -313,44 +314,36 @@ const mapThread = (
   mutedChannels: Set<string> = new Set(),
   teamName = '',
 ): Thread => {
-
   const type = ((): ThreadType => {
     if (channel.is_group || channel.is_mpim) return 'group'
     if (channel.is_channel) return 'channel'
     return 'single'
   })()
 
-  const channelInfo = channel.info?.channel
-  const channelMessages = [channelInfo?.latest].filter(x => x?.ts) || []
+  const { channelInfo } = channel
+  const channelMessages = [channelInfo?.latest].filter(x => x?.ts && !x?.thread_ts) || [channelInfo?.latest].filter(x => x?.ts)
 
-  const messages = [] // (channelMessages)?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
-  const participants = [] // (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
+  const messages = (channelMessages).map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
+  const participants = channelInfo.participants?.map(mapParticipant).filter(Boolean)
 
   // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
   const channelName = channel?.is_mpim ? channel?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
-
   const title = ((): string => {
     if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channelName}`
-    return channelName || participants[0]?.username || channel
+    return channelName || participants[0]?.username || channel.id
   })()
 
   const isMuted = mutedChannels.has(channel.id)
 
-  const lastRead = channelInfo?.last_read
-  const created = channelInfo?.created
-
-  let timestamp = lastRead ? new Date(Number(lastRead) * 1000) : created ? new Date(channel.created) : messages[0]?.timestamp
-
-  const timestamp : Date = messages[0]?.timestamp || channel.time
-
+  const timestamp = messages[0]?.timestamp || (channelInfo.last_read && new Date(Number(channelInfo?.last_read) * 1000)) || (channelInfo.created && new Date(channelInfo?.created))
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
     type,
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
-    timestamp: timestamp?.valueOf() ? undefined : timestamp,
-    isUnread: channel.info?.channel?.unread_count !== 0,
+    timestamp,
+    isUnread: channelInfo?.unread_count !== 0,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
     participants: { items: participants, hasMore: false },
@@ -411,5 +404,7 @@ export function mapEmojiChangedEvent(event: any): ServerEvent[] {
           }],
         },
       ]
+    default:
+      break
   }
 }
