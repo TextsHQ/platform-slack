@@ -324,25 +324,25 @@ const mapThread = (
   const channelMessages = [channelInfo?.latest].filter(x => x?.ts && !x?.thread_ts) || [channelInfo?.latest].filter(x => x?.ts)
 
   const messages = (channelMessages).map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
-  const participants = channelInfo.participants?.map(mapParticipant).filter(Boolean)
+  const participants = channelInfo.participants?.map(mapParticipant).filter(Boolean) || []
 
   // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
   const channelName = channel?.is_mpim ? channel?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
   const title = ((): string => {
-    if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channelName}`
+    if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channelName || channel.name_normalized}`
     return channelName || participants[0]?.username || channel.id
   })()
 
   const isMuted = mutedChannels.has(channel.id)
 
-  const timestamp = messages[0]?.timestamp || (channelInfo.last_read && new Date(Number(channelInfo?.last_read) * 1000)) || (channelInfo.created && new Date(channelInfo?.created))
+  const timestamp =   messages[0]?.timestamp || (channelInfo?.last_read && new Date(Number(channelInfo?.last_read) * 1000)) || (channelInfo?.created && new Date(channelInfo?.created))
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
     type,
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
-    timestamp,
+    timestamp: timestamp.valueOf() ? timestamp : undefined,
     isUnread: channelInfo?.unread_count !== 0,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },

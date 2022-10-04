@@ -1,7 +1,7 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
 import { ConversationsListResponse, FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
-import { uniqBy, memoize } from 'lodash'
+import { uniqBy, memoize, map } from 'lodash'
 import type { File } from '@slack/web-api/dist/response/FilesUploadResponse'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
@@ -118,6 +118,13 @@ export default class SlackAPI {
     return this.currentUser
   }
 
+  loadAll = async (channels: CustomListChannel[], threadTypes: string | string[]) => {
+    const ch: Promise<CustomListChannel>[] = []
+    if (threadTypes.includes('channel')) ch.push(...channels.filter(c => c.is_channel && c.is_member).map(c => this.loadPublicChannel(c)))
+    if (threadTypes.includes('dm')) ch.push(...channels.filter(c => c.is_im || c.is_mpim).map(c => this.loadPrivateMessage(c)))
+    return Promise.all(ch)
+  }
+
   loadPublicChannel = async (channel: CustomListChannel): Promise<CustomListChannel> => {
     const timer = textsTime(`loadPublicChannel Id:${channel.id}`)
     const threadInfo = await this.webClient.conversations.info({ channel: channel.id })
@@ -203,21 +210,8 @@ export default class SlackAPI {
       })
     }
 
-    const publicChannels = threadTypes.includes('channel')
-      ? response.channels.filter(c => c.is_channel && c.is_member)
-      : []
-
-    const privateMessages = threadTypes.includes('dm')
-      ? response.channels.filter(c => c.is_im || c.is_mpim)
-      : []
-
-    const updated = await Promise.all([
-      ...publicChannels.map(this.loadPublicChannel),
-      ...privateMessages.map(this.loadPrivateMessage),
-    ])
-
-    const channels = uniqBy(updated, 'id')
-    return { ...response, channels }
+    const channels = await this.loadAll(response.channels, threadTypes)
+    return { ...response, channels: uniqBy(channels, 'id') }
   }
 
   markAsUnread = async (threadID: string, messageID: string) => {

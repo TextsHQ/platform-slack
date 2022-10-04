@@ -213,6 +213,8 @@ export default class Slack implements PlatformAPI {
       case ActivityType.OFFLINE:
         // await this.api.setUserPresence(type)
         break
+      default:
+        break
     }
   }
 
