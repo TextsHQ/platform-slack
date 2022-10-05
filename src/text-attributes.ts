@@ -320,6 +320,13 @@ export type Block =
   ChannelBlock |
   ContextBlock
 
+const mapStyle = (style): Partial<TextEntity> => ({
+  bold: style.bold,
+  italic: style.italic,
+  code: style.code,
+  strikethrough: style.strike,
+})
+
 const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> => {
   let output = ''
   const entities: TextEntity[] = []
@@ -390,23 +397,15 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Mess
         const entity: TextEntity = {
           from,
           to: from + Array.from(block.text || '').length,
-        }
-        if (block.style.bold) {
-          entity.bold = true
-        }
-        if (block.style.italic) {
-          entity.italic = true
-        }
-        if (block.style.strike) {
-          entity.strikethrough = true
-        }
-        if (block.style.code) {
-          entity.code = true
+          ...block.style && mapStyle(block.style),
         }
         entities.push(entity)
       }
       break
     }
+    case 'plain_text':
+      output += block.text
+      break
     case 'link': {
       const title = block.text || block.url || ''
       const from = Array.from(output).length
@@ -414,6 +413,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Mess
         from,
         to: from + Array.from(title).length,
         link: block.url,
+        ...block.style && mapStyle(block.style),
       })
       output += title
       break
@@ -525,9 +525,30 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Mess
       output += text
       break
     }
-    case 'plain_text':
-      output += block.text
+    case 'channel': {
+      const from = Array.from(output).length
+      const text = block.channel_id
+      output += text
+      entities.push({
+        from,
+        to: from + Array.from(text).length,
+        replaceWith: '#' + block.channel_id, // todo: should be proper channel
+        ...block.style && mapStyle(block.style),
+      })
       break
+    }
+    case 'usergroup': {
+      const from = Array.from(output).length
+      const text = block.usergroup_id
+      output += text
+      entities.push({
+        from,
+        to: from + Array.from(text).length,
+        replaceWith: '@' + block.usergroup_id, // todo: should be proper channel
+        ...block.style && mapStyle(block.style),
+      })
+      break
+    }
     case 'divider':
       output += '\n---\n'
       break
