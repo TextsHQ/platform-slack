@@ -565,7 +565,8 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Mess
       })
       break
     default:
-      texts.Sentry.captureMessage('slack unrecognized block: ' + block.type)
+      output += `\n---Unrendered Slack ${block.type} block---\n`
+      texts.Sentry.captureMessage('slack unrecognized block: ' + block.type, { extra: { tags: Object.keys(block) } })
       texts.log('slack: unrecognized block', block)
   }
 
