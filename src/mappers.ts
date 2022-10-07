@@ -1,15 +1,15 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, MessageAttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
 
-const getAttachmentType = (mimeType: string): MessageAttachmentType => {
-  if (mimeType?.startsWith('image')) return MessageAttachmentType.IMG
-  if (mimeType?.startsWith('video')) return MessageAttachmentType.VIDEO
-  if (mimeType?.startsWith('audio')) return MessageAttachmentType.AUDIO
-  return MessageAttachmentType.UNKNOWN
+const getAttachmentType = (mimeType: string): AttachmentType => {
+  if (mimeType?.startsWith('image')) return AttachmentType.IMG
+  if (mimeType?.startsWith('video')) return AttachmentType.VIDEO
+  if (mimeType?.startsWith('audio')) return AttachmentType.AUDIO
+  return AttachmentType.UNKNOWN
 }
 
 const mapAttachment = (slackAttachment: any): MessageAttachment => {
@@ -165,7 +165,7 @@ const mapTweetAttachment = ({
   if (image_url) {
     tweet.attachments = [
       { id: image_url,
-        type: MessageAttachmentType.IMG,
+        type: AttachmentType.IMG,
         srcURL: image_url,
         size: {
           width: image_width,
