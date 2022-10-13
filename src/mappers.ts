@@ -1,6 +1,6 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet, texts } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
@@ -263,7 +263,6 @@ export const mapMessage = (
     })
   }
   const action = mapAction(slackMessage)
-
   return {
     _original: JSON.stringify(slackMessage),
     id: slackMessage.ts,
@@ -276,6 +275,7 @@ export const mapMessage = (
     isSender: currentUserId === senderID,
     textAttributes,
     buttons,
+    linkedMessageID: slackMessage?.thread_ts,
     isAction: !!action || ACTION_MESSAGE_TYPES.has(slackMessage.subtype),
     action,
     tweets: tweetAttachments.map(mapTweetAttachment),
@@ -320,10 +320,9 @@ const mapThread = (
   })()
 
   const { channelInfo } = channel
-  const channelMessages = [channelInfo?.latest].filter(x => x?.ts && !x?.thread_ts) || [channelInfo?.latest].filter(x => x?.ts)
-
-  const messages = (channelMessages).map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
+  const messages = channelInfo.latest?.ts ? [mapMessage(channelInfo?.latest, accountID, channel.id, currentUserId, customEmojis)] : []
   const participants = channelInfo.participants?.map(mapParticipant).filter(Boolean) || []
+  const isArchived = channelInfo?.latest?.subtype === 'joiner_notification'
 
   // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
   const channelName = channel?.is_mpim ? channel?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
@@ -334,7 +333,7 @@ const mapThread = (
 
   const isMuted = mutedChannels.has(channel.id)
 
-  const timestamp =   messages[0]?.timestamp || (channelInfo?.last_read && new Date(Number(channelInfo?.last_read) * 1000)) || (channelInfo?.created && new Date(channelInfo?.created))
+  const timestamp = messages[0]?.timestamp || (channelInfo?.last_read && new Date(Number(channelInfo?.last_read) * 1000)) || (channelInfo?.created && new Date(channelInfo?.created))
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
@@ -345,6 +344,7 @@ const mapThread = (
     isUnread: channelInfo?.unread_count !== 0,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
+    isArchived,
     participants: { items: participants, hasMore: false },
   }
 }
@@ -360,7 +360,6 @@ export const mapThreads = (
 
 export function mapEmojiChangedEvent(event: any): ServerEvent[] {
   if (event.value?.startsWith('alias:')) return []
-
   switch (event.subtype) {
     case 'add':
       return [{
