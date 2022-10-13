@@ -237,6 +237,7 @@ export default class Slack implements PlatformAPI {
   }
 
   sendReadReceipt = (threadID: string, messageID: string) => {
+    if (!messageID) return
     this.api.sendReadReceipt(threadID, messageID)
   }
 
