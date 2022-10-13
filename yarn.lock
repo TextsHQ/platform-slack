@@ -1983,13 +1983,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk#main":
+"@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk#371330e6b91adffa4540728701433ed5030267a4":
   version: 0.4.4
-  resolution: "@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk.git#commit=3b77cd9f1837d68bf7bb59e3791c830044d63c7c"
+  resolution: "@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk.git#commit=371330e6b91adffa4540728701433ed5030267a4"
   dependencies:
     emoji-regex: ^10.1.0
     qrcode.react: ^3.1.0
-  checksum: 693900ecb71ec614921fef603c3c93b5c32d25f1c61d67bee6b4fed4d7209ecde375a01d2aea1abbcbba1cedbcc62877ebecad4c845bfdf1bded318e78a31d24
+  checksum: fa32c997b2c279efd030b0594e74f76baa65e22d0e3567a582b2cf19b1328ffac6961b653677edcf205833a216df1cd7b8568cc5b8eadbeba0ed6aec08c31e62
   languageName: node
   linkType: hard
 
@@ -2001,7 +2001,7 @@ __metadata:
     "@slack/rtm-api": ^6.0.0
     "@slack/web-api": ^6.7.2
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config#main"
-    "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#main"
+    "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#371330e6b91adffa4540728701433ed5030267a4"
     "@types/eslint": ^8.4.6
     "@types/jest": ^27.0.1
     "@types/lodash": ^4.14.182
@@ -7354,11 +7354,11 @@ __metadata:
 
 "typescript@patch:typescript@^4.8.4#~builtin<compat/typescript>":
   version: 4.8.4
-  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=a1c5e5"
+  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=701156"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 563a0ef47abae6df27a9a3ab38f75fc681f633ccf1a3502b1108e252e187787893de689220f4544aaf95a371a4eb3141e4a337deb9895de5ac3c1ca76430e5f0
+  checksum: 301459fc3eb3b1a38fe91bf96d98eb55da88a9cb17b4ef80b4d105d620f4d547ba776cc27b44cc2ef58b66eda23fe0a74142feb5e79a6fb99f54fc018a696afa
   languageName: node
   linkType: hard
 
