@@ -1,7 +1,7 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
 import { ConversationsListResponse, FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
-import { uniqBy, memoize, map } from 'lodash'
+import { uniqBy, memoize } from 'lodash'
 import type { File } from '@slack/web-api/dist/response/FilesUploadResponse'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
@@ -126,33 +126,36 @@ export default class SlackAPI {
   }
 
   loadPublicChannel = async (channel: CustomListChannel): Promise<CustomListChannel> => {
-    const timer = textsTime(`loadPublicChannel Id:${channel.id}`)
     const threadInfo = await this.webClient.conversations.info({ channel: channel.id })
     const channelInfo = threadInfo.channel as CustomInfoChannel
-    if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo.latest.text)
-    const updatedChannel: CustomListChannel = {
-      ...channel,
-      channelInfo: { ...channelInfo, participants: [] },
+    if (!channelInfo) {
+      texts.error(`No conversations.info ${channel.id}`)
+    } else {
+      if (channelInfo.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo.latest.text)
+      const updatedChannel: CustomListChannel = {
+        ...channel,
+        channelInfo: { ...channelInfo, participants: [] },
+      }
+      return updatedChannel
     }
-    timer.timeEnd()
-    return updatedChannel
   }
 
   loadPrivateMessage = async (channel: CustomListChannel): Promise<CustomListChannel> => {
-    const timer = textsTime(`loadPrivateMessage Id:${channel.id}`)
     const { id, user: userId } = channel
 
     const threadInfo = await this.webClient.conversations.info({ channel: id })
+    if (!threadInfo) {
+      texts.error(`No conversations.info ${channel.id}`)
+    }
     const participants = threadInfo.channel.is_im ? [await this.getParticipantProfile(userId)] : []
     const updatedChannel: CustomListChannel = {
       ...channel,
-      channelInfo: { ...threadInfo.channel, participants },
+      channelInfo: { ...threadInfo?.channel, participants },
     }
-    timer.timeEnd()
     return updatedChannel
   }
 
-  getThreadsNonPaginated = async (threadTypes: ThreadType[] = []) => {
+  getThreadsNonPaginated = async (threadTypes: ThreadType[] = [], getMessages = true) => {
     const allThreads: CustomListChannel[] = []
     // https://api.slack.com/docs/pagination#cursors
     let cursor: string
@@ -161,10 +164,21 @@ export default class SlackAPI {
       allThreads.push(...channels)
       cursor = response_metadata?.next_cursor
     } while (cursor)
+    if (getMessages) {
+      return Promise.all(allThreads.map(async (t): Promise<CustomListChannel> => {
+        const messages = await this.getMessages(t.id, 20)
+        return {
+          ...t,
+          messsages: messages.messages,
+        }
+      }))
+    }
     return allThreads
   }
 
-  getThreads = async (cursor = undefined, threadTypes: ThreadType[] = [], limit = 100): Promise<ConversationsListResponse> => {
+  getThread = async (threadID: string) => this.webClient.conversations.info({ channel: threadID })
+
+  getThreads = async (cursor = undefined, threadTypes: ThreadType[] = [], limit = 100) => {
     const currentUser = await this.getCurrentUser()
     let response: ConversationsListResponse
     // This is done this way because Slack's API doesn't support all requests for guests

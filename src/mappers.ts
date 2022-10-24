@@ -1,6 +1,6 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet, texts } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet, texts, Attachment } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
@@ -13,7 +13,7 @@ const getAttachmentType = (mimeType: string): AttachmentType => {
   return AttachmentType.UNKNOWN
 }
 
-const mapAttachment = (slackAttachment: any): MessageAttachment => {
+const mapAttachment = (slackAttachment: any): Attachment => {
   let mimeType = slackAttachment?.mimetype
   if (slackAttachment?.image_url) mimeType = 'image'
 
@@ -33,7 +33,7 @@ const mapAttachment = (slackAttachment: any): MessageAttachment => {
   }
 }
 
-const mapAttachments = (slackAttachments: any[]): MessageAttachment[] => {
+const mapAttachments = (slackAttachments: any[]): Attachment[] => {
   if (!slackAttachments?.length) return []
   return slackAttachments.map(mapAttachment)
 }
@@ -165,7 +165,8 @@ const mapTweetAttachment = ({
   }
   if (image_url) {
     tweet.attachments = [
-      { id: image_url,
+      {
+        id: image_url,
         type: AttachmentType.IMG,
         srcURL: image_url,
         size: {
@@ -267,7 +268,7 @@ export const mapMessage = (
     _original: JSON.stringify(slackMessage),
     id: slackMessage.ts,
     text: mappedText,
-    timestamp: new Date(+slackMessage.ts * 1000),
+    timestamp: new Date((+slackMessage.ts) * 1000),
     attachments,
     editedTimestamp: slackMessage.edited?.ts ? new Date(Number(slackMessage.edited?.ts) * 1000) : undefined,
     reactions: mapReactions(slackMessage.reactions as any, customEmojis) || [],
@@ -294,7 +295,7 @@ export const mapParticipant = ({ profile }: any): Participant => profile && {
 export const mapCurrentUser = ({ user, team, auth }: any): CurrentUser => ({
   id: auth.user_id,
   fullName: user.real_name,
-  displayText: `${team?.name + ' - '}${user.display_name || user.real_name}`,
+  displayText: `${(team?.name || '') + ' - '}${user.display_name || user.real_name}`,
   imgURL: user.image_192,
 })
 
@@ -320,7 +321,11 @@ const mapThread = (
   })()
 
   const { channelInfo } = channel
-  const messages = channelInfo.latest?.ts ? [mapMessage(channelInfo?.latest, accountID, channel.id, currentUserId, customEmojis)] : []
+  if (!channelInfo) {
+    texts.error(`This should not happen ${channel.id}`)
+    return undefined
+  }
+  const messages = channel.messsages ? channel.messsages.map(msg => mapMessage(msg, accountID, channel.id, currentUserId, customEmojis)) : []
   const participants = channelInfo.participants?.map(mapParticipant).filter(Boolean) || []
 
   // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
@@ -332,15 +337,17 @@ const mapThread = (
 
   const isMuted = mutedChannels.has(channel.id)
 
-  const timestamp = messages[0]?.timestamp || (channelInfo?.last_read && new Date(Number(channelInfo?.last_read) * 1000)) || (channelInfo?.created && new Date(channelInfo?.created))
+  const lastRead = (channelInfo.last_read ? new Date(Number(channelInfo.last_read) * 1000) : undefined)
+  const timestamp = messages.reverse()[0]?.timestamp
+  const isUnread = channelInfo.unread_count ? channelInfo.unread_count === 0 : (lastRead?.valueOf() && timestamp?.valueOf()) ? lastRead <= timestamp : false
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
     type,
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
-    timestamp: timestamp.valueOf() ? timestamp : undefined,
-    isUnread: channelInfo.unread_count ? channelInfo?.unread_count !== 0 : false,
+    timestamp,
+    isUnread,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
     participants: { items: participants, hasMore: false },
