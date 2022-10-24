@@ -1,4 +1,4 @@
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink } from '@textshq/platform-sdk'
+import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapThreads, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
@@ -80,7 +80,7 @@ export default class Slack implements PlatformAPI {
           "teamUrl": "https://texts-co.slack.com/",
           "appUrl": "slack://T01QMMLU7JL/magic-login/4199616920993-83b9e3b9a37d8b38b1d291a2596ff25eb6c99c4b62c5c3716368c1fd49c19cc4"
         } */
-      const [,, workspaceID,, token] = appUrl.split('/')
+      const [, , workspaceID, , token] = appUrl.split('/')
       const magicToken = `z-app-${workspaceID}-${token}`
       const res = await texts.fetch(`https://app.slack.com/api/auth.loginMagicBulk?magic_tokens=${magicToken}&ssb=1`, { cookieJar })
       const jsonStr = res.body.toString('utf-8')
@@ -151,13 +151,18 @@ export default class Slack implements PlatformAPI {
     }])
   }
 
-  getThreads = async (inboxName: InboxName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
+  getThread = async (threadID: string) => {
+    const thread = await this.api.getThread(threadID)
+    const items = mapThreads([thread.channel], this.accountID, this.currentUserID, this.api.customEmojis, this.api.getMutedChannels(), (await this.api.getCurrentUser()).team.name)
+    return items[0]
+  }
+
+  getThreads = async (): Promise<Paginated<Thread>> => {
     const timer = textsTime('getThreads')
-    const threads = (await this.api.getThreadsNonPaginated(this.threadTypes))
+    const threads = await this.api.getThreadsNonPaginated(this.threadTypes, true)
     const { team } = this.api.currentUser
 
-    const mutedChannels = this.api.getMutedChannels()
-    const items = mapThreads(threads, this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
+    const items = mapThreads(threads, this.accountID, this.currentUserID, this.api.customEmojis, this.api.getMutedChannels(), team.name)
 
     timer.timeEnd()
 
@@ -237,7 +242,7 @@ export default class Slack implements PlatformAPI {
   }
 
   sendReadReceipt = (threadID: string, messageID: string) => {
-    if (!messageID) return
+    texts.log(threadID, messageID)
     this.api.sendReadReceipt(threadID, messageID)
   }
 
@@ -245,7 +250,7 @@ export default class Slack implements PlatformAPI {
     await this.api.deleteMessage(threadID, messageID)
   }
 
-  markAsUnread = this.api.markAsUnread
+  markAsUnread = async (threadID: string, messageID?: string) => this.api.markAsUnread(threadID, messageID)
 
   getAsset = (_, type: string, uri: string) => {
     if (type !== 'proxy') return

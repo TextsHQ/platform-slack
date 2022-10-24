@@ -214,16 +214,10 @@ export default class SlackAPI {
     return { ...response, channels: uniqBy(channels, 'id') }
   }
 
-  markAsUnread = async (threadID: string, messageID: string) => {
-    let messageTs = messageID
-
-    if (!messageID) {
-      const messages = await this.getMessages(threadID, 2)
-      const [latest] = messages?.messages?.reverse() || []
-      messageTs = latest.ts || ''
-    }
-
-    await this.webClient.conversations.mark({ channel: threadID, ts: messageTs })
+  markAsUnread = async (threadID: string, messageID?: string) => {
+    const ts = messageID ?? String(await (await this.getThread(threadID)).channel[0]?.created)
+    const res = await this.webClient.conversations.mark({ channel: threadID, ts })
+    texts.log(JSON.stringify(res, null, 2))
   }
 
   messageReplies = (channel: string, ts: string) =>
@@ -421,7 +415,7 @@ export default class SlackAPI {
       type: userIDs.length > 1 ? 'group' : 'single',
       participants: { items: profiles, hasMore: false },
       messages: { items: [], hasMore: false },
-      timestamp: new Date(channel?.created) || new Date(),
+      timestamp: channel.created ? new Date(+channel.created * 1000) : new Date(Date.now()),
       isUnread: false,
       isReadOnly: false,
     }
