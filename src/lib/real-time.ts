@@ -35,7 +35,7 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('disconnected', error => {
-      texts.log(error)
+      texts.log('disconnected', error)
       this.ready = false
     })
 
