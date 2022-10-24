@@ -322,7 +322,6 @@ const mapThread = (
   const { channelInfo } = channel
   const messages = channelInfo.latest?.ts ? [mapMessage(channelInfo?.latest, accountID, channel.id, currentUserId, customEmojis)] : []
   const participants = channelInfo.participants?.map(mapParticipant).filter(Boolean) || []
-  const isArchived = channelInfo?.latest?.subtype === 'joiner_notification'
 
   // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
   const channelName = channel?.is_mpim ? channel?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
@@ -344,7 +343,6 @@ const mapThread = (
     isUnread: channelInfo?.unread_count !== 0,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
-    isArchived,
     participants: { items: participants, hasMore: false },
   }
 }
