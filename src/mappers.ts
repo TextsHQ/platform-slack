@@ -340,10 +340,11 @@ const mapThread = (
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
     timestamp: timestamp.valueOf() ? timestamp : undefined,
-    isUnread: channelInfo?.unread_count !== 0,
+    isUnread: channelInfo.unread_count ? channelInfo?.unread_count !== 0 : false,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
     participants: { items: participants, hasMore: false },
+    isArchived: channel.is_archived,
   }
 }
 
