@@ -1,4 +1,4 @@
-import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
+import { MessageContent, Thread, texts, FetchOptions, Participant, ActivityType } from '@textshq/platform-sdk'
 import { ConversationsListResponse, FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import { uniqBy, memoize } from 'lodash'
@@ -6,7 +6,7 @@ import type { File } from '@slack/web-api/dist/response/FilesUploadResponse'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
-import type { User, UsersInfoResponse } from '@slack/web-api/dist/response/UsersInfoResponse'
+import type { User } from '@slack/web-api/dist/response/UsersInfoResponse'
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
@@ -16,8 +16,6 @@ import type { CustomInfoChannel, CustomListChannel } from '../types'
 
 export default class SlackAPI {
   cookieJar: CookieJar
-
-  onEvent: OnServerEventCallback
 
   userToken: string
 
@@ -169,7 +167,7 @@ export default class SlackAPI {
         const messages = await this.getMessages(t.id, 20)
         return {
           ...t,
-          messsages: messages.messages,
+          messsages: messages.response.messages,
         }
       }))
     }
@@ -292,17 +290,8 @@ export default class SlackAPI {
     response.messages = uniqBy(messages, 'ts')
 
     const participants = Object.values(participantsMap)
-    if (participants.length > 0) {
-      this.onEvent([{
-        type: ServerEventType.STATE_SYNC,
-        mutationType: 'upsert',
-        objectName: 'participant',
-        objectIDs: { threadID },
-        entries: participants,
-      }])
-    }
 
-    return response
+    return { response, participants }
   }
 
   getParticipantProfile = async (userId: string): Promise<User> => {
@@ -386,23 +375,8 @@ export default class SlackAPI {
       attachments = [file.file]
     }
 
-    try {
-      const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments: attachments as any[] })
-      return res.message
-    } catch (error) {
-      // todo: hack, improve
-      if (error.message.includes('restricted_action_read_only_channel')) {
-        this.onEvent([{
-          type: ServerEventType.STATE_SYNC,
-          objectIDs: {},
-          objectName: 'thread',
-          mutationType: 'update',
-          entries: [{ id: channel, isReadOnly: true }],
-        }])
-        return false
-      }
-      throw error
-    }
+    const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments: attachments as any[] })
+    return res.message
   }
 
   editMessage = async (channel: string, ts: string, thread_ts: string, text: string): Promise<boolean> => {

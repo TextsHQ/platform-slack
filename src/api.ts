@@ -33,6 +33,8 @@ export default class Slack implements PlatformAPI {
 
   currentUserID: string
 
+  private onEvent: OnServerEventCallback
+
   private realTimeApi: null | SlackRealTime = null
 
   private threadTypes: ThreadType[]
@@ -118,7 +120,7 @@ export default class Slack implements PlatformAPI {
   getCurrentUser = () => mapCurrentUser(this.api.currentUser)
 
   subscribeToEvents = async (onEvent: OnServerEventCallback): Promise<void> => {
-    this.api.onEvent = onEvent
+    this.onEvent = onEvent
     this.realTimeApi = new SlackRealTime(this.api, this, onEvent)
     await this.realTimeApi?.subscribeToEvents()
   }
@@ -142,7 +144,7 @@ export default class Slack implements PlatformAPI {
     const users = await Promise.all(filteredIds.slice(0, 5).map(this.api.getParticipantProfile))
     const participants = users.map(mapParticipant)
     if (!participants.length) return
-    this.api.onEvent([{
+    this.onEvent([{
       type: ServerEventType.STATE_SYNC,
       mutationType: 'upsert',
       objectName: 'participant',
@@ -186,7 +188,18 @@ export default class Slack implements PlatformAPI {
       }
     }
 
-    const { messages, response_metadata } = await this.api.getMessages(threadID, 20, cursor)
+    const { response: { messages, response_metadata }, participants } = await this.api.getMessages(threadID, 20, cursor)
+
+    if (participants.length > 0) {
+      this.onEvent([{
+        type: ServerEventType.STATE_SYNC,
+        mutationType: 'upsert',
+        objectName: 'participant',
+        objectIDs: { threadID },
+        entries: participants,
+      }])
+    }
+
     const items = messages.map(message => mapMessage(message, this.accountID, threadID, this.currentUserID, this.api.customEmojis)).reverse()
 
     timer.timeEnd()
@@ -199,10 +212,24 @@ export default class Slack implements PlatformAPI {
 
   sendMessage = async (threadID: string, content: MessageContent) => {
     const { channel, thread_ts } = getIDs(threadID)
-    const message = await this.api.sendMessage(channel, thread_ts, content)
-    if (!message) return false
-
-    return [mapMessage(message as any, this.accountID, channel, this.currentUserID, this.api.customEmojis)]
+    try {
+      const message = await this.api.sendMessage(channel, thread_ts, content)
+      if (!message) return false
+      return [mapMessage(message as any, this.accountID, channel, this.currentUserID, this.api.customEmojis)]
+    } catch (error) {
+      // todo: hack, improve
+      if (error.message.includes('restricted_action_read_only_channel')) {
+        this.onEvent([{
+          type: ServerEventType.STATE_SYNC,
+          objectIDs: {},
+          objectName: 'thread',
+          mutationType: 'update',
+          entries: [{ id: channel, isReadOnly: true }],
+        }])
+        return false
+      }
+      throw error
+    }
   }
 
   editMessage = async (threadID: string, messageID: string, msgContent: MessageContent) => {
@@ -289,7 +316,7 @@ export default class Slack implements PlatformAPI {
       title: title ? `Slack Thread · ${title}...` : 'Slack Thread',
       extra: { selected: true },
     }
-    this.api.onEvent([{
+    this.onEvent([{
       type: ServerEventType.STATE_SYNC,
       mutationType: 'upsert',
       objectIDs: {},
