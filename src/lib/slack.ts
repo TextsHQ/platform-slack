@@ -176,7 +176,7 @@ export default class SlackAPI {
     return allThreads
   }
 
-  getThread = async (threadID: string) => this.webClient.conversations.info({ channel: threadID })
+  getThread = (threadID: string) => this.webClient.conversations.info({ channel: threadID })
 
   getThreads = async (cursor = undefined, threadTypes: ThreadType[] = [], limit = 100) => {
     const currentUser = await this.getCurrentUser()
@@ -231,7 +231,6 @@ export default class SlackAPI {
   markAsUnread = async (threadID: string, messageID?: string) => {
     const ts = messageID ?? String(await (await this.getThread(threadID)).channel[0]?.created)
     const res = await this.webClient.conversations.mark({ channel: threadID, ts })
-    texts.log(JSON.stringify(res, null, 2))
   }
 
   messageReplies = (channel: string, ts: string) =>
@@ -315,7 +314,7 @@ export default class SlackAPI {
         // Usually this is when the user is from another team, but this returns the user information
         // instead of the full profile
         // @see https://api.slack.com/methods/users.info
-        const info: UsersInfoResponse = await this.webClient.users.info({ user: userId })
+        const info = await this.webClient.users.info({ user: userId })
         return info.user
       })
 

@@ -1,6 +1,6 @@
 import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
-import { mapCurrentUser, mapThreads, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
+import { mapCurrentUser, mapThreads, mapMessage, mapParticipant, mapLinkAttachment, mapThread } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
 import { textsTime } from './util'
 
@@ -153,8 +153,8 @@ export default class Slack implements PlatformAPI {
 
   getThread = async (threadID: string) => {
     const thread = await this.api.getThread(threadID)
-    const items = mapThreads([thread.channel], this.accountID, this.currentUserID, this.api.customEmojis, this.api.getMutedChannels(), (await this.api.getCurrentUser()).team.name)
-    return items[0]
+    if (!thread) return
+    return mapThread(thread.channel, this.accountID, this.currentUserID, this.api.customEmojis, this.api.getMutedChannels(), (await this.api.getCurrentUser()).team.name)
   }
 
   getThreads = async (): Promise<Paginated<Thread>> => {
@@ -241,16 +241,14 @@ export default class Slack implements PlatformAPI {
     if (att) return mapLinkAttachment(att)
   }
 
-  sendReadReceipt = (threadID: string, messageID: string) => {
-    texts.log(threadID, messageID)
+  sendReadReceipt = (threadID: string, messageID: string) =>
     this.api.sendReadReceipt(threadID, messageID)
-  }
 
   deleteMessage = async (threadID: string, messageID: string): Promise<void> => {
     await this.api.deleteMessage(threadID, messageID)
   }
 
-  markAsUnread = async (threadID: string, messageID?: string) => this.api.markAsUnread(threadID, messageID)
+  markAsUnread = (threadID: string, messageID?: string) => this.api.markAsUnread(threadID, messageID)
 
   getAsset = (_, type: string, uri: string) => {
     if (type !== 'proxy') return

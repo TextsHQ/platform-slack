@@ -268,7 +268,7 @@ export const mapMessage = (
     _original: JSON.stringify(slackMessage),
     id: slackMessage.ts,
     text: mappedText,
-    timestamp: new Date((+slackMessage.ts) * 1000),
+    timestamp: new Date(+slackMessage.ts * 1000),
     attachments,
     editedTimestamp: slackMessage.edited?.ts ? new Date(Number(slackMessage.edited?.ts) * 1000) : undefined,
     reactions: mapReactions(slackMessage.reactions as any, customEmojis) || [],
@@ -306,7 +306,7 @@ export const mapProfile = (user: any): Participant => ({
   imgURL: user?.profile?.image_192 || '',
 })
 
-const mapThread = (
+export const mapThread = (
   channel: CustomListChannel,
   accountID: string,
   currentUserId: string,
