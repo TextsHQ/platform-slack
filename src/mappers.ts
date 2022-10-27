@@ -1,6 +1,6 @@
 import NodeEmoji from 'node-emoji'
-import { times, truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet, texts, Attachment } from '@textshq/platform-sdk'
+import { truncate } from 'lodash'
+import { CurrentUser, Message, MessageAction, MessageActionType, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet, Attachment } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'

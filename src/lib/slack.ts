@@ -120,12 +120,10 @@ export default class SlackAPI {
   loadAll = async (channels: ConversationListChannel[]) => {
     const counts = (await this.webClient.apiCall('client.counts', { slack_route: channels[0].id })) as unknown as UserCounts
     const countsFlat = [...counts.channels, ...counts.ims, ...counts.mpims]
-    texts.log(JSON.stringify(countsFlat, null, 2))
     return Promise.all(channels.map(channel => this.loadChannel(channel, countsFlat.find(c => c.id === channel.id))))
   }
 
   loadChannel = async (channel, counts?: Count) => {
-    texts.log(channel.id)
     const history = await this.webClient.conversations.history({ channel: channel.id, limit: 1 })
     if (!history) {
       texts.error(`No conversations.history ${channel.id}`)
