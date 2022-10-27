@@ -275,7 +275,7 @@ export default class Slack implements PlatformAPI {
     await this.api.deleteMessage(threadID, messageID)
   }
 
-  markAsUnread = async (threadID: string, messageID?: string) => this.api.markAsUnread(threadID, messageID)
+  markAsUnread = (threadID: string, messageID?: string) => this.api.markAsUnread(threadID, messageID)
 
   getAsset = (_, type: string, uri: string) => {
     if (type !== 'proxy') return
