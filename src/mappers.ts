@@ -1,10 +1,10 @@
 import NodeEmoji from 'node-emoji'
-import { truncate } from 'lodash'
+import { times, truncate } from 'lodash'
 import { CurrentUser, Message, MessageAction, MessageActionType, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet, texts, Attachment } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
-import type { CustomListChannel } from './types'
+import type { CustomChannel } from './types'
 
 const getAttachmentType = (mimeType: string): AttachmentType => {
   if (mimeType?.startsWith('image')) return AttachmentType.IMG
@@ -307,7 +307,7 @@ export const mapProfile = (user: any): Participant => ({
 })
 
 export const mapThread = (
-  channel: CustomListChannel,
+  channel: CustomChannel,
   accountID: string,
   currentUserId: string,
   customEmojis: Record<string, string>,
@@ -320,13 +320,7 @@ export const mapThread = (
     return 'single'
   })()
 
-  const { channelInfo } = channel
-  if (!channelInfo) {
-    texts.error(`This should not happen ${channel.id}`)
-    return undefined
-  }
-  const messages = channel.messsages ? channel.messsages.map(msg => mapMessage(msg, accountID, channel.id, currentUserId, customEmojis)) : []
-  const participants = channelInfo.participants?.map(mapParticipant).filter(Boolean) || []
+  const participants = channel.participants?.map(mapParticipant).filter(Boolean) || []
 
   // For some reason groups come with the name 'mpdm-firstuser--seconduser--thirduser-1'
   const channelName = channel?.is_mpim ? channel?.name.replace('mpdm-', '').replace('-1', '').split('--').join(', ') : ''
@@ -335,11 +329,9 @@ export const mapThread = (
     return channelName || participants[0]?.username || channel.id
   })()
 
+  const messages = channel.messages?.map(m => mapMessage(m, accountID, channel.id, currentUserId, customEmojis)) || []
   const isMuted = mutedChannels.has(channel.id)
-
-  const lastRead = (channelInfo.last_read ? new Date(Number(channelInfo.last_read) * 1000) : undefined)
-  const timestamp = messages.reverse()[0]?.timestamp
-  const isUnread = channelInfo.unread_count ? channelInfo.unread_count === 0 : (lastRead?.valueOf() && timestamp?.valueOf()) ? lastRead <= timestamp : false
+  const timestamp = channel.counts && +channel.counts.latest !== 0 ? new Date(+channel.counts.latest) : undefined
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
@@ -347,16 +339,16 @@ export const mapThread = (
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
     timestamp,
-    isUnread,
-    isReadOnly: channel.is_user_deleted || false,
-    messages: { items: messages, hasMore: true },
+    isUnread: channel.counts && +channel.counts.last_read !== 0 ? channel.counts.has_unreads : false,
+    isReadOnly: channel.is_user_deleted,
+    messages: { items: messages.reverse(), hasMore: true },
     participants: { items: participants, hasMore: false },
     isArchived: channel.is_archived,
   }
 }
 
 export const mapThreads = (
-  slackChannels: CustomListChannel[],
+  slackChannels: CustomChannel[],
   accountID: string,
   currentUserId: string,
   customEmojis: Record<string, string>,

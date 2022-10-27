@@ -7,12 +7,13 @@ import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
 import type { User } from '@slack/web-api/dist/response/UsersInfoResponse'
+import type { Channel as ConversationListChannel } from '@slack/web-api/dist/response/ConversationsListResponse'
 import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
 import { textsTime } from '../util'
 import type { ThreadType } from '../api'
-import type { CustomInfoChannel, CustomListChannel } from '../types'
+import type { Count, CustomChannel, UserCounts } from '../types'
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -116,45 +117,34 @@ export default class SlackAPI {
     return this.currentUser
   }
 
-  loadAll = async (channels: CustomListChannel[], threadTypes: string | string[]) => {
-    const ch: Promise<CustomListChannel>[] = []
-    if (threadTypes.includes('channel')) ch.push(...channels.filter(c => c.is_channel && c.is_member).map(c => this.loadPublicChannel(c)))
-    if (threadTypes.includes('dm')) ch.push(...channels.filter(c => c.is_im || c.is_mpim).map(c => this.loadPrivateMessage(c)))
-    return Promise.all(ch)
+  loadAll = async (channels: ConversationListChannel[]) => {
+    const counts = (await this.webClient.apiCall('client.counts', { slack_route: channels[0].id })) as unknown as UserCounts
+    const countsFlat = [...counts.channels, ...counts.ims, ...counts.mpims]
+    texts.log(JSON.stringify(countsFlat, null, 2))
+    return Promise.all(channels.map(channel => this.loadChannel(channel, countsFlat.find(c => c.id === channel.id))))
   }
 
-  loadPublicChannel = async (channel: CustomListChannel): Promise<CustomListChannel> => {
-    const threadInfo = await this.webClient.conversations.info({ channel: channel.id })
-    const channelInfo = threadInfo.channel as CustomInfoChannel
-    if (!channelInfo) {
-      texts.error(`No conversations.info ${channel.id}`)
-    } else {
-      if (channelInfo.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo.latest.text)
-      const updatedChannel: CustomListChannel = {
-        ...channel,
-        channelInfo: { ...channelInfo, participants: [] },
-      }
-      return updatedChannel
+  loadChannel = async (channel, counts?: Count) => {
+    texts.log(channel.id)
+    const history = await this.webClient.conversations.history({ channel: channel.id, limit: 1 })
+    if (!history) {
+      texts.error(`No conversations.history ${channel.id}`)
+      return channel
     }
-  }
 
-  loadPrivateMessage = async (channel: CustomListChannel): Promise<CustomListChannel> => {
-    const { id, user: userId } = channel
-
-    const threadInfo = await this.webClient.conversations.info({ channel: id })
-    if (!threadInfo) {
-      texts.error(`No conversations.info ${channel.id}`)
-    }
-    const participants = threadInfo.channel.is_im ? [await this.getParticipantProfile(userId)] : []
-    const updatedChannel: CustomListChannel = {
+    if (history.messages[0]?.text) await this.loadMentions(history.messages[0]?.text)
+    const participants = channel.is_im || channel.is_mpim ? [await this.getParticipantProfile(channel.user)] : []
+    const updatedChannel: CustomChannel = {
       ...channel,
-      channelInfo: { ...threadInfo?.channel, participants },
+      messages: history.messages,
+      participants,
+      counts,
     }
     return updatedChannel
   }
 
-  getThreadsNonPaginated = async (threadTypes: ThreadType[] = [], getMessages = true) => {
-    const allThreads: CustomListChannel[] = []
+  getThreadsNonPaginated = async (threadTypes: ThreadType[] = []) => {
+    const allThreads: CustomChannel[] = []
     // https://api.slack.com/docs/pagination#cursors
     let cursor: string
     do {
@@ -162,15 +152,6 @@ export default class SlackAPI {
       allThreads.push(...channels)
       cursor = response_metadata?.next_cursor
     } while (cursor)
-    if (getMessages) {
-      return Promise.all(allThreads.map(async (t): Promise<CustomListChannel> => {
-        const messages = await this.getMessages(t.id, 20)
-        return {
-          ...t,
-          messsages: messages.response.messages,
-        }
-      }))
-    }
     return allThreads
   }
 
@@ -222,13 +203,13 @@ export default class SlackAPI {
       })
     }
 
-    const channels = await this.loadAll(response.channels, threadTypes)
+    const channels = await this.loadAll(response.channels)
     return { ...response, channels: uniqBy(channels, 'id') }
   }
 
   markAsUnread = async (threadID: string, messageID?: string) => {
     const ts = messageID ?? String(await (await this.getThread(threadID)).channel[0]?.created)
-    const res = await this.webClient.conversations.mark({ channel: threadID, ts })
+    await this.webClient.conversations.mark({ channel: threadID, ts })
   }
 
   messageReplies = (channel: string, ts: string) =>
@@ -402,7 +383,7 @@ export default class SlackAPI {
       type: userIDs.length > 1 ? 'group' : 'single',
       participants: { items: profiles, hasMore: false },
       messages: { items: [], hasMore: false },
-      timestamp: channel.created ? new Date(+channel.created * 1000) : new Date(Date.now()),
+      timestamp: channel.created ? new Date(+channel.created * 1000) : undefined,
       isUnread: false,
       isReadOnly: false,
     }

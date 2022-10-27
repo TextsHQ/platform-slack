@@ -161,7 +161,7 @@ export default class Slack implements PlatformAPI {
 
   getThreads = async (): Promise<Paginated<Thread>> => {
     const timer = textsTime('getThreads')
-    const threads = await this.api.getThreadsNonPaginated(this.threadTypes, true)
+    const threads = await this.api.getThreadsNonPaginated(this.threadTypes)
     const { team } = this.api.currentUser
 
     const items = mapThreads(threads, this.accountID, this.currentUserID, this.api.customEmojis, this.api.getMutedChannels(), team.name)
@@ -275,7 +275,7 @@ export default class Slack implements PlatformAPI {
     await this.api.deleteMessage(threadID, messageID)
   }
 
-  markAsUnread = (threadID: string, messageID?: string) => this.api.markAsUnread(threadID, messageID)
+  markAsUnread = async (threadID: string, messageID?: string) => this.api.markAsUnread(threadID, messageID)
 
   getAsset = (_, type: string, uri: string) => {
     if (type !== 'proxy') return
