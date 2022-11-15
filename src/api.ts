@@ -268,8 +268,7 @@ export default class Slack implements PlatformAPI {
     if (att) return mapLinkAttachment(att)
   }
 
-  sendReadReceipt = (threadID: string, messageID: string) =>
-    this.api.sendReadReceipt(threadID, messageID)
+  sendReadReceipt = (threadID: string, messageID: string) => this.api.sendReadReceipt(threadID, messageID)
 
   deleteMessage = async (threadID: string, messageID: string): Promise<void> => {
     await this.api.deleteMessage(threadID, messageID)
