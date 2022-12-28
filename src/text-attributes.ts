@@ -327,7 +327,7 @@ const mapStyle = (style): Partial<TextEntity> => ({
   strikethrough: style.strike,
 })
 
-const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> => {
+function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> {
   let output = ''
   const entities: TextEntity[] = []
   const buttons: MessageButton[] = []
@@ -404,7 +404,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Mess
       break
     }
     case 'plain_text':
-      output += block.text
+      output += mapNativeEmojis(block.text)
       break
     case 'link': {
       const title = block.text || block.url || ''
@@ -564,8 +564,22 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Mess
         }
       })
       break
+    case 'header': {
+      const innerBlock = mapBlock(block.text, customEmojis)
+      const cursor = Array.from(output).length
+      const nestedEntities = offsetEntities(innerBlock.textAttributes.entities, cursor)
+      entities.push(...nestedEntities)
+      buttons.push(...innerBlock.buttons)
+      output += innerBlock.text + '\n\n'
+      entities.push({
+        from: cursor,
+        to: cursor + innerBlock.text.length,
+        bold: true,
+      })
+      break
+    }
     default:
-      output += `\n---Unrendered Slack ${block.type} block---\n`
+      output += `\n---⚠️ Texts didn't render Slack ${block.type} block ⚠️---\n`
       texts.Sentry.captureMessage('slack unrecognized block: ' + block.type, { extra: { tags: Object.keys(block) } })
       texts.log('slack: unrecognized block', block)
   }
@@ -580,7 +594,7 @@ const mapBlock = (block: Block, customEmojis: Record<string, string>): Pick<Mess
   }
 }
 
-export const mapBlocks = (blocks: Block[], customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> => {
+export function mapBlocks(blocks: Block[], customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> {
   let output = ''
   const entities: TextEntity[] = []
   const buttons: MessageButton[] = []
