@@ -19,7 +19,7 @@ const info: PlatformInfo = {
   deletionMode: MessageDeletionMode.DELETE_FOR_EVERYONE,
   loginMode: 'browser',
   browserLogin: {
-    loginURL: 'https://slack.com/signin#/signin',
+    url: 'https://slack.com/signin#/signin',
     authCookieName: 'd',
     runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
     closeOnRedirectRegex: 'ssb/redirect',
