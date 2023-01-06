@@ -29,8 +29,6 @@ function getIDs(_threadID: string) {
 export default class Slack implements PlatformAPI {
   private readonly api = new SlackAPI()
 
-  accountID: string
-
   currentUserID: string
 
   private realTimeApi: null | SlackRealTime = null
@@ -39,9 +37,10 @@ export default class Slack implements PlatformAPI {
 
   private showChannels = false
 
-  init = async (serialized: { cookies: any, clientToken: string }, { accountID }: AccountInfo, prefs: Record<string, any>) => {
+  constructor(readonly accountID: string) {}
+
+  init = async (serialized: { cookies: any, clientToken: string }, _: AccountInfo, prefs: Record<string, any>) => {
     const timer = textsTime('init')
-    this.accountID = accountID
     this.showChannels = prefs?.show_channels
 
     const { cookies, clientToken } = serialized || {}
