@@ -81,7 +81,7 @@ const info: PlatformInfo = {
       window.__addEventsListeners = window.__addEventsListeners || function () {
         const url = window.location.href
 
-        if (url.includes('signin.findWorkspaces')) {
+        if (url.includes('signin#/workspaces')) {
           const observer = new MutationObserver((mutation) => {
             const elements = document.querySelectorAll('.p-workspaces_list__link')
             elements.forEach((element) => {
