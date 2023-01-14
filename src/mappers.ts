@@ -149,6 +149,7 @@ const mapTweetAttachment = ({
   image_width,
   image_height,
 }: any): Tweet => {
+  if (!src) return
   const { text, textAttributes } = mapTextAttributes(src)
   const tweet: Tweet = {
     id: from_url,
@@ -277,7 +278,7 @@ export const mapMessage = (
     buttons,
     isAction: !!action || ACTION_MESSAGE_TYPES.has(slackMessage.subtype),
     action,
-    tweets: tweetAttachments.map(mapTweetAttachment),
+    tweets: tweetAttachments.map(mapTweetAttachment).filter(Boolean),
     links: linkAttachments.map(mapLinkAttachment),
   }
 }

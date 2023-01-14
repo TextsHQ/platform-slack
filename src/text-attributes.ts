@@ -98,6 +98,7 @@ export function mapTextAttributes(
     text: string
     textAttributes: TextAttributes
   } {
+  if (typeof src !== 'string') return
   let output = ''
   const entities = []
   let input = Array.from(mapNativeEmojis(src))
