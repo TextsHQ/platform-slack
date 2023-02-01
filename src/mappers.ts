@@ -1,6 +1,6 @@
 import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, MessageAttachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, Attachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
@@ -12,7 +12,7 @@ const getAttachmentType = (mimeType: string): AttachmentType => {
   return AttachmentType.UNKNOWN
 }
 
-const mapAttachment = (slackAttachment: any): MessageAttachment => {
+const mapAttachment = (slackAttachment: any): Attachment => {
   let mimeType = slackAttachment?.mimetype
   if (slackAttachment?.image_url) mimeType = 'image'
 
@@ -29,10 +29,11 @@ const mapAttachment = (slackAttachment: any): MessageAttachment => {
     type,
     mimeType,
     srcURL: url,
+    size: slackAttachment.original_h ? { width: slackAttachment.original_w, height: slackAttachment.original_h } : undefined,
   }
 }
 
-const mapAttachments = (slackAttachments: any[]): MessageAttachment[] => {
+const mapAttachments = (slackAttachments: any[]): Attachment[] => {
   if (!slackAttachments?.length) return []
   return slackAttachments.map(mapAttachment)
 }
