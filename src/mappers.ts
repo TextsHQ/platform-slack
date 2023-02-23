@@ -332,6 +332,8 @@ export const mapThread = (
   const messages = channel.messages?.map(m => mapMessage(m, accountID, channel.id, currentUserId, customEmojis)) || []
   const isMuted = mutedChannels.has(channel.id)
   const timestamp = channel.counts && +channel.counts.latest !== 0 ? new Date(+channel.counts.latest) : undefined
+  const isUnread = channel.counts?.has_unreads || (channel.counts?.last_read || 0) !== (channel.counts?.latest || 0) || false
+
   return {
     _original: JSON.stringify(channel),
     id: channel.id,
@@ -339,7 +341,7 @@ export const mapThread = (
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
     timestamp,
-    isUnread: channel.counts && +channel.counts.last_read !== 0 ? channel.counts.has_unreads : false,
+    isUnread,
     isReadOnly: channel.is_user_deleted,
     messages: { items: messages.reverse(), hasMore: true },
     participants: { items: participants, hasMore: false },

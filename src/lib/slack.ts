@@ -205,11 +205,6 @@ export default class SlackAPI {
     return { ...response, channels: uniqBy(channels, 'id') }
   }
 
-  markAsUnread = async (threadID: string, messageID?: string) => {
-    const ts = messageID ?? String(await (await this.getThread(threadID)).channel[0]?.created)
-    await this.webClient.conversations.mark({ channel: threadID, ts })
-  }
-
   messageReplies = (channel: string, ts: string) =>
     this.webClient.conversations.replies({ channel, ts })
 
@@ -396,8 +391,29 @@ export default class SlackAPI {
     })
   }
 
+  getPreviousMessage = async (threadID: string, cursor: string) => {
+    const response = await this.webClient.conversations.history({
+      channel: threadID,
+      limit: 1,
+      latest: cursor,
+    })
+
+    const [lastMessage] = response.messages
+    return lastMessage
+  }
+
   sendReadReceipt = async (threadID: string, messageID: string) => {
     await this.webClient.conversations.mark({ channel: threadID, ts: messageID })
+  }
+
+  markAsUnread = async (threadID: string, messageID?: string) => {
+    const ts = messageID ?? String(await (await this.getThread(threadID)).channel[0]?.created)
+    const previousMessage = await this.getPreviousMessage(threadID, ts)
+
+    await this.webClient.conversations.mark({
+      channel: threadID,
+      ts: previousMessage.ts || ts,
+    })
   }
 
   unfurlLink = (link: string) =>
