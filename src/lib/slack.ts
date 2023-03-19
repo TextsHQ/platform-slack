@@ -167,50 +167,20 @@ export default class SlackAPI {
   }
 
   getThreads = async (cursor = undefined, threadTypes: ThreadType[] = []) => {
-    const currentUser = await this.getCurrentUser()
     let response: any = { channels: [] }
-    // This is done this way because Slack's API doesn't support all requests for guests
-    // for those cases we'll use some deprecated endpoints (such as im, mpim and channels)
-    // but this will allow us to retrieve all the data for guest users.
-    // In case user is not a guest we'll use the latest method suggested by Slack team
-    // conversation
-    // We cannot use users.conversations neither (this could change in a future)
-    // @see https://api.slack.com/docs/conversations-api
-    // @see https://api.slack.com/methods/channels.list
-    if (currentUser.user.guest_invited_by) {
-      if (threadTypes.includes('dm')) {
-        const [imList, mpimList] = await Promise.all([
-          this.webClient.im.list(),
-          this.webClient.mpim.list(),
-        ])
 
-        response.channels = [...response.channels, ...mpimList.groups as any, ...imList.ims as any]
-        response.response_metadata = mpimList.response_metadata || imList.response_metadata || {}
-      }
+    const types = threadTypes.map(t => {
+      if (t === 'dm') return ['mpim', 'im'].join(',')
+      if (t === 'channel') return ['public_channel', 'private_channel'].join(',')
+      return undefined
+    }).join(',')
 
-      if (threadTypes.includes('channel')) {
-        const [channelsList, conversationsList] = await Promise.all([
-          this.webClient.channels.list(),
-          this.webClient.conversations.list(),
-        ])
-
-        response.channels = [...response.channels, ...(channelsList as any).channels, ...(conversationsList as any).channels]
-        response.response_metadata = channelsList.response_metadata || conversationsList.response_metadata || response.response_metadata || {}
-      }
-    } else {
-      const types = threadTypes.map(t => {
-        if (t === 'dm') return ['mpim', 'im'].join(',')
-        if (t === 'channel') return ['public_channel', 'private_channel'].join(',')
-        return undefined
-      }).join(',')
-
-      response = await this.webClient.conversations.list({
-        types,
-        limit: 100,
-        cursor: cursor || undefined,
-        exclude_archived: true,
-      })
-    }
+    response = await this.webClient.conversations.list({
+      types,
+      limit: 100,
+      cursor: cursor || undefined,
+      exclude_archived: true,
+    })
 
     const privateMessages = threadTypes.includes('dm')
       ? (response.channels as { is_im: boolean, is_mpim?: boolean }[]).filter(({ is_im, is_mpim }) => is_im || is_mpim)
@@ -286,7 +256,8 @@ export default class SlackAPI {
         ? { profile: message.user_profile }
         : undefined
       // B01 === "Slackbot" but slack bot isn't a bot on slack so normal profile needs to be fetched instead the bot
-      const user = sharedParticipant || (message?.bot_id && message?.bot_id !== 'B01' && !message?.user ? await this.getParticipantBot(message.bot_id) : await this.getParticipantProfile(messageUser))
+      const isBot = message?.bot_id && message?.bot_id !== 'B01' && !message?.user
+      const user = sharedParticipant || (isBot ? await this.getParticipantBot(message.bot_id).catch(() => ({})) : await this.getParticipantProfile(messageUser))
 
       if (!user?.profile?.id) return
       if (message.bot_id) message.user = user.profile.id
