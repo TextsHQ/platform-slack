@@ -166,7 +166,8 @@ const mapTweetAttachment = ({
   }
   if (image_url) {
     tweet.attachments = [
-      { id: image_url,
+      {
+        id: image_url,
         type: AttachmentType.IMG,
         srcURL: image_url,
         size: {
@@ -285,7 +286,7 @@ export const mapMessage = (
 }
 
 export const mapParticipant = ({ profile }: any): Participant => profile && {
-  id: profile.id || profile.bot_id || profile.api_app_id,
+  id: profile.user_id || profile.id || profile.bot_id || profile.api_app_id,
   username: profile.display_name || profile.real_name || profile.name,
   fullName: profile.real_name || profile.display_name,
   imgURL: profile.image_192 || profile.image_72,
