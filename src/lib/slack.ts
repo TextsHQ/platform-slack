@@ -259,8 +259,8 @@ export default class SlackAPI {
       const isBot = message?.bot_id && message?.bot_id !== 'B01' && !message?.user
       const user = sharedParticipant || (isBot ? await this.getParticipantBot(message.bot_id).catch(() => ({})) : await this.getParticipantProfile(messageUser))
 
-      if (!user?.profile?.id) return
-      if (message.bot_id) message.user = user.profile.id
+      message.user = user.profile.user_id || user.profile.id
+      if (!user?.profile?.id && !message.user) return
 
       const p = mapParticipant(user)
       if (!participantsMap[p.id]) participantsMap[p.id] = p
@@ -271,6 +271,7 @@ export default class SlackAPI {
     response.messages = uniqBy(messages, 'ts')
 
     const participants = Object.values(participantsMap)
+
     if (participants.length > 0) {
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
