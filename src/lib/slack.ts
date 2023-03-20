@@ -260,7 +260,7 @@ export default class SlackAPI {
       const user = sharedParticipant || (isBot ? await this.getParticipantBot(message.bot_id).catch(() => ({})) : await this.getParticipantProfile(messageUser))
 
       message.user = user.profile.user_id || user.profile.id
-      if (!user?.profile?.id && !message.user) return
+      if (!message.user) return
 
       const p = mapParticipant(user)
       if (!participantsMap[p.id]) participantsMap[p.id] = p
