@@ -95,9 +95,9 @@ export function mapTextAttributes(
   wrapInQuote = false,
   customEmojis: Record<string, string> = {},
 ): {
-    text: string
-    textAttributes: TextAttributes
-  } {
+  text: string
+  textAttributes: TextAttributes
+} {
   if (typeof src !== 'string') return
   let output = ''
   const entities = []
