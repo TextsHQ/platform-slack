@@ -17,9 +17,9 @@ const info: PlatformInfo = {
   icon,
   typingDurationMs: 3000,
   deletionMode: MessageDeletionMode.DELETE_FOR_EVERYONE,
-  loginMode: 'browser',
+  loginMode: 'browser-extension',
   browserLogin: {
-    url: 'https://slack.com/signin#/signin',
+    url: 'https://slack.com/',
     authCookieName: 'd',
     runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
     closeOnRedirectRegex: 'ssb/redirect',
