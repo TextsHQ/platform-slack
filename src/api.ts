@@ -1,4 +1,4 @@
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, AccountInfo, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName } from '@textshq/platform-sdk'
+import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName, ClientContext } from '@textshq/platform-sdk'
 import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapThreads, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
@@ -39,7 +39,7 @@ export default class Slack implements PlatformAPI {
 
   constructor(readonly accountID: string) {}
 
-  init = async (serialized: { cookies: any, clientToken: string }, _: AccountInfo, prefs: Record<string, any>) => {
+  init = async (serialized: { cookies: any, clientToken: string }, _: ClientContext, prefs: Record<string, any>) => {
     const timer = textsTime('init')
     this.showChannels = prefs?.show_channels
 
@@ -66,12 +66,13 @@ export default class Slack implements PlatformAPI {
     timer.timeEnd()
   }
 
-  login = async ({ cookieJarJSON, jsCodeResult }: LoginCreds): Promise<LoginResult> => {
+  login = async (creds: LoginCreds): Promise<LoginResult> => {
+    const cookieJarJSON = 'cookieJarJSON' in creds && creds.cookieJarJSON
     const cookieJar = cookieJarJSON ? CookieJar.fromJSON(cookieJarJSON as any) : new CookieJar()
     this.api.cookieJar = cookieJar
 
-    if (!jsCodeResult) return { type: 'error', errorMessage: 'jsCodeResult was falsey' }
-    const { appUrl, magicLink } = JSON.parse(jsCodeResult)
+    if (!('jsCodeResult' in creds && creds.jsCodeResult)) return { type: 'error', errorMessage: 'jsCodeResult was falsey' }
+    const { appUrl, magicLink } = JSON.parse(creds.jsCodeResult)
     // this updates the cookie jar with the auth cookies
     if (appUrl) {
       /* {
