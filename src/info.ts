@@ -43,7 +43,7 @@ const info: PlatformInfo = {
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                 "cache-control": "max-age=0",
                 "content-type": "application/x-www-form-urlencoded",
-                "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="102"',
+                "sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="112"',
                 "sec-ch-ua-mobile": "?0",
                 "sec-ch-ua-platform": '"macOS"',
                 "sec-fetch-dest": "document",
