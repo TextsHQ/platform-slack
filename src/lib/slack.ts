@@ -1,9 +1,9 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
-import { FilesUploadResponse, WebClient } from '@slack/web-api'
+import { WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import { uniqBy, memoize } from 'lodash'
-import type { File } from '@slack/web-api/dist/response/FilesUploadResponse'
 import { setTimeout as setTimeoutAsync } from 'timers/promises'
+
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
