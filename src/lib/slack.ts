@@ -354,6 +354,7 @@ export default class SlackAPI {
     const { text } = content
 
     let attachments: File[]
+
     if (content.fileBuffer || content.filePath) {
       const buffer = content.fileBuffer || await fs.readFile(content.filePath)
       const file = await this.webClient.files.upload({
@@ -367,7 +368,13 @@ export default class SlackAPI {
     }
 
     try {
-      const res = await this.webClient.chat.postMessage({ channel, thread_ts, text, attachments: attachments as any[] })
+      const res = await this.webClient.chat.postMessage({
+        channel,
+        thread_ts,
+        text,
+        link_names: content.mentionedUserIDs?.length > 0,
+        attachments: attachments as any[],
+      })
       return res.message
     } catch (error) {
       // todo: hack, improve
