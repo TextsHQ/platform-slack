@@ -71,11 +71,32 @@ export default class SlackRealTime {
             entries: [slackEvent.deleted_ts], // this is correct, deleted_ts is the message timestamp
           }])
           break
-        default:
+        default: {
+          /**
+           * @notes
+           *  this is a patch for when sending attachments / files. Slack is updating their
+           *  attachments/uploads logic so when uploading a file to a channel or conversation
+           *  it doesn't return a MessageType object but an array of files and then on real-time
+           *  they send a slack without `SlackEvent.subtype`.
+           *
+           *  So what is happening here is that when the user sends a file, we set the returned
+           *  id to the `api.attachmentsPromises` with a promise and return that promise, so this checks
+           *  if a message is received with that `file.id` and there's a promise to resolve.
+           */
+          const [firstFile] = slackEvent?.files || []
+          if (firstFile) {
+            const possibleAttachmentFile = this.api.attachmentsPromises.get(firstFile.id)
+            possibleAttachmentFile?.(slackEvent)
+            this.api.attachmentsPromises.delete(firstFile.id)
+
+            break
+          }
+
           this.onEvent([{
             type: ServerEventType.THREAD_MESSAGES_REFRESH,
             threadID,
           }])
+        }
       }
     })
 
