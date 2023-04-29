@@ -3,6 +3,7 @@ import { FilesUploadResponse, WebClient } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import { uniqBy, memoize } from 'lodash'
 import type { File } from '@slack/web-api/dist/response/FilesUploadResponse'
+import { setTimeout as setTimeoutAsync } from 'timers/promises'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
@@ -24,6 +25,8 @@ export default class SlackAPI {
   customEmojis: Record<string, string>
 
   currentUser?: { auth: any, user: any, team: any }
+
+  public attachmentsPromises: Map<string, Function> = new Map()
 
   private workspaceUsers: Record<string, any> = {}
 
@@ -356,21 +359,33 @@ export default class SlackAPI {
     return filteredMembers.map(mapProfile)
   }
 
-  sendMessage = async (channel: string, thread_ts: string, content: MessageContent) => {
+  sendMessage = async (
+    channel: string,
+    thread_ts: string,
+    content: MessageContent,
+  ) => {
     const { text } = content
-
-    let attachments: File[]
 
     if (content.fileBuffer || content.filePath) {
       const buffer = content.fileBuffer || await fs.readFile(content.filePath)
-      const file = await this.webClient.files.upload({
+      const file = await this.webClient.files.uploadV2({
         file: buffer,
-        channels: channel,
+        channel_id: channel,
         thread_ts,
         title: content.fileName,
         filename: content.fileName,
-      }) || {} as FilesUploadResponse
-      attachments = [file.file]
+      })
+
+      const [firstFile] = (file as any).files || []
+
+      const promise = new Promise(resolve => {
+        this.attachmentsPromises.set(firstFile?.file?.id, resolve)
+      })
+
+      return Promise.race([
+        promise,
+        setTimeoutAsync(5_000).then(() => true),
+      ])
     }
 
     try {
@@ -379,8 +394,8 @@ export default class SlackAPI {
         thread_ts,
         text,
         link_names: content.mentionedUserIDs?.length > 0,
-        attachments: attachments as any[],
       })
+
       return res.message
     } catch (error) {
       // todo: hack, improve
