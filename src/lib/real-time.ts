@@ -86,10 +86,13 @@ export default class SlackRealTime {
           const [firstFile] = slackEvent?.files || []
           if (firstFile) {
             const possibleAttachmentFile = this.api.attachmentsPromises.get(firstFile.id)
-            possibleAttachmentFile?.(slackEvent)
-            this.api.attachmentsPromises.delete(firstFile.id)
 
-            break
+            if (possibleAttachmentFile) {
+              possibleAttachmentFile(slackEvent)
+              this.api.attachmentsPromises.delete(firstFile.id)
+
+              break
+            }
           }
 
           this.onEvent([{
