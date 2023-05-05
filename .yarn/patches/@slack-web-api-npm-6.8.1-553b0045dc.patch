@@ -1,0 +1,55 @@
+diff --git a/dist/WebClient.js b/dist/WebClient.js
+index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..b46d45a32f36cf9a07870b9f06f137551e579dfe 100644
+--- a/dist/WebClient.js
++++ b/dist/WebClient.js
+@@ -63,6 +63,9 @@ const logger_1 = require("./logger");
+ const retry_policies_1 = require("./retry-policies");
+ const helpers_1 = __importDefault(require("./helpers"));
+ const file_upload_1 = require("./file-upload");
++
++const texts = require('@textshq/platform-sdk');
++
+ /*
+  * Helpers
+  */
+@@ -123,6 +126,7 @@ class WebClient extends methods_1.Methods {
+             // protocols), users of this package should use the `agent` option to configure a proxy.
+             proxy: false,
+         });
++
+         // serializeApiCallOptions will always determine the appropriate content-type
+         delete this.axios.defaults.headers.post['Content-Type'];
+         this.logger.debug('initialized');
+@@ -408,7 +412,31 @@ class WebClient extends methods_1.Methods {
+                 if (url.endsWith('admin.analytics.getFile')) {
+                     config.responseType = 'arraybuffer';
+                 }
+-                const response = await this.axios.post(url, body, config);
++
++                const finalHeaders = {
++                    ...(this.axios.defaults.headers || {}),
++                    ...config.headers,
++                    Accept: 'application/json, text/plain, */*',
++                    'Content-Type': 'application/x-www-form-urlencoded',
++                    'charset': 'utf-8',
++                }
++
++                const serializedBody = this.serializeApiCallOptions(body, finalHeaders)
++                const response = await texts.texts.fetch(requestURL, {
++                    method: 'POST',
++                    headers: { ...finalHeaders },
++                    body: serializedBody,
++                })
++
++                response.status = response.statusCode
++                const stringifiedResponse = response.body.toString()
++
++                response.data = stringifiedResponse.startsWith('{') 
++                    ? JSON.stringify(JSON.parse(stringifiedResponse))
++                    : stringifiedResponse
++
++                response.request = { path: url }
++
+                 this.logger.debug('http response received');
+                 if (response.status === 429) {
+                     const retrySec = parseRetryHeaders(response);
