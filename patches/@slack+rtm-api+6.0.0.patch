@@ -1,0 +1,68 @@
+diff --git a/node_modules/@slack/rtm-api/dist/RTMClient.d.ts b/node_modules/@slack/rtm-api/dist/RTMClient.d.ts
+index 149c9be..2446027 100644
+--- a/node_modules/@slack/rtm-api/dist/RTMClient.d.ts
++++ b/node_modules/@slack/rtm-api/dist/RTMClient.d.ts
+@@ -2,6 +2,7 @@
+ import { Agent } from 'http';
+ import { EventEmitter } from 'eventemitter3';
+ import { WebAPICallResult, RetryOptions, TLSOptions, RTMConnectArguments, RTMStartArguments } from '@slack/web-api';
++import type { WebClient } from '../../web-api'
+ import { LogLevel, Logger } from './logger';
+ /**
+  * An RTMClient allows programs to communicate with the {@link https://api.slack.com/rtm|Slack Platform's RTM API}.
+@@ -29,7 +30,7 @@ export declare class RTMClient extends EventEmitter {
+     /**
+      * Internal use web client
+      */
+-    private webClient;
++    private webClient: WebClient;
+     /**
+      * An agent used to manage TCP connections for requests. Most commonly used to implement proxy support. See
+      * npm packages `tunnel` and `https-proxy-agent` for information on how to construct a proxy agent.
+@@ -97,7 +98,7 @@ export declare class RTMClient extends EventEmitter {
+      * This object's logger instance
+      */
+     private logger;
+-    constructor(token: string, { slackApiUrl, logger, logLevel, retryConfig, agent, autoReconnect, useRtmConnect, clientPingTimeout, serverPongTimeout, replyAckOnReconnectTimeout, tls, }?: RTMClientOptions);
++    constructor({ slackApiUrl, logger, logLevel, retryConfig, agent, autoReconnect, useRtmConnect, clientPingTimeout, serverPongTimeout, replyAckOnReconnectTimeout, tls, webClient }?: RTMClientOptions);
+     /**
+      * Begin an RTM session using the provided options. This method must be called before any messages can
+      * be sent or received.
+@@ -175,6 +176,7 @@ export declare class RTMClient extends EventEmitter {
+ }
+ export default RTMClient;
+ export interface RTMClientOptions {
++    webClient: WebClient;
+     slackApiUrl?: string;
+     logger?: Logger;
+     logLevel?: LogLevel;
+diff --git a/node_modules/@slack/rtm-api/dist/RTMClient.js b/node_modules/@slack/rtm-api/dist/RTMClient.js
+index 44e15b2..4296933 100644
+--- a/node_modules/@slack/rtm-api/dist/RTMClient.js
++++ b/node_modules/@slack/rtm-api/dist/RTMClient.js
+@@ -20,7 +20,7 @@ const packageJson = require('../package.json'); // tslint:disable-line:no-requir
+  * messages.
+  */
+ class RTMClient extends eventemitter3_1.EventEmitter {
+-    constructor(token, { slackApiUrl = 'https://slack.com/api/', logger = undefined, logLevel = logger_1.LogLevel.INFO, retryConfig, agent = undefined, autoReconnect = true, useRtmConnect = true, clientPingTimeout, serverPongTimeout, replyAckOnReconnectTimeout = 2000, tls = undefined, } = {}) {
++    constructor({ logger = undefined, logLevel = logger_1.LogLevel.INFO, agent = undefined, autoReconnect = true, useRtmConnect = true, clientPingTimeout, serverPongTimeout, replyAckOnReconnectTimeout = 2000, tls = undefined, webClient,} = {}) {
+         super();
+         /**
+          * Whether or not the client is currently connected to the RTM API
+@@ -215,15 +215,7 @@ class RTMClient extends eventemitter3_1.EventEmitter {
+          * The list is a sparse array, where the indexes are message IDs for the sent messages.
+          */
+         this.awaitingReplyList = [];
+-        this.webClient = new web_api_1.WebClient(token, {
+-            slackApiUrl,
+-            logger,
+-            logLevel,
+-            retryConfig,
+-            agent,
+-            tls,
+-            maxRequestConcurrency: 1,
+-        });
++        this.webClient =  webClient;
+         this.agentConfig = agent;
+         this.autoReconnect = autoReconnect;
+         this.useRtmConnect = useRtmConnect;
