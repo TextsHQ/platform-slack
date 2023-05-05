@@ -1908,13 +1908,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/types@npm:^1.7.0":
-  version: 1.10.0
-  resolution: "@slack/types@npm:1.10.0"
-  checksum: 9dcf254ad4882146de7ed2db948e7ee56614c3aca47a1df7cbbf4faebe6f2672a704239c0c259b4825be140bd8bb97d994241f35dc432b9ca722333828dac666
-  languageName: node
-  linkType: hard
-
 "@slack/types@npm:^2.0.0":
   version: 2.5.0
   resolution: "@slack/types@npm:2.5.0"
@@ -1922,25 +1915,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:^5.3.0":
-  version: 5.15.0
-  resolution: "@slack/web-api@npm:5.15.0"
-  dependencies:
-    "@slack/logger": ">=1.0.0 <3.0.0"
-    "@slack/types": ^1.7.0
-    "@types/is-stream": ^1.1.0
-    "@types/node": ">=8.9.0"
-    axios: ^0.21.1
-    eventemitter3: ^3.1.0
-    form-data: ^2.5.0
-    is-stream: ^1.1.0
-    p-queue: ^6.6.1
-    p-retry: ^4.0.0
-  checksum: c0500b88f9acd3c0581b1e7c51bc4edf013db93ec81f0fc7bed878be1a2710722ac9ccc35a4198e0d86ec64f4b733de0a622d759cfe7e1de493c46dcc41985b5
-  languageName: node
-  linkType: hard
-
-"@slack/web-api@npm:^6.8.1":
+"@slack/web-api@npm:6.8.1":
   version: 6.8.1
   resolution: "@slack/web-api@npm:6.8.1"
   dependencies:
@@ -1956,6 +1931,25 @@ __metadata:
     p-queue: ^6.6.1
     p-retry: ^4.0.0
   checksum: a622f44b0d9bef010799b78feb20cf93a8181a6c858aaccac60cd1041561681e1d444b39865efe3e4febfe3e85ea38e001315bbe6896bb8e0fc065eb9fd6634d
+  languageName: node
+  linkType: hard
+
+"@slack/web-api@patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch::locator=%40textshq%2Fplatform-slack%40workspace%3A.":
+  version: 6.8.1
+  resolution: "@slack/web-api@patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch::version=6.8.1&hash=46add8&locator=%40textshq%2Fplatform-slack%40workspace%3A."
+  dependencies:
+    "@slack/logger": ^3.0.0
+    "@slack/types": ^2.0.0
+    "@types/is-stream": ^1.1.0
+    "@types/node": ">=12.0.0"
+    axios: ^0.27.2
+    eventemitter3: ^3.1.0
+    form-data: ^2.5.0
+    is-electron: 2.2.0
+    is-stream: ^1.1.0
+    p-queue: ^6.6.1
+    p-retry: ^4.0.0
+  checksum: 70d1d708664c140e2e8f94b8aaa4fe9b02c48f76b00b13d8382feecaa1c9919a46aa967b2161578a58e91b9f6673f1ad8c1019a7249e16662b0269be5a909d59
   languageName: node
   linkType: hard
 
@@ -2647,15 +2641,6 @@ __metadata:
   version: 4.4.2
   resolution: "axe-core@npm:4.4.2"
   checksum: 93fbb36c5ac8ab5e67e49678a6f7be0dc799a9f560edd95cca1f0a8183def8c50205972366b9941a3ea2b20224a1fe230e6d87ef38cb6db70472ed1b694febd1
-  languageName: node
-  linkType: hard
-
-"axios@npm:^0.21.1":
-  version: 0.21.4
-  resolution: "axios@npm:0.21.4"
-  dependencies:
-    follow-redirects: ^1.14.0
-  checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
   languageName: node
   linkType: hard
 
@@ -4121,7 +4106,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.0, follow-redirects@npm:^1.14.9":
+"follow-redirects@npm:^1.14.9":
   version: 1.15.1
   resolution: "follow-redirects@npm:1.15.1"
   peerDependenciesMeta:
