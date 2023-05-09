@@ -7,7 +7,7 @@ index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..5ad43cd1ceac1fa6a80419cf8174377b
  const helpers_1 = __importDefault(require("./helpers"));
  const file_upload_1 = require("./file-upload");
 +
-+const texts = require('@textshq/platform-sdk');
++const { texts } = require('@textshq/platform-sdk');
 +
  /*
   * Helpers
@@ -17,7 +17,7 @@ index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..5ad43cd1ceac1fa6a80419cf8174377b
          if (this.token && !headers.Authorization)
              headers.Authorization = `Bearer ${this.token}`;
 +
-+        this.textsClient = texts.texts.createHttpClient();
++        this.textsClient = texts.createHttpClient();
 +
          this.axios = axios_1.default.create({
              timeout,

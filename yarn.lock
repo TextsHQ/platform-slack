@@ -1936,7 +1936,7 @@ __metadata:
 
 "@slack/web-api@patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch::locator=%40textshq%2Fplatform-slack%40workspace%3A.":
   version: 6.8.1
-  resolution: "@slack/web-api@patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch::version=6.8.1&hash=46add8&locator=%40textshq%2Fplatform-slack%40workspace%3A."
+  resolution: "@slack/web-api@patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch::version=6.8.1&hash=4f6db3&locator=%40textshq%2Fplatform-slack%40workspace%3A."
   dependencies:
     "@slack/logger": ^3.0.0
     "@slack/types": ^2.0.0
@@ -1949,7 +1949,7 @@ __metadata:
     is-stream: ^1.1.0
     p-queue: ^6.6.1
     p-retry: ^4.0.0
-  checksum: 70d1d708664c140e2e8f94b8aaa4fe9b02c48f76b00b13d8382feecaa1c9919a46aa967b2161578a58e91b9f6673f1ad8c1019a7249e16662b0269be5a909d59
+  checksum: e8d986529c5b53f98b390def794917adf9a9f7811d9f1daa57858a870255e0c8a92636814c4b9a4d044bfedbd2e04ba87fdd30745783cfabcbba605f07e7a2e2
   languageName: node
   linkType: hard
 
