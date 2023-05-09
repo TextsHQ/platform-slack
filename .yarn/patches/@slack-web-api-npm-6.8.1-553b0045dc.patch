@@ -1,0 +1,73 @@
+diff --git a/dist/WebClient.js b/dist/WebClient.js
+index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..5ad43cd1ceac1fa6a80419cf8174377bc9901907 100644
+--- a/dist/WebClient.js
++++ b/dist/WebClient.js
+@@ -63,6 +63,9 @@ const logger_1 = require("./logger");
+ const retry_policies_1 = require("./retry-policies");
+ const helpers_1 = __importDefault(require("./helpers"));
+ const file_upload_1 = require("./file-upload");
++
++const { texts } = require('@textshq/platform-sdk');
++
+ /*
+  * Helpers
+  */
+@@ -108,6 +111,9 @@ class WebClient extends methods_1.Methods {
+         // eslint-disable-next-line no-param-reassign
+         if (this.token && !headers.Authorization)
+             headers.Authorization = `Bearer ${this.token}`;
++
++        this.textsClient = texts.createHttpClient();
++
+         this.axios = axios_1.default.create({
+             timeout,
+             baseURL: slackApiUrl,
+@@ -123,6 +129,7 @@ class WebClient extends methods_1.Methods {
+             // protocols), users of this package should use the `agent` option to configure a proxy.
+             proxy: false,
+         });
++
+         // serializeApiCallOptions will always determine the appropriate content-type
+         delete this.axios.defaults.headers.post['Content-Type'];
+         this.logger.debug('initialized');
+@@ -408,7 +415,39 @@ class WebClient extends methods_1.Methods {
+                 if (url.endsWith('admin.analytics.getFile')) {
+                     config.responseType = 'arraybuffer';
+                 }
+-                const response = await this.axios.post(url, body, config);
++
++                const finalHeaders = {
++                    ...(this.axios.defaults.headers || {}),
++                    ...config.headers,
++                    Accept: 'application/json, text/plain, */*',
++                    'Content-Type': 'application/x-www-form-urlencoded',
++                    'charset': 'utf-8',
++                }
++
++                delete finalHeaders.common;
++                delete finalHeaders.head;
++                delete finalHeaders.get;
++                delete finalHeaders.put;
++                delete finalHeaders.patch;
++                delete finalHeaders.post;
++                delete finalHeaders.delete;
++
++                const serializedBody = this.serializeApiCallOptions(body, finalHeaders)
++                const response = await this.textsClient.requestAsString(requestURL, {
++                    method: 'POST',
++                    headers: { ...finalHeaders },
++                    body: serializedBody,
++                })
++
++                response.status = response.statusCode
++                const stringifiedResponse = response.body.toString()
++
++                response.data = stringifiedResponse.startsWith('{') 
++                    ? JSON.stringify(JSON.parse(stringifiedResponse))
++                    : stringifiedResponse
++
++                response.request = { path: url }
++
+                 this.logger.debug('http response received');
+                 if (response.status === 429) {
+                     const retrySec = parseRetryHeaders(response);
