@@ -9,22 +9,7 @@ const icon = `
     <path d="M9.74635 11.678C10.4585 11.678 11.0342 12.2537 11.0342 12.9658C11.0342 13.678 10.4585 14.2537 9.74635 14.2537C9.03415 14.2537 8.45854 13.678 8.45854 12.9658V11.678H9.74635ZM9.74635 11.0341C9.03415 11.0341 8.45854 10.4585 8.45854 9.74633C8.45854 9.03414 9.03415 8.45853 9.74635 8.45853H12.9756C13.6878 8.45853 14.2634 9.03414 14.2634 9.74633C14.2634 10.4585 13.6878 11.0341 12.9756 11.0341H9.74635Z" fill="#ECB22E"/>
   </svg>
 `
-
-const info: PlatformInfo = {
-  name: 'slack',
-  version: '0.0.1',
-  displayName: 'Slack',
-  icon,
-  typingDurationMs: 3000,
-  deletionMode: MessageDeletionMode.DELETE_FOR_EVERYONE,
-  loginMode: ['browser', 'browser-extension'],
-  browserLogin: {
-    url: 'https://slack.com/',
-    authCookieName: 'd',
-    runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
-    closeOnRedirectRegex: 'ssb/redirect',
-    userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
-    runJSOnNavigate: `
+const runJSOnNavigate = `
       window.__loginReturnValue = window.__loginReturnValue || {}
       window.__changeListener = window.__changeListener || function () {
         const url = window.location.href
@@ -101,7 +86,23 @@ const info: PlatformInfo = {
       }
       window.__addNavigationListener()
       window.__changeListener()
-      window.__addEventsListeners()`,
+      window.__addEventsListeners()`
+
+const info: PlatformInfo = {
+  name: 'slack',
+  version: '0.0.1',
+  displayName: 'Slack',
+  icon,
+  typingDurationMs: 3000,
+  deletionMode: MessageDeletionMode.DELETE_FOR_EVERYONE,
+  loginMode: ['browser', 'browser-extension'],
+  browserLogin: {
+    url: 'https://slack.com/',
+    authCookieName: 'd',
+    runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
+    closeOnRedirectRegex: 'ssb/redirect',
+    userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
+    runJSOnNavigate,
   },
   reactions: {
     supported: {},
@@ -144,6 +145,18 @@ const info: PlatformInfo = {
       label: 'Show channels',
       type: 'checkbox',
       default: false,
+    },
+  },
+  extra: {
+    autoLogin: {
+      browserLoginOverrides: {
+        runJSOnLaunch: runJSOnNavigate,
+        url: 'https://slack.com/signin#/workspaces',
+        closeOnRedirectRegex: undefined,
+        authCookieName: undefined,
+        isHidden: false,
+      },
+      noCookieJar: true,
     },
   },
 }
