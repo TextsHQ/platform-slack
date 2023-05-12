@@ -384,7 +384,7 @@ export default class SlackAPI {
 
       return Promise.race([
         promise,
-        setTimeoutAsync(5_000).then(() => true),
+        setTimeoutAsync(15_000).then(() => true),
       ])
     }
 
