@@ -4,7 +4,7 @@ import { CurrentUser, Message, MessageAction, MessageActionType, Attachment, Att
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
-import { getEmoji } from './lib/emoji'
+import { getEmojiUnicode, getEmojiUrl, getNativeShortcodeFromBlock } from './lib/emoji'
 
 const getAttachmentType = (mimeType: string): AttachmentType => {
   if (mimeType?.startsWith('image')) return AttachmentType.IMG
@@ -94,7 +94,7 @@ export const mapAction = (slackMessage: CHRMessage): MessageAction => {
 }
 
 export const mapReactionKey = (shortcode: string, customEmojis: Record<string, string>) =>
-  customEmojis[shortcode] || shortcode
+  customEmojis[shortcode] || getEmojiUrl(shortcode) || shortcode
 
 /** takes a shortcode argument like `+1` or `+1::skin-tone-4` and returns '👍' or '👍🏽' */
 export const shortcodeToEmoji = (shortcode: string) => {
@@ -102,7 +102,8 @@ export const shortcodeToEmoji = (shortcode: string) => {
     const [code, skinTone] = shortcode.split('::')
     return NodeEmoji.emoji[code] + NodeEmoji.emoji[skinTone]
   }
-  return NodeEmoji.emoji[shortcode] || skinToneShortcodeToEmojiMap[shortcode] || getEmoji(shortcode)
+
+  return NodeEmoji.emoji[shortcode] || skinToneShortcodeToEmojiMap[shortcode] || getNativeShortcodeFromBlock(shortcode)
 }
 
 const mapReactions = (
@@ -115,12 +116,14 @@ const mapReactions = (
     // reaction.name is `heart`, `+1`, or `+1::skin-tone-4`
     const emoji = shortcodeToEmoji(reaction.name)
     const reactionKey = emoji || reaction.name
+    const isNativeEmoji = !!emoji && emoji !== reaction.name
+
     return {
       id: `${reaction.user}${reactionKey}`,
       participantID: reaction.user,
       reactionKey,
-      imgURL: emoji ? undefined : mapReactionKey(reaction.name, customEmojis),
-      emoji: !!emoji,
+      imgURL: isNativeEmoji ? undefined : mapReactionKey(reaction.name, customEmojis),
+      emoji: isNativeEmoji,
     }
   })
 }
