@@ -2,7 +2,7 @@
 import NodeEmoji from 'node-emoji'
 
 import { texts, TextAttributes, TextEntity, Message, MessageButton } from '@textshq/platform-sdk'
-import { getEmoji } from './lib/emoji'
+import { getEmoji, getSlug } from './lib/emoji'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -45,6 +45,8 @@ export const emojiToShortcode = (emoji: string) => {
   // @ts-expect-error
   const key = NodeEmoji.findByCode(emoji)?.key
   if (key) return key + skinTone
+
+  return getSlug(emoji)
 }
 
 const getClosingToken = (token: string): string => (
