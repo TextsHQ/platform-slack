@@ -401,5 +401,8 @@ export function mapEmojiChangedEvent(event: any): ServerEvent[] {
           }],
         },
       ]
+
+    default:
+      return []
   }
 }
