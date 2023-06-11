@@ -1,6 +1,8 @@
 // node-emoji doesn't support skin tone, see https://github.com/omnidan/node-emoji/issues/57
 import NodeEmoji from 'node-emoji'
+
 import { texts, TextAttributes, TextEntity, Message, MessageButton } from '@textshq/platform-sdk'
+import { getEmoji } from './lib/emoji'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -40,7 +42,7 @@ export const emojiToShortcode = (emoji: string) => {
       emoji = emoji.replace(skinToneChar, '')
     }
   }
-  // @ts-expect-error missing type defs
+
   const key = NodeEmoji.findByCode(emoji)?.key
   if (key) return key + skinTone
 }
@@ -95,9 +97,9 @@ export function mapTextAttributes(
   wrapInQuote = false,
   customEmojis: Record<string, string> = {},
 ): {
-  text: string
-  textAttributes: TextAttributes
-} {
+    text: string
+    textAttributes: TextAttributes
+  } {
   if (typeof src !== 'string') return
   let output = ''
   const entities = []
@@ -421,10 +423,11 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
     }
     case 'emoji': {
       const emojiCode = `:${block.name}:`
-      const emoji = NodeEmoji.emojify(emojiCode)
+      const emoji = getEmoji(emojiCode)
+
+      // Native emojis.
       if (emoji !== emojiCode) {
-        // Native emojis.
-        output += NodeEmoji.emojify(`:${block.name}:`)
+        output += emoji
       } else {
         // Custom emojis.
         const from = Array.from(output).length
