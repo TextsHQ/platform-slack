@@ -6,3 +6,8 @@ export const getEmoji = (block: string): string => {
 
   return selectedEmoji || block
 }
+
+export const getSlug = (emoji: string): string => {
+  const data = emojiData[emoji]
+  return data?.slug || emoji
+}
