@@ -42,7 +42,7 @@ export const emojiToShortcode = (emoji: string) => {
       emoji = emoji.replace(skinToneChar, '')
     }
   }
-
+  // @ts-expect-error
   const key = NodeEmoji.findByCode(emoji)?.key
   if (key) return key + skinTone
 }
