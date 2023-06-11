@@ -4,6 +4,7 @@ import { CurrentUser, Message, MessageAction, MessageActionType, Attachment, Att
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
+import { getEmoji } from './lib/emoji'
 
 const getAttachmentType = (mimeType: string): AttachmentType => {
   if (mimeType?.startsWith('image')) return AttachmentType.IMG
@@ -101,7 +102,7 @@ export const shortcodeToEmoji = (shortcode: string) => {
     const [code, skinTone] = shortcode.split('::')
     return NodeEmoji.emoji[code] + NodeEmoji.emoji[skinTone]
   }
-  return NodeEmoji.emoji[shortcode] || skinToneShortcodeToEmojiMap[shortcode]
+  return NodeEmoji.emoji[shortcode] || skinToneShortcodeToEmojiMap[shortcode] || getEmoji(shortcode)
 }
 
 const mapReactions = (
