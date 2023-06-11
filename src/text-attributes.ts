@@ -432,9 +432,14 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
         const unicodeCharacter = String.fromCodePoint(parseInt(block.unicode, 16))
         output += unicodeCharacter
       } else {
-        // Custom emojis.
         const from = Array.from(output).length
-        const shouldReplace = customEmojis[block.name] || (emojiUrl !== emojiCode)
+        // Custom emojis can reference to other emojis (aliases) and their value
+        // is equal to `alias:<emoji_reference>` example: `alias:sequirrel`
+        const customEmojiKey = (customEmojis[block.name] as string || '').startsWith('alias:')
+          ? customEmojis[block.name].split(':')?.[1]
+          : block.name
+
+        const shouldReplace = customEmojis[customEmojiKey] || (emojiUrl !== emojiCode)
 
         if (shouldReplace) {
           entities.push({
@@ -442,7 +447,7 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
             to: from + Array.from(block.name).length,
             replaceWithMedia: {
               mediaType: 'img',
-              srcURL: customEmojis[block.name] || emojiUrl,
+              srcURL: customEmojis[customEmojiKey] || emojiUrl,
               size: {
                 width: 16,
                 height: 16,
