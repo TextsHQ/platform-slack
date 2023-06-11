@@ -10,3 +10,6 @@ We have two sandboxes for testing the Slack Enterprise Grid integration. Owner a
 - Organization ID: els1761b (uses SAML SSO w/ Google)
 
 These organizations have multiple Slack teams within them that can share channels and users with same ID across the teams.
+
+## Emojis
+Slack is powered by [`emoji-data`](https://github.com/iamcal/emoji-data) so we're downloading the data json file [from it](https://github.com/iamcal/emoji-data/blob/master/emoji.json) and getting the assets from Slack's server.
