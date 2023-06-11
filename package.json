@@ -24,7 +24,8 @@
     "node-emoji": "^1.11.0",
     "patch-package": "^7.0.0",
     "postinstall-postinstall": "^2.1.0",
-    "tough-cookie": "^4.1.2"
+    "tough-cookie": "^4.1.2",
+    "unicode-emoji-json": "^0.4.0"
   },
   "devDependencies": {
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config#main",

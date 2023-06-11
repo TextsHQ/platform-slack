@@ -2319,6 +2319,7 @@ __metadata:
     postinstall-postinstall: ^2.1.0
     tough-cookie: ^4.1.2
     typescript: ^5.0.4
+    unicode-emoji-json: ^0.4.0
   languageName: unknown
   linkType: soft
 
@@ -7392,6 +7393,13 @@ __metadata:
   version: 2.0.0
   resolution: "unicode-canonical-property-names-ecmascript@npm:2.0.0"
   checksum: 39be078afd014c14dcd957a7a46a60061bc37c4508ba146517f85f60361acf4c7539552645ece25de840e17e293baa5556268d091ca6762747fdd0c705001a45
+  languageName: node
+  linkType: hard
+
+"unicode-emoji-json@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "unicode-emoji-json@npm:0.4.0"
+  checksum: 3c70df3d004d06f7f6efbda0b4935646027e4599389ccc508ccf20e6dd1e69897822a52769e33cf5b6f7c55b467587f2a8f10394b70cdc3f83deec92065c2ebe
   languageName: node
   linkType: hard
 
