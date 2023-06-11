@@ -2,7 +2,7 @@
 import NodeEmoji from 'node-emoji'
 
 import { texts, TextAttributes, TextEntity, Message, MessageButton } from '@textshq/platform-sdk'
-import { getEmoji, getSlug } from './lib/emoji'
+import { getEmojiUrl, getSlug } from './lib/emoji'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -425,21 +425,24 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
     }
     case 'emoji': {
       const emojiCode = `:${block.name}:`
-      const emoji = getEmoji(emojiCode)
+      const emojiUrl = getEmojiUrl(emojiCode)
 
       // Native emojis.
-      if (emoji !== emojiCode) {
-        output += emoji
+      if (block.unicode) {
+        const unicodeCharacter = String.fromCodePoint(parseInt(block.unicode, 16))
+        output += unicodeCharacter
       } else {
         // Custom emojis.
         const from = Array.from(output).length
-        if (customEmojis[block.name]) {
+        const shouldReplace = customEmojis[block.name] || (emojiUrl !== emojiCode)
+
+        if (shouldReplace) {
           entities.push({
             from,
             to: from + Array.from(block.name).length,
             replaceWithMedia: {
               mediaType: 'img',
-              srcURL: customEmojis[block.name],
+              srcURL: customEmojis[block.name] || emojiUrl,
               size: {
                 width: 16,
                 height: 16,
@@ -447,7 +450,8 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
             },
           })
         }
-        output += block.name
+
+        output += shouldReplace ? block.name : emojiCode
       }
       break
     }
