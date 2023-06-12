@@ -1,10 +1,9 @@
-import NodeEmoji from 'node-emoji'
 import { truncate } from 'lodash'
 import { CurrentUser, Message, MessageAction, MessageActionType, Attachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
-import { getEmojiUnicode, getEmojiUrl, getNativeShortcodeFromBlock } from './lib/emoji'
+import { getEmojiUrl, getNativeShortcodeFromBlock, getEmojiUnicode } from './lib/emoji'
 
 const getAttachmentType = (mimeType: string): AttachmentType => {
   if (mimeType?.startsWith('image')) return AttachmentType.IMG
@@ -100,10 +99,10 @@ export const mapReactionKey = (shortcode: string, customEmojis: Record<string, s
 export const shortcodeToEmoji = (shortcode: string) => {
   if (shortcode.includes('::')) {
     const [code, skinTone] = shortcode.split('::')
-    return NodeEmoji.emoji[code] + NodeEmoji.emoji[skinTone]
+    return getEmojiUnicode(code) + getEmojiUnicode(skinTone)
   }
 
-  return NodeEmoji.emoji[shortcode] || skinToneShortcodeToEmojiMap[shortcode] || getNativeShortcodeFromBlock(shortcode)
+  return getEmojiUnicode(shortcode) || skinToneShortcodeToEmojiMap[shortcode] || getNativeShortcodeFromBlock(shortcode)
 }
 
 const mapReactions = (
