@@ -1,8 +1,5 @@
-// node-emoji doesn't support skin tone, see https://github.com/omnidan/node-emoji/issues/57
-import NodeEmoji from 'node-emoji'
-
 import { texts, TextAttributes, TextEntity, Message, MessageButton } from '@textshq/platform-sdk'
-import { getEmojiUrl, getSlug } from './lib/emoji'
+import { getEmojiUnicode, getEmojiUrl, getSlug } from './lib/emoji'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -26,7 +23,7 @@ export function mapNativeEmojis(text: string): string {
   if (!matches) return text
 
   for (const shortcode of matches) {
-    const emoji = NodeEmoji.get(shortcode) || skinToneShortcodeToEmojiMap[shortcode]
+    const emoji = getEmojiUnicode(shortcode) || skinToneShortcodeToEmojiMap[shortcode]
     if (emoji) {
       text = text.replace(shortcode, emoji)
     }
@@ -42,8 +39,8 @@ export const emojiToShortcode = (emoji: string) => {
       emoji = emoji.replace(skinToneChar, '')
     }
   }
-  // @ts-expect-error
-  const key = NodeEmoji.findByCode(emoji)?.key
+
+  const key = getSlug(emoji)
   if (key) return key + skinTone
 
   return getSlug(emoji)
