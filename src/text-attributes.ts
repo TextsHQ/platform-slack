@@ -1,6 +1,5 @@
-// node-emoji doesn't support skin tone, see https://github.com/omnidan/node-emoji/issues/57
-import NodeEmoji from 'node-emoji'
 import { texts, TextAttributes, TextEntity, Message, MessageButton } from '@textshq/platform-sdk'
+import { getEmojiUnicode, getEmojiUrl, getSlug } from './lib/emoji'
 
 export const skinToneShortcodeToEmojiMap = {
   ':skin-tone-2:': '🏻',
@@ -24,7 +23,7 @@ export function mapNativeEmojis(text: string): string {
   if (!matches) return text
 
   for (const shortcode of matches) {
-    const emoji = NodeEmoji.get(shortcode) || skinToneShortcodeToEmojiMap[shortcode]
+    const emoji = getEmojiUnicode(shortcode) || skinToneShortcodeToEmojiMap[shortcode]
     if (emoji) {
       text = text.replace(shortcode, emoji)
     }
@@ -40,9 +39,11 @@ export const emojiToShortcode = (emoji: string) => {
       emoji = emoji.replace(skinToneChar, '')
     }
   }
-  // @ts-expect-error missing type defs
-  const key = NodeEmoji.findByCode(emoji)?.key
+
+  const key = getSlug(emoji)
   if (key) return key + skinTone
+
+  return getSlug(emoji)
 }
 
 const getClosingToken = (token: string): string => (
@@ -95,9 +96,9 @@ export function mapTextAttributes(
   wrapInQuote = false,
   customEmojis: Record<string, string> = {},
 ): {
-  text: string
-  textAttributes: TextAttributes
-} {
+    text: string
+    textAttributes: TextAttributes
+  } {
   if (typeof src !== 'string') return
   let output = ''
   const entities = []
@@ -421,20 +422,29 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
     }
     case 'emoji': {
       const emojiCode = `:${block.name}:`
-      const emoji = NodeEmoji.emojify(emojiCode)
-      if (emoji !== emojiCode) {
-        // Native emojis.
-        output += NodeEmoji.emojify(`:${block.name}:`)
+      const emojiUrl = getEmojiUrl(emojiCode)
+
+      // Native emojis.
+      if (block.unicode) {
+        const unicodeCharacter = String.fromCodePoint(parseInt(block.unicode, 16))
+        output += unicodeCharacter
       } else {
-        // Custom emojis.
         const from = Array.from(output).length
-        if (customEmojis[block.name]) {
+        // Custom emojis can reference to other emojis (aliases) and their value
+        // is equal to `alias:<emoji_reference>` example: `alias:sequirrel`
+        const customEmojiKey = (customEmojis[block.name] as string || '').startsWith('alias:')
+          ? customEmojis[block.name].split(':')?.[1]
+          : block.name
+
+        const shouldReplace = customEmojis[customEmojiKey] || (emojiUrl !== emojiCode)
+
+        if (shouldReplace) {
           entities.push({
             from,
             to: from + Array.from(block.name).length,
             replaceWithMedia: {
               mediaType: 'img',
-              srcURL: customEmojis[block.name],
+              srcURL: customEmojis[customEmojiKey] || emojiUrl,
               size: {
                 width: 16,
                 height: 16,
@@ -442,7 +452,8 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
             },
           })
         }
-        output += block.name
+
+        output += shouldReplace ? block.name : emojiCode
       }
       break
     }

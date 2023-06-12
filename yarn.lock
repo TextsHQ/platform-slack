@@ -2307,14 +2307,12 @@ __metadata:
     "@types/eslint": ^8.37.0
     "@types/jest": ^27.0.1
     "@types/lodash": ^4.14.194
-    "@types/node-emoji": ^1.8.2
     "@types/tough-cookie": ^4.0.2
     eslint: ^8.40.0
     eventemitter3: ^3.1.0
     finity: ^0.5.4
     jest: ^29.5.0
     lodash: ^4.17.21
-    node-emoji: ^1.11.0
     patch-package: ^7.0.0
     postinstall-postinstall: ^2.1.0
     tough-cookie: ^4.1.2
@@ -2458,13 +2456,6 @@ __metadata:
   version: 4.14.194
   resolution: "@types/lodash@npm:4.14.194"
   checksum: 113f34831c461469d91feca2dde737f88487732898b4d25e9eb23b087bb193985f864d1e1e0f3b777edc5022e460443588b6000a3b2348c966f72d17eedc35ea
-  languageName: node
-  linkType: hard
-
-"@types/node-emoji@npm:^1.8.2":
-  version: 1.8.2
-  resolution: "@types/node-emoji@npm:1.8.2"
-  checksum: b75f2c85862615b89fda093df57785916f59ce73519cb337807785f6ecae324d6d34ab2d2460636ce40f7e65548104dc398ed45798060c57fbc72dffadd4275e
   languageName: node
   linkType: hard
 
@@ -6042,15 +6033,6 @@ __metadata:
   version: 0.6.3
   resolution: "negotiator@npm:0.6.3"
   checksum: b8ffeb1e262eff7968fc90a2b6767b04cfd9842582a9d0ece0af7049537266e7b2506dfb1d107a32f06dd849ab2aea834d5830f7f4d0e5cb7d36e1ae55d021d9
-  languageName: node
-  linkType: hard
-
-"node-emoji@npm:^1.11.0":
-  version: 1.11.0
-  resolution: "node-emoji@npm:1.11.0"
-  dependencies:
-    lodash: ^4.17.21
-  checksum: e8c856c04a1645062112a72e59a98b203505ed5111ff84a3a5f40611afa229b578c7d50f1e6a7f17aa62baeea4a640d2e2f61f63afc05423aa267af10977fb2b
   languageName: node
   linkType: hard
 
