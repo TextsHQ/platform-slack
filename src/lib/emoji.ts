@@ -1,15 +1,19 @@
-import emojiData from 'unicode-emoji-json'
-
 import slackEmoji from './slack-emoji.json'
 
-const slackEmojiMap = slackEmoji.reduce((map, currentEmoji) => {
+const slackEmojiShortName = slackEmoji.reduce((map, currentEmoji) => {
   map.set(currentEmoji.short_name, { ...currentEmoji })
+  return map
+}, new Map())
+
+const slackEmojiUnicode = slackEmoji.reduce((map, currentEmoji) => {
+  const unicode = String.fromCodePoint(parseInt(currentEmoji.unified, 16))
+  map.set(unicode, { ...currentEmoji })
   return map
 }, new Map())
 
 export const getEmojiUrl = (block: string): string => {
   const emojiSlug = block.replace(/:/g, '')
-  const selectedEmoji = slackEmojiMap.get(emojiSlug)
+  const selectedEmoji = slackEmojiShortName.get(emojiSlug)
 
   if (selectedEmoji) return `https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/${selectedEmoji.image}`
 
@@ -18,7 +22,7 @@ export const getEmojiUrl = (block: string): string => {
 
 export const getEmojiUnicode = (block: string): string => {
   const emojiSlug = block.replace(/:/g, '')
-  const selectedEmoji = slackEmojiMap.get(emojiSlug)
+  const selectedEmoji = slackEmojiShortName.get(emojiSlug)
 
   if (selectedEmoji) return String.fromCodePoint(parseInt(selectedEmoji.unified, 16))
 
@@ -26,8 +30,8 @@ export const getEmojiUnicode = (block: string): string => {
 }
 
 export const getSlug = (emoji: string): string => {
-  const data = emojiData[emoji]
-  return data?.slug || emoji
+  const data = slackEmojiUnicode.get(emoji)
+  return data?.short_name || emoji
 }
 
 export const getNativeShortcodeFromBlock = (block: string): string => {
