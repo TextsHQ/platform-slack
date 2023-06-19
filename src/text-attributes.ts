@@ -329,7 +329,7 @@ const mapStyle = (style): Partial<TextEntity> => ({
   strikethrough: style.strike,
 })
 
-function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> {
+function mapBlock(block: Block, customEmojis: Record<string, string>, fallbackText = ''): Pick<Message, 'text' | 'textAttributes' | 'buttons'> {
   let output = ''
   const entities: TextEntity[] = []
   const buttons: MessageButton[] = []
@@ -337,7 +337,7 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
   switch (block.type) {
     case 'rich_text':
     case 'rich_text_section': {
-      const mapped = mapBlocks(block.elements, customEmojis)
+      const mapped = mapBlocks(block.elements, customEmojis, fallbackText)
       const nestedEntities = offsetEntities(mapped.textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       buttons.push(...mapped.buttons)
@@ -359,7 +359,7 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
       break
     }
     case 'rich_text_quote': {
-      const mapped = mapBlocks(block.elements, customEmojis)
+      const mapped = mapBlocks(block.elements, customEmojis, fallbackText)
       const cursor = Array.from(output).length
       const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
       entities.push(...nestedEntities)
@@ -376,7 +376,7 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
       break
     }
     case 'rich_text_preformatted': {
-      const mapped = mapBlocks(block.elements, customEmojis)
+      const mapped = mapBlocks(block.elements, customEmojis, fallbackText)
       const cursor = Array.from(output).length
       const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
       entities.push(...nestedEntities)
@@ -492,7 +492,7 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
     }
     case 'context':
       {
-        const mapped = mapBlocks(block.elements, customEmojis)
+        const mapped = mapBlocks(block.elements, customEmojis, fallbackText)
         const cursor = Array.from(output).length
         const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
         entities.push(...nestedEntities)
@@ -539,12 +539,18 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
     }
     case 'channel': {
       const from = Array.from(output).length
-      const text = block.channel_id
+      // Fallback text has the following structure: <#channel-id|channel-name>
+      // so this way we're getting the channel name from the fallback text (from
+      // original Slack message).
+      const channelIdRegex = new RegExp(`<#${block.channel_id}\\|(.+?)>`)
+      const [,text] = fallbackText.match(channelIdRegex) || [null, block.channel_id]
+
       output += text
+
       entities.push({
         from,
         to: from + Array.from(text).length,
-        replaceWith: '#' + block.channel_id, // todo: should be proper channel
+        replaceWith: '#' + text,
         ...block.style && mapStyle(block.style),
       })
       break
@@ -606,14 +612,14 @@ function mapBlock(block: Block, customEmojis: Record<string, string>): Pick<Mess
   }
 }
 
-export function mapBlocks(blocks: Block[], customEmojis: Record<string, string>): Pick<Message, 'text' | 'textAttributes' | 'buttons'> {
+export function mapBlocks(blocks: Block[], customEmojis: Record<string, string>, fallbackText: string = ''): Pick<Message, 'text' | 'textAttributes' | 'buttons'> {
   let output = ''
   const entities: TextEntity[] = []
   const buttons: MessageButton[] = []
 
   for (const block of blocks) {
     if (block) {
-      const mapped = mapBlock(block, customEmojis)
+      const mapped = mapBlock(block, customEmojis, fallbackText)
       const nestedEntities = offsetEntities(mapped.textAttributes.entities, Array.from(output).length)
       entities.push(...nestedEntities)
       buttons.push(...mapped.buttons)
