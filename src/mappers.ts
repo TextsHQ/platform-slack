@@ -245,7 +245,7 @@ export const mapMessage = (
   const buttons: MessageButton[] = []
 
   if (slackMessage.blocks) {
-    const data = mapBlocks(slackMessage.blocks, customEmojis)
+    const data = mapBlocks(slackMessage.blocks, customEmojis, text)
     mappedText = data.text
     textAttributes = data.textAttributes
     buttons.push(...data.buttons)
