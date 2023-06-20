@@ -2285,13 +2285,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk#1ba6c9270b285cbfefee5f074aea0423790e0b5f":
+"@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk#main":
   version: 0.4.4
-  resolution: "@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk.git#commit=1ba6c9270b285cbfefee5f074aea0423790e0b5f"
+  resolution: "@textshq/platform-sdk@https://github.com/TextsHQ/platform-sdk.git#commit=327bc66323a9303a0826af01f1bad4e28a371bb9"
   dependencies:
     emoji-regex: ^10.1.0
     qrcode.react: ^3.1.0
-  checksum: a18e3e137265d8186c481ebd4b58246a481187fae4dcb63d3b71e792d8b4cbc59fcb534439df40db2457dc26fc5443408db3fe98cafd8774268fa21f6d51643e
+  checksum: 8e7c747a4c8247f68ec12c6abe68c877f1b03f59fec6884c8c007fda7db89f16e184015c9abd783d309c9c615956475a24fc130ca973cc921a089fe9c73147f9
   languageName: node
   linkType: hard
 
@@ -2303,7 +2303,7 @@ __metadata:
     "@slack/rtm-api": ^6.1.0
     "@slack/web-api": ^6.8.1
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config#main"
-    "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#1ba6c9270b285cbfefee5f074aea0423790e0b5f"
+    "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#main"
     "@types/eslint": ^8.37.0
     "@types/jest": ^27.0.1
     "@types/lodash": ^4.14.194

@@ -68,31 +68,40 @@ export default class SlackAPI {
 
   getMutedChannels = () => this.initialMutedChannels
 
-  fetchHTML = async (url: string) => {
-    const { body: html } = await this.httpClient.requestAsString(url, { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT } })
-    if (html.includes('"is_unsupported_webclient_browser":true')) console.log('slack unsupported browser issue', url)
+  private fetchHTML = async (url: string) => {
+    const { statusCode, body: html } = await this.httpClient.requestAsString(url, { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT } })
+    if (statusCode >= 400) {
+      throw Error(`${url} returned status code ${statusCode}`)
+    }
+    if (!html) throw Error('empty body')
+    if (html.includes('"is_unsupported_webclient_browser":true')) {
+      const msg = 'slack unsupported browser issue: ' + url
+      texts.Sentry.captureMessage(msg)
+      console.log(msg)
+    }
     return html
   }
 
-  getFirstTeamURL = async () => {
+  private getFirstTeamURL = async () => {
+    const res = await texts.fetch('https://my.slack.com/', { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT }, method: 'HEAD', followRedirect: false })
+    const { location } = res.headers
+    if (location) return location
+    texts.Sentry.captureMessage('could not find team url through my.slack')
     const html = await this.fetchHTML('https://app.slack.com/')
     // TD.boot_data.team_url = "https:\/\/texts-co.slack.com\/";
-    const [, domain] = html?.match(/TD\.boot_data\.team_url = (.+?);/) || []
-    if (!domain) throw Error('Could not find team URL')
-    return JSON.parse(domain) // 'https://texts-co.slack.com/'
+    const [, domain] = html.match(/TD\.boot_data\.team_url = (.+?);/) || []
+    if (domain) return JSON.parse(domain) // 'https://texts-co.slack.com/'
+    throw Error('Could not find team URL')
   }
 
-  getClientToken = async () => {
+  private getClientToken = async () => {
     const teamURL = await this.getFirstTeamURL()
-
     for (const pathname of ['customize/emoji', 'home']) {
-      texts.log('fetching', teamURL + pathname)
       const html = await this.fetchHTML(teamURL + pathname)
       // "api_token":"xoxc-2837734959632-2807131363654-1044634777490-836bed83bf8aa7ebcaf06a70df3df6ec7153d219003a75f2dce10db1fc1db50f"
       const [, token] = html?.match(/"api_token":"(.+?)"/) || []
       if (token) return token
     }
-
     throw new Error('Unable to find API token')
   }
 
