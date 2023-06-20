@@ -82,11 +82,9 @@ export default class SlackAPI {
     return html
   }
 
-  private getFirstTeamURL = async () => {
-    const res = await texts.fetch('https://my.slack.com/', { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT }, method: 'HEAD', followRedirect: false })
-    const { location } = res.headers
-    if (location) return location
-    texts.Sentry.captureMessage('could not find team url through my.slack')
+  private getFirstTeamURLOld = async () => {
+    console.log('using getFirstTeamURLOld')
+    texts.Sentry.captureMessage('using getFirstTeamURLOld')
     const html = await this.fetchHTML('https://app.slack.com/')
     // TD.boot_data.team_url = "https:\/\/texts-co.slack.com\/";
     const [, domain] = html.match(/TD\.boot_data\.team_url = (.+?);/) || []
@@ -94,7 +92,16 @@ export default class SlackAPI {
     throw Error('Could not find team URL')
   }
 
-  private getClientToken = async () => {
+  private getFirstTeamURL = async () => {
+    const res = await texts.fetch('https://my.slack.com/', { cookieJar: this.cookieJar, headers: { 'User-Agent': texts.constants.USER_AGENT }, method: 'HEAD', followRedirect: false })
+    const { location } = res.headers
+    if (location) return location
+    return this.getFirstTeamURLOld()
+  }
+
+  private getClientTokenOld = async () => {
+    console.log('using getClientTokenOld')
+    texts.Sentry.captureMessage('using getClientTokenOld')
     const teamURL = await this.getFirstTeamURL()
     for (const pathname of ['customize/emoji', 'home']) {
       const html = await this.fetchHTML(teamURL + pathname)
@@ -103,6 +110,24 @@ export default class SlackAPI {
       if (token) return token
     }
     throw new Error('Unable to find API token')
+  }
+
+  private getConfig = async () => {
+    const html = await this.fetchHTML('https://app.slack.com/auth?app=client')
+    const [, json] = html?.match(/JSON.stringify\((.+?)\)/) || []
+    const config = JSON.parse(json)
+    return config
+  }
+
+  private getClientToken = async () => {
+    const [teamURL, config] = await Promise.all([
+      this.getFirstTeamURL(),
+      this.getConfig(),
+    ])
+    for (const team of Object.values<any>(config.teams)) {
+      if (team.url === teamURL) return team.token || team.enterprise_api_token
+    }
+    return this.getClientTokenOld()
   }
 
   setCustomEmojis = async () => {
