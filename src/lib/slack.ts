@@ -301,8 +301,10 @@ export default class SlackAPI {
       // B01 === "Slackbot" but slack bot isn't a bot on slack so normal profile needs to be fetched instead the bot
       const isBot = message?.bot_id && message?.bot_id !== 'B01' && !message?.user
       const user = sharedParticipant || (isBot ? await this.getParticipantBot(message.bot_id).catch(() => ({})) : await this.getParticipantProfile(messageUser))
-
-      message.user = user.profile.user_id || user.profile.id
+      // @notes
+      // Enterprise workspaces already return `message.user` with user's id so we will use that value
+      // in case it is already present in the `message` object.
+      message.user = message.user || user.profile.user_id || user.profile.id
       if (!message.user) return
 
       const p = mapParticipant(user)
