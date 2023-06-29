@@ -106,7 +106,7 @@ export default class SlackAPI {
     for (const pathname of ['customize/emoji', 'home']) {
       const html = await this.fetchHTML(teamURL + pathname)
       // "api_token":"xoxc-2837734959632-2807131363654-1044634777490-836bed83bf8aa7ebcaf06a70df3df6ec7153d219003a75f2dce10db1fc1db50f"
-      const [, token] = html?.match(/"api_token":"(.+?)"/) || []
+      const [, token] = html.match(/"api_token":"(.+?)"/) || []
       if (token) return token
     }
     throw new Error('Unable to find API token')
@@ -114,7 +114,7 @@ export default class SlackAPI {
 
   private getConfig = async () => {
     const html = await this.fetchHTML('https://app.slack.com/auth?app=client')
-    const [, json] = html?.match(/JSON.stringify\((.+?)\)/) || []
+    const [, json] = html.match(/JSON.stringify\((.+?)\)/) || []
     const config = JSON.parse(json)
     return config
   }
@@ -127,6 +127,7 @@ export default class SlackAPI {
     for (const team of Object.values<any>(config.teams)) {
       if (team.url === teamURL) return team.token || team.enterprise_api_token
     }
+    texts.error('didnt find token', JSON.stringify(config), teamURL)
     return this.getClientTokenOld()
   }
 

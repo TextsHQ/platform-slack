@@ -1,4 +1,5 @@
-import { InboxName, PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName, ClientContext } from '@textshq/platform-sdk'
+import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName, ClientContext } from '@textshq/platform-sdk'
+import { ExpectedJSONGotHTMLError } from '@textshq/platform-sdk/dist/json'
 import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapThreads, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
@@ -10,7 +11,7 @@ import SlackAPI from './lib/slack'
 export type ThreadType = 'channel' | 'dm'
 
 function mapThreadID(threadID: string) {
-  if (threadID?.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) { // message replies
+  if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) { // message replies
     const [, mainThreadID, messageID] = threadID.split('/')
     return { mainThreadID, messageID }
   }
@@ -83,8 +84,12 @@ export default class Slack implements PlatformAPI {
       const [,, workspaceID,, token] = appUrl.split('/')
       const magicToken = `z-app-${workspaceID}-${token}`
       const res = await texts.fetch(`https://app.slack.com/api/auth.loginMagicBulk?magic_tokens=${magicToken}&ssb=1`, { cookieJar })
-      const jsonStr = res.body.toString('utf-8')
-      const resJSON = JSON.parse(jsonStr)
+      const resBody = res.body.toString('utf-8')
+      if (resBody[0] === '<') {
+        texts.log(res.statusCode, resBody)
+        throw new ExpectedJSONGotHTMLError(res.statusCode, resBody)
+      }
+      const resJSON = JSON.parse(resBody)
       const error = resJSON.token_results[magicToken]?.error
       if (error) throw Error(error)
     } else if (magicLink) {
@@ -103,9 +108,8 @@ export default class Slack implements PlatformAPI {
     await this.api.init(undefined)
     await this.afterAuth()
 
-    if (this.api.userToken) return { type: 'success' }
-    // FIXME: Add error message
-    return { type: 'error', errorMessage: 'Unknown error' }
+    if (!this.api.userToken) throw Error('!userToken')
+    return { type: 'success' }
   }
 
   serializeSession = () => ({
