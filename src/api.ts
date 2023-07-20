@@ -79,9 +79,10 @@ export default class Slack implements PlatformAPI {
       /* {
           "teamName": "Texts",
           "teamUrl": "https://texts-co.slack.com/",
-          "appUrl": "slack://T01QMMLU7JL/magic-login/4199616920993-83b9e3b9a37d8b38b1d291a2596ff25eb6c99c4b62c5c3716368c1fd49c19cc4"
+          "appUrl": "slack://T01QMMLU7JL/magic-login/4199616920993-83b9e3b9a37d8b38b1d291a2596ff25eb6c99c4b62c5c3716368c1fd49c19cc4?id=1"
         } */
-      const [,, workspaceID,, token] = appUrl.split('/')
+      const { host: workspaceID, pathname } = new URL(appUrl)
+      const [,, token] = pathname.split('/')
       const magicToken = `z-app-${workspaceID}-${token}`
       const res = await texts.fetch(`https://app.slack.com/api/auth.loginMagicBulk?magic_tokens=${magicToken}&ssb=1`, { cookieJar })
       const resBody = res.body.toString('utf-8')
@@ -91,7 +92,10 @@ export default class Slack implements PlatformAPI {
       }
       const resJSON = JSON.parse(resBody)
       const error = resJSON.token_results[magicToken]?.error
-      if (error) throw Error(error)
+      if (error) {
+        texts.error(resJSON)
+        throw Error(error)
+      }
     } else if (magicLink) {
       /*
         magicLink looks something like https://app.slack.com/t/textsdotcom/login/z-app-3840962440-2666413463120-bb7866a4b475fcf2328573f31307b77bd2b1445f34e96a87e51522514311e7e1?
