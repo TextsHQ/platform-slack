@@ -261,10 +261,12 @@ export const mapMessage = (
     }
   }
 
+  const replyLink = `texts://platform-callback/${accountID}/show-message-replies/${threadID}/${slackMessage.ts}/${slackMessage.latest_reply}/${truncate(mappedText, { length: 128 })}`
+
   if (slackMessage.reply_count && !disableReplyButton) {
     buttons.push({
       label: `Show ${slackMessage.reply_count} ${slackMessage.reply_count === 1 ? 'reply' : 'replies'}`,
-      linkURL: `texts://platform-callback/${accountID}/show-message-replies/${threadID}/${slackMessage.ts}/${slackMessage.latest_reply}/${truncate(mappedText, { length: 128 })}`,
+      linkURL: replyLink,
     })
   }
   const action = mapAction(slackMessage)
@@ -280,11 +282,17 @@ export const mapMessage = (
     senderID,
     isSender: currentUserId === senderID,
     textAttributes,
-    buttons,
+    buttons: buttons.length ? buttons : undefined,
     isAction: !!action || ACTION_MESSAGE_TYPES.has(slackMessage.subtype),
     action,
     tweets: tweetAttachments.map(mapTweetAttachment).filter(Boolean),
     links: linkAttachments.map(mapLinkAttachment),
+    extra: {
+      actions: [{
+        label: 'Reply in thread',
+        linkURL: replyLink,
+      } satisfies MessageButton],
+    },
   }
 }
 

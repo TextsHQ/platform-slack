@@ -21,9 +21,12 @@ function mapThreadID(threadID: string) {
 function getIDs(_threadID: string) {
   const isMessageReplyThread = _threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)
   const msgReplyThreadIDs = isMessageReplyThread ? mapThreadID(_threadID) : undefined
-  return {
-    channel: isMessageReplyThread ? msgReplyThreadIDs.mainThreadID : _threadID,
-    thread_ts: isMessageReplyThread ? msgReplyThreadIDs.messageID : undefined,
+  return isMessageReplyThread ? {
+    channel: msgReplyThreadIDs.mainThreadID,
+    thread_ts: msgReplyThreadIDs.messageID,
+  } : {
+    channel: _threadID,
+    thread_ts: undefined,
   }
 }
 
@@ -279,13 +282,13 @@ export default class Slack implements PlatformAPI {
   }
 
   handleDeepLink = (link: string) => {
-    // texts://platform-callback/{accountID}/show-message-replies/{threadID}/{slackMessage.ts}
+    // texts://platform-callback/{accountID}/show-message-replies/{threadID}/{slackMessage.ts}/{latestTimestamp}/{text}
     const [, , , , command, threadID, messageID, latestTimestamp, title] = link.split('/')
     if (command !== 'show-message-replies') throw Error(`invalid command: ${command}`)
     const thread: Thread = {
       id: `${MESSAGE_REPLY_THREAD_PREFIX}${threadID}/${messageID}`,
       type: 'channel',
-      timestamp: new Date(+latestTimestamp * 1000),
+      timestamp: +latestTimestamp ? new Date(+latestTimestamp * 1000) : new Date(),
       isUnread: false,
       isReadOnly: false,
       messages: { items: [], hasMore: true },
