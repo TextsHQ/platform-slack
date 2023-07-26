@@ -482,8 +482,8 @@ export default class SlackAPI {
     const res = await this.webClient.conversations.open({ users: userIDs.join(','), return_im: true })
     const { channel } = res
 
-    const promises = userIDs.map(user => this.webClient.users.profile.get({ user }))
-    const profiles = (await Promise.all(promises)).map(mapParticipant)
+    const promises = userIDs.map(user => this.webClient.users.profile.get({ user }).catch(texts.error))
+    const profiles = (await Promise.all(promises)).filter(Boolean).map(mapParticipant)
 
     return {
       id: channel.id,
@@ -491,7 +491,7 @@ export default class SlackAPI {
       type: userIDs.length > 1 ? 'group' : 'single',
       participants: { items: profiles, hasMore: false },
       messages: { items: [], hasMore: false },
-      timestamp: new Date(channel?.created) || new Date(),
+      timestamp: new Date(channel?.created),
       isUnread: false,
       isReadOnly: false,
     }
