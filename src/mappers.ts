@@ -327,7 +327,7 @@ const mapThread = (
   teamName = '',
 ): Thread => {
   const messages = (channel.messages as any[])?.map(message => mapMessage(message, accountID, channel.id, currentUserId, customEmojis)) || []
-  const participants = (channel.participants as any[])?.map(mapParticipant).filter(Boolean) || []
+  const participants = (channel.participants as any[])?.map(mapParticipant).filter(participant => participant?.id) || []
 
   const type = ((): ThreadType => {
     if (channel.is_group || channel.is_mpim) return 'group'
