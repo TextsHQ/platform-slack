@@ -342,7 +342,7 @@ export default class SlackAPI {
         mutationType: 'upsert',
         objectName: 'participant',
         objectIDs: { threadID },
-        entries: participants,
+        entries: participants.filter(participant => participant.id),
       }])
     }
 
