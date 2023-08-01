@@ -180,7 +180,8 @@ export default class SlackAPI {
     const { channel: channelInfo } = threadInfo as any || {}
     if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo?.latest?.text)
     // As we don't have the latest activity, we can use different fields to get the thread timestamp
-    channel.timestamp = new Date(Number(channelInfo?.last_read) * 1000) || new Date(channelInfo?.created) || undefined
+    const date = (Number(channelInfo?.last_read) || channelInfo?.created || 0) * 1000
+    channel.timestamp = date ? new Date(date) : undefined
     channel.unread = channelInfo?.unread_count || undefined
     channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
     channel.participants = []
@@ -199,7 +200,12 @@ export default class SlackAPI {
     const { channel } = threadInfo as any || {}
     if (channel?.latest?.text) channel.latest.text = await this.loadMentions(channel?.latest?.text)
 
-    thread.timestamp = new Date(Number(channel?.last_read) * 1000) || new Date(channel?.created) || undefined
+    const date = (Number(channel?.last_read) || channel?.created || 0) * 1000
+    // We're gonna hide and show private messages following some logic that is inspired in Slack's
+    // behavior. If there's an interaction between users (`latests.ts`) or the thread is open (`.is_open`)
+    // or there's a date of the last interaction (`.last_read`) it should show the thread.
+    const shouldShow = !!channel?.latest?.ts || !!channel?.is_open || !!Number(channel?.last_read)
+    thread.timestamp = shouldShow ? new Date(date) : undefined
     thread.unread = channel?.unread_count || undefined
     // This filter is because sometimes the latest message hasn't timestamp and can be a response from a thread
     // so this way we filter only messages that aren't thread responses
