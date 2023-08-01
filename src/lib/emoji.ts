@@ -22,14 +22,19 @@ export const getEmojiUrl = (block: string): string => {
 
 export const getEmojiUnicode = (block: string): string => {
   const emojiSlug = block.replace(/:/g, '')
-  const selectedEmoji = slackEmojiShortName.get(emojiSlug)
+  // @see https://stackoverflow.com/a/57796537
+  if (emojiSlug === 'heart') return '❤️'
 
+  const selectedEmoji = slackEmojiShortName.get(emojiSlug)
   if (selectedEmoji) return String.fromCodePoint(parseInt(selectedEmoji.unified, 16))
 
   return block
 }
 
 export const getSlug = (emoji: string): string => {
+  // @see https://stackoverflow.com/a/57796537
+  if (emoji === '❤️') return 'heart'
+
   const data = slackEmojiUnicode.get(emoji)
   return data?.short_name || emoji
 }
