@@ -455,6 +455,7 @@ export default class SlackAPI {
         thread_ts,
         text,
         link_names: content.mentionedUserIDs?.length > 0,
+        unfurl_links: content.links?.length > 0 ? content.links.every(l => l.includePreview) : undefined,
       })
 
       return res.message
