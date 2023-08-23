@@ -235,11 +235,6 @@ export const mapMessage = (
   const attachmentsText = mapAttachmentsText(otherAttachments)
   const text = slackMessage.text + attachmentsText
 
-  const attachments = [
-    ...(mapAttachments(slackMessage.files) || []),
-    ...(mapAttachments(slackMessage.attachments) || []),
-  ].filter(Boolean)
-
   let mappedText: string
   let textAttributes: TextAttributes
   const buttons: MessageButton[] = []
@@ -260,6 +255,19 @@ export const mapMessage = (
       ),
     }
   }
+
+  const links = linkAttachments.map(mapLinkAttachment)
+  const filteredSlackMessagesAttachments = (slackMessage.attachments || []).filter(
+    // @notes
+    //  Slack is sending OG images inside of the attachments array so we need to filter them
+    //  by checking if the `from_url` field is not included in the links array.
+    attachment => links.every(link => link.url !== attachment.from_url),
+  )
+
+  const attachments = [
+    ...(mapAttachments(slackMessage.files) || []),
+    ...(mapAttachments(filteredSlackMessagesAttachments) || []),
+  ].filter(Boolean)
 
   const replyLink = `texts://platform-callback/${accountID}/show-message-replies/${threadID}/${slackMessage.ts}/${slackMessage.latest_reply}/${truncate(mappedText, { length: 128 })}`
 
@@ -286,7 +294,7 @@ export const mapMessage = (
     isAction: !!action || ACTION_MESSAGE_TYPES.has(slackMessage.subtype),
     action,
     tweets: tweetAttachments.map(mapTweetAttachment).filter(Boolean),
-    links: linkAttachments.map(mapLinkAttachment),
+    links,
     extra: {
       actions: [{
         label: 'Reply in thread',
