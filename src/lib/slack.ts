@@ -226,7 +226,7 @@ export default class SlackAPI {
     const allThreads = []
     // https://api.slack.com/docs/pagination#cursors
     let cursor: string
-    let times = 0
+    let tries = 0
 
     do {
       try {
@@ -236,7 +236,7 @@ export default class SlackAPI {
       } catch (error) {
         texts.error(error)
 
-        if (times < 20) times += 1
+        if (tries < 20) tries += 1
         else cursor = null
       }
     } while (cursor)
