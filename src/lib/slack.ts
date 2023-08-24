@@ -235,7 +235,7 @@ export default class SlackAPI {
         cursor = response_metadata?.next_cursor
       } catch (error) {
         texts.error(error)
-
+        texts.Sentry.captureException(error)
         if (tries < 20) tries += 1
         else cursor = null
       }
