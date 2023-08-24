@@ -226,10 +226,19 @@ export default class SlackAPI {
     const allThreads = []
     // https://api.slack.com/docs/pagination#cursors
     let cursor: string
+    let times = 0
+
     do {
-      const { channels, response_metadata } = await this.getThreads(cursor, threadTypes)
-      allThreads.push(...channels)
-      cursor = response_metadata?.next_cursor
+      try {
+        const { channels, response_metadata } = await this.getThreads(cursor, threadTypes)
+        allThreads.push(...channels)
+        cursor = response_metadata?.next_cursor
+      } catch (error) {
+        texts.error(error)
+
+        if (times < 20) times += 1
+        else cursor = null
+      }
     } while (cursor)
     return allThreads
   }
