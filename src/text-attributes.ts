@@ -558,11 +558,15 @@ function mapBlock(block: Block, customEmojis: Record<string, string>, fallbackTe
     case 'usergroup': {
       const from = Array.from(output).length
       const text = block.usergroup_id
+      const match = fallbackText.match(/<!subteam\^([^|]+)?\|@([^>]+)>/)
+      const wantedText = match ? match[2] : null
+
       output += text
+
       entities.push({
         from,
         to: from + Array.from(text).length,
-        replaceWith: '@' + block.usergroup_id, // todo: should be proper channel
+        replaceWith: `@${wantedText || block.usergroup_id}`,
         ...block.style && mapStyle(block.style),
       })
       break
@@ -598,6 +602,10 @@ function mapBlock(block: Block, customEmojis: Record<string, string>, fallbackTe
     }
     case 'color': {
       output += block.value
+      break
+    }
+    case 'broadcast': {
+      output += `@${block.range}`
       break
     }
     default:
