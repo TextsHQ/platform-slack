@@ -458,13 +458,16 @@ export default class SlackAPI {
       ])
     }
 
+    const unfurlLinks = content.links?.length > 0 ? content.links.every(l => l.includePreview) : undefined
+
     try {
       const res = await this.webClient.chat.postMessage({
         channel,
         thread_ts,
         text,
         link_names: content.mentionedUserIDs?.length > 0,
-        unfurl_links: content.links?.length > 0 ? content.links.every(l => l.includePreview) : undefined,
+        unfurl_links: unfurlLinks,
+        unfurl_media: unfurlLinks,
       })
 
       return res.message
