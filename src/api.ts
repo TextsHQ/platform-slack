@@ -152,6 +152,7 @@ export default class Slack implements PlatformAPI {
     // reading Slack's API code.
     const users = await Promise.all(filteredIds.slice(0, 5).map(this.api.getParticipantProfile))
     const participants = users.map(mapParticipant)
+    if (!participants.length) return
 
     this.api.onEvent([{
       type: ServerEventType.STATE_SYNC,
