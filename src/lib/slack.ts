@@ -222,28 +222,7 @@ export default class SlackAPI {
     timer.timeEnd()
   }
 
-  getThreadsNonPaginated = async (threadTypes: ThreadType[] = []) => {
-    const allThreads = []
-    // https://api.slack.com/docs/pagination#cursors
-    let cursor: string
-    let tries = 0
-
-    do {
-      try {
-        const { channels, response_metadata } = await this.getThreads(cursor, threadTypes)
-        allThreads.push(...channels)
-        cursor = response_metadata?.next_cursor
-      } catch (error) {
-        texts.error(error)
-        texts.Sentry.captureException(error)
-        if (tries < 20) tries += 1
-        else cursor = null
-      }
-    } while (cursor)
-    return allThreads
-  }
-
-  getThreads = async (cursor = undefined, threadTypes: ThreadType[] = []) => {
+  getThreads = async ({ cursor, threadTypes = [] }: { cursor?: string, threadTypes: ThreadType[] }) => {
     let response: any = { channels: [] }
 
     const types = threadTypes.map(t => {
