@@ -166,17 +166,21 @@ export default class Slack implements PlatformAPI {
   getThreads = async (inboxName: ThreadFolderName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
     const timer = textsTime('getThreads')
 
-    const threads = await this.api.getThreadsNonPaginated(this.threadTypes)
+    const { channels, response_metadata } = await this.api.getThreads({
+      threadTypes: this.threadTypes,
+      cursor: pagination?.cursor,
+    })
     const { team } = this.api.currentUser
 
     const mutedChannels = this.api.getMutedChannels()
-    const items = mapThreads(threads as any[], this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
+    const items = mapThreads((channels || []) as any[], this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
 
     timer.timeEnd()
 
     return {
       items,
-      hasMore: false,
+      hasMore: !!response_metadata?.cursor,
+      oldestCursor: response_metadata?.next_cursor,
     }
   }
 
