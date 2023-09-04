@@ -19,7 +19,8 @@ const info: PlatformInfo = {
   deletionMode: MessageDeletionMode.DELETE_FOR_EVERYONE,
   loginMode: ['browser', 'browser-extension'],
   browserLogin: {
-    url: 'https://slack.com/',
+    // url: 'https://slack.com/' and then user hitting "sign in" manually fails at getFirstTeamURL
+    url: 'https://slack.com/signin',
     authCookieName: 'd',
     runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
     closeOnRedirectRegex: 'ssb/redirect',

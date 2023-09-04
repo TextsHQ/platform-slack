@@ -113,7 +113,7 @@ export default class SlackAPI {
   private getFirstTeamURL = async () => {
     const res = await texts.fetch('https://my.slack.com/', { cookieJar: this.cookieJar, headers: SlackAPI.htmlHeaders, method: 'HEAD', followRedirect: false })
     const { location } = res.headers
-    if (location) return location
+    if (location && location !== 'https://slack.com/') return location
     return this.getFirstTeamURLOld()
   }
 
