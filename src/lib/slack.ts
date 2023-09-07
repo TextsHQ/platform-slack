@@ -44,7 +44,8 @@ export default class SlackAPI {
       headers: { cookie },
       maxRequestConcurrency: 20,
       retryConfig: {
-        ...retryPolicies.rapidRetryPolicy,
+        maxTimeout: 30_000,
+        minTimeout: 1_000,
         retries: 99000,
       },
     })
