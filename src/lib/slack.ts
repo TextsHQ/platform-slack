@@ -1,5 +1,5 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
-import { WebClient } from '@slack/web-api'
+import { WebClient, retryPolicies } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import { uniqBy, memoize } from 'lodash'
 import { setTimeout as setTimeoutAsync } from 'timers/promises'
@@ -11,6 +11,7 @@ import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
 import { textsTime } from '../util'
+
 import type { ThreadType } from '../api'
 
 export default class SlackAPI {
@@ -39,7 +40,11 @@ export default class SlackAPI {
     const token = clientToken || await this.getClientToken()
 
     const cookie = await this.cookieJar.getCookieString('https://slack.com')
-    const client = new WebClient(token, { headers: { cookie }, maxRequestConcurrency: 20 })
+    const client = new WebClient(token, {
+      headers: { cookie },
+      maxRequestConcurrency: 20,
+      retryConfig: retryPolicies.rapidRetryPolicy,
+    })
 
     this.userToken = token
     this.webClient = client
