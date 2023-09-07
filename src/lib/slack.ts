@@ -43,7 +43,10 @@ export default class SlackAPI {
     const client = new WebClient(token, {
       headers: { cookie },
       maxRequestConcurrency: 20,
-      retryConfig: retryPolicies.rapidRetryPolicy,
+      retryConfig: {
+        ...retryPolicies.rapidRetryPolicy,
+        retries: 99000,
+      },
     })
 
     this.userToken = token

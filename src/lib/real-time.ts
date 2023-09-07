@@ -33,9 +33,9 @@ export default class SlackRealTime {
       webClient: this.api.webClient,
       autoReconnect: true,
       retryConfig: {
-        retries: 50,
-        minTimeout: 1000,
-        maxTimeout: 10000,
+        retries: 99000,
+        minTimeout: 0,
+        maxTimeout: 1,
       },
     })
 
