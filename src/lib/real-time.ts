@@ -4,6 +4,7 @@ import { RTMClient } from '@slack/rtm-api'
 import { isEqual } from 'lodash'
 import { mapEmojiChangedEvent, mapMessage, mapReactionKey, shortcodeToEmoji } from '../mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from '../constants'
+
 import type SlackAPI from './slack'
 import type PAPI from '../api'
 
@@ -28,7 +29,16 @@ export default class SlackRealTime {
   ) {}
 
   subscribeToEvents = async (): Promise<void> => {
-    this.rtm = new RTMClient({ webClient: this.api.webClient })
+    this.rtm = new RTMClient({
+      webClient: this.api.webClient,
+      autoReconnect: true,
+      retryConfig: {
+        retries: 50,
+        minTimeout: 1000,
+        maxTimeout: 10000,
+      },
+    })
+
     this.rtm.on('ready', () => {
       texts.log('rtm ready')
       this.ready = true
