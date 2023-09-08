@@ -191,7 +191,7 @@ export default class SlackAPI {
     // As we don't have the latest activity, we can use different fields to get the thread timestamp
     const date = (Number(channelInfo?.last_read) || channelInfo?.created || 0) * 1000
     channel.timestamp = date ? new Date(date) : undefined
-    channel.unread = channelInfo?.unread_count || undefined
+    channel.unread = Boolean(channelInfo?.unread_count)
     channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
     channel.participants = []
     timer.timeEnd()
@@ -215,7 +215,7 @@ export default class SlackAPI {
     // or there's a date of the last interaction (`.last_read`) it should show the thread.
     const shouldShow = !!channel?.latest?.ts || !!channel?.is_open || !!Number(channel?.last_read)
     thread.timestamp = shouldShow ? new Date(date) : undefined
-    thread.unread = channel?.unread_count || undefined
+    thread.unread = Boolean(channel?.unread_count)
     // This filter is because sometimes the latest message hasn't timestamp and can be a response from a thread
     // so this way we filter only messages that aren't thread responses
     thread.messages = [channel?.latest].filter(x => x?.ts && !x?.thread_ts) || []

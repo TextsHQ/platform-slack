@@ -359,8 +359,8 @@ const mapThread = (
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
     timestamp: messages[0]?.timestamp || channel.timestamp,
-    isUnread: Boolean(channel.unread || false),
-    isReadOnly: Boolean(channel.is_user_deleted || false),
+    isUnread: channel.unread || false,
+    isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
     participants: { items: participants, hasMore: false },
   }
