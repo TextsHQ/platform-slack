@@ -311,7 +311,7 @@ export default class SlackAPI {
       const richElements = extractRichElements(blocks)
 
       await Promise.all(richElements.map(async element => {
-        if (element.type !== 'user') return
+        if (!element || element.type !== 'user') return
         element.profile = (await this.getParticipantProfile(element.user_id))?.profile
       }))
 
@@ -326,7 +326,7 @@ export default class SlackAPI {
       // @notes
       // Enterprise workspaces already return `message.user` with user's id so we will use that value
       // in case it is already present in the `message` object.
-      message.user = message.user || user.profile.user_id || user.profile.id
+      message.user = message.user || user.profile?.user_id || user.profile?.id
       if (!message.user) return
 
       const p = mapParticipant(user)
