@@ -7,21 +7,20 @@
     "patches/**/*"
   ],
   "scripts": {
-    "prepack": "patch-package && tsc",
-    "postinstall": "{ patch-package && tsc } || true",
+    "prepack": "tsc",
+    "postinstall": "tsc || true",
     "build": "yarn tsc",
     "lint": "eslint src --ext ts,tsx,js,jsx --cache",
     "test": "jest"
   },
   "dependencies": {
     "@slack/logger": "^3.0.0",
-    "@slack/rtm-api": "^6.1.0",
+    "@slack/rtm-api": "patch:@slack/rtm-api@^6.1.0#patches/@slack+rtm-api+6.0.0.patch",
     "@slack/web-api": "^6.8.1",
     "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#bb853b092ef989ef74d36576e01894d81a3c389a",
     "eventemitter3": "^3.1.0",
     "finity": "^0.5.4",
     "lodash": "^4.17.21",
-    "patch-package": "^7.0.0",
     "postinstall-postinstall": "^2.1.0",
     "tough-cookie": "^4.1.2"
   },
@@ -35,7 +34,7 @@
     "jest": "^29.5.0",
     "typescript": "^5.0.4"
   },
-  "packageManager": "yarn@3.5.0",
+  "packageManager": "yarn@3.6.3",
   "resolutions": {
     "@slack/web-api@^6.8.1": "patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch",
     "@slack/web-api@^5.3.0": "patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch"
