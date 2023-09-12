@@ -7,8 +7,8 @@
     "patches/**/*"
   ],
   "scripts": {
-    "prepack": "patch-package && tsc",
-    "postinstall": "{ patch-package && tsc } || true",
+    "prepack": "tsc",
+    "postinstall": "tsc || true",
     "build": "yarn tsc",
     "lint": "eslint src --ext ts,tsx,js,jsx --cache",
     "test": "jest"
