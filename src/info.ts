@@ -24,7 +24,7 @@ const info: PlatformInfo = {
     authCookieName: 'd',
     runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
     closeOnRedirectRegex: 'ssb/redirect',
-    userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
+    userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
     runJSOnNavigate: `
       window.__loginReturnValue = window.__loginReturnValue || {}
       window.__changeListener = window.__changeListener || function () {
