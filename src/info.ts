@@ -79,30 +79,34 @@ const info: PlatformInfo = {
         setTimeout(() => window.close(), 1000)
       }
 
-      window.__addEventsListeners = window.__addEventsListeners || function () {
+      window.__overrideWorkspaceLink = window.__overrideWorkspaceLink || function () {
         const url = window.location.href
+        if (!url.includes('signin.findWorkspaces') && !url.includes('signin#/workspaces')) return
 
-        if (url.includes('signin.findWorkspaces') || url.includes('signin#/workspaces')) {
-          const observer = new MutationObserver((mutation) => {
-            const elements = document.querySelectorAll('.p-workspaces_list__link')
-            elements.forEach((element) => {
-              element.target = ''
-              const { href } = element
+        const elements = document.querySelectorAll('.p-workspaces_list__link')
+        elements.forEach((element) => {
+          element.target = ''
+          const { href } = element
 
-              if (href.includes('login')) {
-                element.onclick = () => window.__handleButtonClick(href)
-                element.removeAttribute('href')
-              }
-              // TODO: Implement for 2-fa
-            })
-          })
-          const container = document.documentElement || document.body
-          observer.observe(container, { childList: true, subtree: true })
-        }
+          if (href.includes('login')) {
+            console.log('found logins ' + href)
+            element.onclick = () => window.__handleButtonClick(href)
+            element.removeAttribute('href')
+          }
+          // TODO: Implement for 2-fa
+        })
       }
+
+      window.__addEventsListeners = window.__addEventsListeners || function () {
+        const observer = new MutationObserver(() => window.__overrideWorkspaceLink())
+        const container = document.documentElement || document.body
+        observer.observe(container, { childList: true, subtree: true })
+      }
+
       window.__addNavigationListener()
       window.__changeListener()
-      window.__addEventsListeners()`,
+      window.__addEventsListeners()
+      window.__overrideWorkspaceLink()`,
   },
   reactions: {
     supported: {},
