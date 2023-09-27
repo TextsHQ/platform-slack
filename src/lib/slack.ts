@@ -1,5 +1,5 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
-import { WebClient } from '@slack/web-api'
+import { WebClient, WebClientOptions } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import { uniqBy, memoize } from 'lodash'
 import { setTimeout as setTimeoutAsync } from 'timers/promises'
@@ -60,7 +60,7 @@ export default class SlackAPI {
         minTimeout: 1_000,
         retries: 99000,
       },
-    }
+    } as WebClientOptions
 
     this.webClient = new WebClient(token, options)
     this.userToken = token
