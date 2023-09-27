@@ -115,7 +115,6 @@ export default class Slack implements PlatformAPI {
     await this.api.init({
       accountID: this.accountID,
       clientToken: undefined,
-      workspaceURL: 'https://createremote.slack.com/',
     })
 
     await this.afterAuth()
