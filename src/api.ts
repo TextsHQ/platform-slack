@@ -1,7 +1,7 @@
 import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName, ClientContext } from '@textshq/platform-sdk'
 import { ExpectedJSONGotHTMLError } from '@textshq/platform-sdk/dist/json'
 import { CookieJar } from 'tough-cookie'
-import { mapCurrentUser, mapThreads, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
+import { mapCurrentUser, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
 import { textsTime } from './util'
 
