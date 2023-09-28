@@ -171,12 +171,12 @@ export default class Slack implements PlatformAPI {
   getThreads = async (): Promise<Paginated<Thread>> => {
     const timer = textsTime('getThreads')
     const { threads: items, hasMore } = await this.api.getAllThreads(this.threadTypes)
-
     timer.timeEnd()
 
     return {
       items,
       hasMore,
+      oldestCursor: items.at(-1).id,
     }
   }
 
