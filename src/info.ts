@@ -72,12 +72,6 @@ const info: PlatformInfo = {
         window.__addedListener = true
       }
 
-      window.__handleButtonClick = window.__handleButtonClick || function (href) {
-        window.__handleButtonClick = (x) => { }
-        window.__loginReturnValue.magicLink = href
-        setTimeout(() => window.close(), 1000)
-      }
-
       window.__overrideWorkspaceLink = window.__overrideWorkspaceLink || function () {
         const url = window.location.href
         if (!url.includes('signin.findWorkspaces') && !url.includes('signin#/workspaces')) return
