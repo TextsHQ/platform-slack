@@ -169,7 +169,7 @@ export default class Slack implements PlatformAPI {
     return {
       items,
       hasMore,
-      oldestCursor: items.at(-1).id,
+      oldestCursor: items.at(-1)?.id,
     }
   }
 
