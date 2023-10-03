@@ -75,43 +75,6 @@ export default class Slack implements PlatformAPI {
     const cookieJar = cookieJarJSON ? CookieJar.fromJSON(cookieJarJSON as any) : new CookieJar()
     this.api.cookieJar = cookieJar
 
-    if (!('jsCodeResult' in creds && creds.jsCodeResult)) return { type: 'error', errorMessage: 'jsCodeResult was falsey' }
-    const { appUrl, magicLink } = JSON.parse(creds.jsCodeResult)
-    // this updates the cookie jar with the auth cookies
-    if (appUrl) {
-      /* {
-          "teamName": "Texts",
-          "teamUrl": "https://texts-co.slack.com/",
-          "appUrl": "slack://T01QMMLU7JL/magic-login/4199616920993-83b9e3b9a37d8b38b1d291a2596ff25eb6c99c4b62c5c3716368c1fd49c19cc4?id=1"
-        } */
-      const { host: workspaceID, pathname } = new URL(appUrl)
-      const [,, token] = pathname.split('/')
-      const magicToken = `z-app-${workspaceID}-${token}`
-      const res = await texts.fetch(`https://app.slack.com/api/auth.loginMagicBulk?magic_tokens=${magicToken}&ssb=1`, { cookieJar })
-      const resBody = res.body.toString('utf-8')
-      if (resBody[0] === '<') {
-        texts.log(res.statusCode, resBody)
-        throw new ExpectedJSONGotHTMLError(res.statusCode, resBody)
-      }
-      const resJSON = JSON.parse(resBody)
-      const error = resJSON.token_results[magicToken]?.error
-      if (error) {
-        texts.error(resJSON)
-        throw Error(error)
-      }
-    } else if (magicLink) {
-      /*
-        magicLink looks something like https://app.slack.com/t/textsdotcom/login/z-app-3840962440-2666413463120-bb7866a4b475fcf2328573f31307b77bd2b1445f34e96a87e51522514311e7e1?
-        302 redirect to https://textsdotcom.slack.com/app-redir/login/z-app-3840962440-2666413463120-bb7866a4b475fcf2328573f31307b77bd2b1445f34e96a87e51522514311e7e1
-        302 redirect to https://textsdotcom.slack.com/z-app-3840962440-2666413463120-bb7866a4b475fcf2328573f31307b77bd2b1445f34e96a87e51522514311e7e1
-        302 redirect to https://slack.com/checkcookie?redir=https%3A%2F%2Ftextsdotcom.slack.com%2Fssb%2Fredirect (contains set-cookie headers)
-      */
-      texts.log('fetching magic link', magicLink)
-      // todo: texts.fetch and texts.createHttpClient().requestAsString act differently here
-      // await this.api.fetchHTML(magicLink)
-      await texts.fetch(magicLink, { cookieJar })
-    }
-
     await this.api.init(undefined)
     await this.afterAuth()
 
