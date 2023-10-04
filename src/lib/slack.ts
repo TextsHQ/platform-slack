@@ -44,14 +44,12 @@ export default class SlackAPI {
   init = async ({
     clientToken,
     accountID,
-    workspaceURL,
   }: {
     clientToken?: string
     accountID?: string
-    workspaceURL?: string
   }) => {
     const timer = textsTime('slack.init')
-    const token = clientToken || await this.getClientToken(workspaceURL)
+    const token = clientToken || await this.getClientToken()
 
     const cookie = await this.cookieJar.getCookieString('https://slack.com')
     const options = {
@@ -167,9 +165,9 @@ export default class SlackAPI {
     return config
   }
 
-  private getClientToken = async (workspaceURL = '') => {
+  private getClientToken = async () => {
     const [teamURL, config] = await Promise.all([
-      workspaceURL ? Promise.resolve(workspaceURL) : this.getFirstTeamURL(),
+      this.getFirstTeamURL(),
       this.getConfig(),
     ])
     for (const team of Object.values<any>(config.teams)) {
