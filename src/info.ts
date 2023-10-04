@@ -22,7 +22,6 @@ const info: PlatformInfo = {
     // url: 'https://slack.com/' and then user hitting "sign in" manually fails at getFirstTeamURL
     url: 'https://slack.com/signin',
     authCookieName: 'd',
-    runJSOnClose: 'JSON.stringify(window.__loginReturnValue)',
     closeOnRedirectRegex: 'ssb/redirect',
     userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
     runJSOnNavigate: `
@@ -73,27 +72,14 @@ const info: PlatformInfo = {
         window.__addedListener = true
       }
 
-      window.__handleButtonClick = window.__handleButtonClick || function (href) {
-        window.__handleButtonClick = (x) => { }
-        window.__loginReturnValue.magicLink = href
-        setTimeout(() => window.close(), 1000)
-      }
-
       window.__overrideWorkspaceLink = window.__overrideWorkspaceLink || function () {
         const url = window.location.href
         if (!url.includes('signin.findWorkspaces') && !url.includes('signin#/workspaces')) return
 
         const elements = document.querySelectorAll('.p-workspaces_list__link')
         elements.forEach((element) => {
+          // Do not open links in a new window
           element.target = ''
-          const { href } = element
-
-          if (href.includes('login')) {
-            console.log('found logins ' + href)
-            element.onclick = () => window.__handleButtonClick(href)
-            element.removeAttribute('href')
-          }
-          // TODO: Implement for 2-fa
         })
       }
 
