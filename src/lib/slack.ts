@@ -392,15 +392,18 @@ export default class SlackAPI {
   listUsersWithCursor = memoize(this._listUsers)
 
   searchUsers = async (typed: string) => {
+    if (!typed) return []
     const allUsers = await this.webClient.users.list({ limit: 100 })
     const { members, response_metadata } = allUsers
 
     if (!typed) return members.map(mapProfile)
 
-    const filterMembers = (member: Member) => {
-      const names = [member.name, member.real_name]
-      return names.some(name => name?.toLowerCase().includes(typed.toLowerCase()))
-    }
+    const typedLower = typed.toLowerCase()
+
+    const filterMembers = (member: Member) =>
+      member.name?.toLowerCase().includes(typedLower)
+      || member.real_name?.toLowerCase().includes(typedLower)
+
     // Slack doesn't have a "search" users method and the "list" users is limited to 100. So
     // this way it'll "keep searching" until it reaches the end of the list or finds members.
     // The `users.list` method is cached on Slack's side

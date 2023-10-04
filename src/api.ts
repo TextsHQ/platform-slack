@@ -126,7 +126,8 @@ export default class Slack implements PlatformAPI {
     await this.realTimeApi?.subscribeToEvents()
   }
 
-  searchUsers = async (typed: string) => this.api.searchUsers(typed)
+  searchUsers = (typed: string) =>
+    this.api.searchUsers(typed)
 
   onThreadSelected = async (threadID: string): Promise<void> => {
     // nothing needed for slack threads
