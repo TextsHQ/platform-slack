@@ -160,7 +160,7 @@ export default class Slack implements PlatformAPI {
     }])
   }
 
-  getThreads = async (): Promise<Paginated<Thread>> => {
+  getThreads = async (inboxName: ThreadFolderName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
     const timer = textsTime('getThreads')
     const { threads: items, hasMore } = await this.api.getAllThreads(this.threadTypes)
     timer.timeEnd()
