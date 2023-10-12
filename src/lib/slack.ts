@@ -217,6 +217,8 @@ export default class SlackAPI {
 
       return this.mapChannels(lastChannelsWithParticipants)
     } catch (error) {
+      texts.error(error)
+      texts.Sentry.captureException(error)
       // @notes
       // in case we have an error while loading initial threads we shouldn't throw it to the user
       // and returning an empty array will prevent to stop fetching threads
