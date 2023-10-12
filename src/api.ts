@@ -31,8 +31,6 @@ function getIDs(_threadID: string) {
 }
 
 export default class Slack implements PlatformAPI {
-  constructor(readonly accountID: string) {}
-
   private readonly api = new SlackAPI()
 
   currentUserID: string
@@ -43,6 +41,8 @@ export default class Slack implements PlatformAPI {
 
   private showChannels = false
 
+  constructor(readonly accountID: string) {}
+
   init = async (serialized: { cookies: any, clientToken: string }, _: ClientContext, prefs: Record<string, any>) => {
     const timer = textsTime('init')
     this.showChannels = prefs?.show_channels
@@ -52,7 +52,7 @@ export default class Slack implements PlatformAPI {
 
     const cookieJar = CookieJar.fromJSON(cookies) || null
     this.api.cookieJar = cookieJar
-    await this.api.init({ clientToken, accountID: this.accountID })
+    await this.api.init(clientToken)
     await this.afterAuth()
     // eslint-disable-next-line
     if (!this.api.currentUser?.auth.ok) throw new ReAuthError()
@@ -104,12 +104,7 @@ export default class Slack implements PlatformAPI {
       }
     }
 
-    await this.api.init({
-      accountID: this.accountID,
-      clientToken: undefined,
-      workspaceURL: 'https://createremote.slack.com/',
-    })
-
+    await this.api.init(undefined)
     await this.afterAuth()
 
     if (!this.api.userToken) throw Error('!userToken')
@@ -128,7 +123,6 @@ export default class Slack implements PlatformAPI {
   subscribeToEvents = async (onEvent: OnServerEventCallback): Promise<void> => {
     this.api.onEvent = onEvent
     this.realTimeApi = new SlackRealTime(this.api, this, onEvent)
-
     await this.realTimeApi?.subscribeToEvents()
   }
 
@@ -162,15 +156,24 @@ export default class Slack implements PlatformAPI {
     }])
   }
 
-  getThreads = async (): Promise<Paginated<Thread>> => {
+  getThreads = async (inboxName: ThreadFolderName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
     const timer = textsTime('getThreads')
-    const { threads: items, hasMore } = await this.api.getAllThreads(this.threadTypes)
+
+    const { channels, response_metadata } = await this.api.getThreads({
+      threadTypes: this.threadTypes,
+      cursor: pagination?.cursor,
+    })
+    const { team } = this.api.currentUser
+
+    const mutedChannels = this.api.getMutedChannels()
+    const items = mapThreads((channels || []) as any[], this.accountID, this.currentUserID, this.api.customEmojis, mutedChannels, team.name)
 
     timer.timeEnd()
 
     return {
       items,
-      hasMore,
+      hasMore: !!response_metadata?.cursor,
+      oldestCursor: response_metadata?.next_cursor,
     }
   }
 
