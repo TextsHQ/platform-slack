@@ -166,7 +166,7 @@ export default class SlackAPI {
 
   private getClientToken = async (workspaceURL = '') => {
     const [teamURL, config] = await Promise.all([
-      workspaceURL ? Promise.resolve(workspaceURL) : this.getFirstTeamURL(),
+      workspaceURL ? new Promise(resolve => { resolve(workspaceURL) }) : this.getFirstTeamURL(),
       this.getConfig(),
     ])
     for (const team of Object.values<any>(config.teams)) {
