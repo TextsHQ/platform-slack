@@ -2205,9 +2205,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/rtm-api@npm:^6.1.1":
-  version: 6.1.1
-  resolution: "@slack/rtm-api@npm:6.1.1"
+"@slack/rtm-api@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "@slack/rtm-api@npm:6.1.0"
   dependencies:
     "@slack/logger": ">=1.0.0 <3.0.0"
     "@slack/web-api": ^5.3.0
@@ -2219,13 +2219,13 @@ __metadata:
     p-cancelable: ^1.1.0
     p-queue: ^2.4.2
     ws: ^7.5.3
-  checksum: b968be3fe63ea30c6c75be3266484a81a8ec2f554b07f41a30041cdc10947f736f7dada2d944e05800a870c454f71dce4360fc2a31b7d3bf90fe1ca37d0cfac6
+  checksum: c325724b81711995cd2fe2667d70d0e59386dd8e97fe919b9455da5d1f738290f4e5ef64647d32d67b9e1d03b562148f56550a428de8491a539ed5c1e8af11f8
   languageName: node
   linkType: hard
 
-"@slack/rtm-api@patch:@slack/rtm-api@^6.1.1#patches/@slack+rtm-api+6.1.1.patch::locator=%40textshq%2Fplatform-slack%40workspace%3A.":
-  version: 6.1.1
-  resolution: "@slack/rtm-api@patch:@slack/rtm-api@npm%3A6.1.1#patches/@slack+rtm-api+6.1.1.patch::version=6.1.1&hash=1389db&locator=%40textshq%2Fplatform-slack%40workspace%3A."
+"@slack/rtm-api@patch:@slack/rtm-api@^6.1.0#patches/@slack+rtm-api+6.0.0.patch::locator=%40textshq%2Fplatform-slack%40workspace%3A.":
+  version: 6.1.0
+  resolution: "@slack/rtm-api@patch:@slack/rtm-api@npm%3A6.1.0#patches/@slack+rtm-api+6.0.0.patch::version=6.1.0&hash=1389db&locator=%40textshq%2Fplatform-slack%40workspace%3A."
   dependencies:
     "@slack/logger": ">=1.0.0 <3.0.0"
     "@slack/web-api": ^5.3.0
@@ -2237,7 +2237,7 @@ __metadata:
     p-cancelable: ^1.1.0
     p-queue: ^2.4.2
     ws: ^7.5.3
-  checksum: 7efbfe4a664c07ee1176f74c169ad9387e8569ead406886599a610b9b36ad0f92aa2e34ddbd96bf4c68f3da40e8ff354434303ec14d39f3c90cd96506998e47b
+  checksum: f0e541ede5c3b2210d4313a783248cd00d710deeb327d1917ce915659effb0a814104d7b16e56a3a4bd29e2a1c96cdb372b681fa1ed610a43c3905b5b9210b11
   languageName: node
   linkType: hard
 
@@ -2318,7 +2318,7 @@ __metadata:
   resolution: "@textshq/platform-slack@workspace:."
   dependencies:
     "@slack/logger": ^3.0.0
-    "@slack/rtm-api": "patch:@slack/rtm-api@^6.1.1#patches/@slack+rtm-api+6.1.1.patch"
+    "@slack/rtm-api": "patch:@slack/rtm-api@^6.1.0#patches/@slack+rtm-api+6.0.0.patch"
     "@slack/web-api": ^6.8.1
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config#main"
     "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#bb853b092ef989ef74d36576e01894d81a3c389a"
