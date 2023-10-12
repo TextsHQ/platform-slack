@@ -203,10 +203,7 @@ export default class SlackAPI {
       _x_app_name: 'client',
     })
 
-    // .reverse so we get only the latest (most recent) ones and .slice because
-    // that way we control how much we fetch initially (for larger workspaces this can
-    // return a list of ~200 channels and some could be unrelevant)
-    return this.mapChannels((channels as unknown[]).reverse().slice(0, 20))
+    return this.mapChannels(channels as unknown[])
   }
 
   setCustomEmojis = async () => {
@@ -297,6 +294,10 @@ export default class SlackAPI {
 
     do {
       try {
+        await new Promise(r => {
+          setTimeout(r, 2000)
+        })
+
         const { channels, response_metadata } = await this.getThreads({ cursor, threadTypes })
 
         cursor = response_metadata?.next_cursor || null
@@ -340,7 +341,7 @@ export default class SlackAPI {
 
     response = await this.webClient.conversations.list({
       types,
-      limit: 200,
+      limit: 500,
       cursor: cursor || undefined,
       exclude_archived: true,
     })
