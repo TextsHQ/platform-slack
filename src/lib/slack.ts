@@ -7,7 +7,7 @@ import { setTimeout as setTimeoutAsync } from 'timers/promises'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
-import { extractRichElements, mapParticipant, mapProfile, mapThreads } from '../mappers'
+import { extractRichElements, mapParticipant, mapProfile } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
 import { textsTime } from '../util'
@@ -29,30 +29,18 @@ export default class SlackAPI {
 
   public attachmentsPromises: Map<string, Function> = new Map()
 
-  private accountID: string
-
   private workspaceUsers: Record<string, any> = {}
 
   private httpClient = texts.createHttpClient()
 
   private initialMutedChannels = new Set<string>()
 
-  private threadsCallsCounter = 0
-
-  init = async ({
-    clientToken,
-    accountID,
-    workspaceURL,
-  }: {
-    clientToken?: string
-    accountID?: string
-    workspaceURL?: string
-  }) => {
+  init = async (clientToken: string) => {
     const timer = textsTime('slack.init')
-    const token = clientToken || await this.getClientToken(workspaceURL)
+    const token = clientToken || await this.getClientToken()
 
     const cookie = await this.cookieJar.getCookieString('https://slack.com')
-    const options = {
+    const client = new WebClient(token, {
       headers: { cookie },
       maxRequestConcurrency: 20,
       retryConfig: {
@@ -60,11 +48,10 @@ export default class SlackAPI {
         minTimeout: 1_000,
         retries: 99000,
       },
-    }
+    })
 
-    this.webClient = new WebClient(token, options)
     this.userToken = token
-    this.accountID = accountID
+    this.webClient = client
     /**
      * Get user all user preferences to get all the muted channels.
      *
@@ -93,10 +80,10 @@ export default class SlackAPI {
   static get htmlHeaders() {
     return {
       accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-      'accept-language': 'en-US,en;q=0.9',
-      'cache-control': 'max-age=0',
+      'accept-language': 'en',
+      'cache-control': 'no-cache',
       pragma: 'no-cache',
-      'sec-ch-ua': '"Chromium";v="117", "Not;A=Brand";v="8"',
+      'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
       'sec-ch-ua-mobile': '?0',
       'sec-ch-ua-platform': '"macOS"',
       'sec-fetch-dest': 'document',
@@ -109,12 +96,7 @@ export default class SlackAPI {
   }
 
   private fetchHTML = async (url: string) => {
-    const { statusCode, body: html } = await this.httpClient.requestAsString(url, {
-      cookieJar: this.cookieJar,
-      headers: SlackAPI.htmlHeaders,
-      followRedirect: true,
-    })
-
+    const { statusCode, body: html } = await this.httpClient.requestAsString(url, { cookieJar: this.cookieJar, headers: SlackAPI.htmlHeaders })
     if (statusCode >= 400) {
       throw Error(`${url} returned status code ${statusCode}`)
     }
@@ -164,9 +146,9 @@ export default class SlackAPI {
     return config
   }
 
-  private getClientToken = async (workspaceURL = '') => {
+  private getClientToken = async () => {
     const [teamURL, config] = await Promise.all([
-      workspaceURL ? new Promise(resolve => { resolve(workspaceURL) }) : this.getFirstTeamURL(),
+      this.getFirstTeamURL(),
       this.getConfig(),
     ])
     for (const team of Object.values<any>(config.teams)) {
@@ -174,36 +156,6 @@ export default class SlackAPI {
     }
     texts.error('didnt find token', JSON.stringify(config), teamURL)
     return this.getClientTokenOld()
-  }
-
-  private mapChannels = (channels: unknown[]): Thread[] => {
-    const mappedThreads = mapThreads(
-      (channels || []) as any[],
-      this.accountID,
-      this.currentUser.auth.user_id,
-      this.customEmojis,
-      this.getMutedChannels(),
-      this.currentUser.team.name,
-    )
-
-    return mappedThreads
-  }
-
-  getInitialThreads = async (): Promise<Thread[]> => {
-    const now = Math.floor(Date.now() / 1000)
-    const { channels = [] } = await this.webClient.apiCall('client.boot', {
-      token: this.webClient.token,
-      version: 5,
-      _x_reason: 'deferred-data',
-      min_channel_updated: Date.now(),
-      include_min_version_bump_check: 1,
-      version_ts: now,
-      build_version_ts: now,
-      _x_sonic: true,
-      _x_app_name: 'client',
-    })
-
-    return this.mapChannels(channels as unknown[])
   }
 
   setCustomEmojis = async () => {
@@ -279,57 +231,6 @@ export default class SlackAPI {
     timer.timeEnd()
   }
 
-  getAllThreads = async (threadTypes: ThreadType[] = []): Promise<{ threads: Thread[], hasMore: boolean }> => {
-    if (!this.threadsCallsCounter) {
-      this.threadsCallsCounter += 1
-      return {
-        threads: await this.getInitialThreads(),
-        hasMore: true,
-      }
-    }
-
-    const allThreads: Thread[] = []
-    let cursor: string
-    let tries = 0
-
-    do {
-      try {
-        await new Promise(r => {
-          setTimeout(r, 2000)
-        })
-
-        const { channels, response_metadata } = await this.getThreads({ cursor, threadTypes })
-
-        cursor = response_metadata?.next_cursor || null
-        const mappedThreads = this.mapChannels(channels)
-
-        this.onEvent(mappedThreads.map(thread => ({
-          type: ServerEventType.STATE_SYNC,
-          mutationType: 'upsert',
-          objectIDs: {
-            threadID: thread.id,
-          },
-          objectName: 'thread',
-          entries: [thread],
-        })))
-
-        allThreads.push(...mappedThreads)
-        this.threadsCallsCounter += 1
-      } catch (error) {
-        texts.error(error)
-        texts.Sentry.captureException(error)
-
-        if (tries < 20) tries += 1
-        else cursor = null
-      }
-    } while (cursor)
-
-    return {
-      threads: allThreads,
-      hasMore: false,
-    }
-  }
-
   getThreads = async ({ cursor, threadTypes = [] }: { cursor?: string, threadTypes: ThreadType[] }) => {
     let response: any = { channels: [] }
 
@@ -341,7 +242,7 @@ export default class SlackAPI {
 
     response = await this.webClient.conversations.list({
       types,
-      limit: 500,
+      limit: 100,
       cursor: cursor || undefined,
       exclude_archived: true,
     })
@@ -358,7 +259,6 @@ export default class SlackAPI {
       ...publicChannels.map(this.loadPublicChannel),
       ...privateMessages.map(this.loadPrivateMessage),
     ])
-
     response.channels = uniqBy([...privateMessages, ...publicChannels], 'id')
 
     return response
