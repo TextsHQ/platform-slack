@@ -191,23 +191,37 @@ export default class SlackAPI {
   }
 
   private getInitialThreads = async (): Promise<Thread[]> => {
-    const now = Math.floor(Date.now() / 1000)
-    const { channels = [] } = await this.webClient.apiCall('client.boot', {
-      token: this.webClient.token,
-      version: 5,
-      _x_reason: 'deferred-data',
-      min_channel_updated: Date.now(),
-      include_min_version_bump_check: 1,
-      version_ts: now,
-      build_version_ts: now,
-      _x_sonic: true,
-      _x_app_name: 'client',
-    })
+    try {
+      const now = Math.floor(Date.now() / 1000)
+      const { channels = [] } = await this.webClient.apiCall('client.boot', {
+        token: this.webClient.token,
+        version: 5,
+        _x_reason: 'deferred-data',
+        min_channel_updated: Date.now(),
+        include_min_version_bump_check: 1,
+        version_ts: now,
+        build_version_ts: now,
+        _x_sonic: true,
+        _x_app_name: 'client',
+      })
 
-    // .reverse so we get only the latest (most recent) ones and .slice because
-    // that way we control how much we fetch initially (for larger workspaces this can
-    // return a list of ~200 channels and some could be unrelevant)
-    return this.mapChannels((channels as unknown[]).reverse().slice(0, 20))
+      // .reverse so we get only the latest (most recent) ones and .slice because
+      // that way we control how much we fetch initially (for larger workspaces this can
+      // return a list of ~200 channels and some could be unrelevant)
+      const lastChannelsWithParticipants = await Promise.all((channels as unknown[]).reverse().slice(0, 20).map(async (channel: Record<string, string | number | unknown[]>) => {
+        const participantsIDs = await this.getParticipants(channel.id as string).catch(() => [])
+        const participants = await Promise.all(participantsIDs.map(this.getParticipantProfile))
+
+        return { ...channel, participants }
+      }))
+
+      return this.mapChannels(lastChannelsWithParticipants)
+    } catch (error) {
+      // @notes
+      // in case we have an error while loading initial threads we shouldn't throw it to the user
+      // and returning an empty array will prevent to stop fetching threads
+      return []
+    }
   }
 
   setCustomEmojis = async () => {
