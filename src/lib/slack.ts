@@ -189,7 +189,7 @@ export default class SlackAPI {
     return mappedThreads
   }
 
-  private getInitialThreads = async (): Promise<Thread[]> => {
+  getInitialThreads = async (): Promise<Thread[]> => {
     const now = Math.floor(Date.now() / 1000)
     const { channels = [] } = await this.webClient.apiCall('client.boot', {
       token: this.webClient.token,
