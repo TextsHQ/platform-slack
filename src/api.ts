@@ -1,4 +1,4 @@
-import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName, ClientContext, PaginatedWithCursors } from '@textshq/platform-sdk'
+import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName, ClientContext } from '@textshq/platform-sdk'
 import { ExpectedJSONGotHTMLError } from '@textshq/platform-sdk/dist/json'
 import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
@@ -161,7 +161,7 @@ export default class Slack implements PlatformAPI {
     }])
   }
 
-  getThreads = async (): Promise<PaginatedWithCursors<Thread>> => {
+  getThreads = async (inboxName: ThreadFolderName, pagination: PaginationArg): Promise<Paginated<Thread>> => {
     const timer = textsTime('getThreads')
     const { threads: items, hasMore } = await this.api.getAllThreads(this.threadTypes)
     timer.timeEnd()
