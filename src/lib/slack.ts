@@ -23,8 +23,6 @@ export default class SlackAPI {
 
   webClient: WebClient
 
-  realTimeWebClient: WebClient
-
   customEmojis: Record<string, string>
 
   currentUser?: { auth: any, user: any, team: any }
@@ -65,7 +63,6 @@ export default class SlackAPI {
     } as WebClientOptions
 
     this.webClient = new WebClient(token, options)
-    this.realTimeWebClient = new WebClient(token, options)
     this.userToken = token
     this.accountID = accountID
     /**

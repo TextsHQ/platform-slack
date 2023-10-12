@@ -30,7 +30,7 @@ export default class SlackRealTime {
 
   subscribeToEvents = async (): Promise<void> => {
     this.rtm = new RTMClient({
-      webClient: this.api.realTimeWebClient,
+      webClient: this.api.webClient,
       autoReconnect: true,
       useRtmConnect: true,
       retryConfig: {
