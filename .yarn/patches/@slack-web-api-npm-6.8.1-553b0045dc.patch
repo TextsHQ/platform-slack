@@ -1,20 +1,5 @@
-diff --git a/dist/WebClient.d.ts b/dist/WebClient.d.ts
-index 9f385903ccc125a9bebba116cf38ea39e3540cf3..086b69c0514682fe64334fd401d63e4d861194aa 100644
---- a/dist/WebClient.d.ts
-+++ b/dist/WebClient.d.ts
-@@ -52,6 +52,10 @@ export type PageAccumulator<R extends PageReducer> = R extends (accumulator: (in
-  * a convenience wrapper for calling the {@link WebClient#apiCall} method using the method name as the first parameter.
-  */
- export declare class WebClient extends Methods {
-+    /**
-+     * Request headers. Added here to get them for RealTime and from 'outside' the WebClient.
-+     */
-+    readonly headers?: Record<string, unknown>;
-     /**
-      * The base URL for reaching Slack's Web API. Consider changing this value for testing purposes.
-      */
 diff --git a/dist/WebClient.js b/dist/WebClient.js
-index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..62536e951cd7d27a93df5db7006429e9fa9eba93 100644
+index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..5ad43cd1ceac1fa6a80419cf8174377bc9901907 100644
 --- a/dist/WebClient.js
 +++ b/dist/WebClient.js
 @@ -63,6 +63,9 @@ const logger_1 = require("./logger");
@@ -27,15 +12,7 @@ index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..62536e951cd7d27a93df5db7006429e9
  /*
   * Helpers
   */
-@@ -95,6 +98,7 @@ class WebClient extends methods_1.Methods {
-         this.tlsConfig = tls !== undefined ? tls : {};
-         this.rejectRateLimitedCalls = rejectRateLimitedCalls;
-         this.teamId = teamId;
-+        this.headers = headers || {};
-         // Logging
-         if (typeof logger !== 'undefined') {
-             this.logger = logger;
-@@ -108,6 +112,9 @@ class WebClient extends methods_1.Methods {
+@@ -108,6 +111,9 @@ class WebClient extends methods_1.Methods {
          // eslint-disable-next-line no-param-reassign
          if (this.token && !headers.Authorization)
              headers.Authorization = `Bearer ${this.token}`;
@@ -45,7 +22,7 @@ index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..62536e951cd7d27a93df5db7006429e9
          this.axios = axios_1.default.create({
              timeout,
              baseURL: slackApiUrl,
-@@ -123,6 +130,7 @@ class WebClient extends methods_1.Methods {
+@@ -123,6 +129,7 @@ class WebClient extends methods_1.Methods {
              // protocols), users of this package should use the `agent` option to configure a proxy.
              proxy: false,
          });
@@ -53,7 +30,7 @@ index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..62536e951cd7d27a93df5db7006429e9
          // serializeApiCallOptions will always determine the appropriate content-type
          delete this.axios.defaults.headers.post['Content-Type'];
          this.logger.debug('initialized');
-@@ -408,7 +416,39 @@ class WebClient extends methods_1.Methods {
+@@ -408,7 +415,39 @@ class WebClient extends methods_1.Methods {
                  if (url.endsWith('admin.analytics.getFile')) {
                      config.responseType = 'arraybuffer';
                  }

@@ -1,5 +1,5 @@
-diff --git a/dist/RTMClient.d.ts b/dist/RTMClient.d.ts
-index f479168386565d98e01d2a5030ca85d517223e54..fe1670b5185174b2796d6cc96111edcb5ec4166f 100644
+diff --git a/node_modules/@slack/rtm-api/dist/RTMClient.d.ts b/node_modules/@slack/rtm-api/dist/RTMClient.d.ts
+index 149c9be..2446027 100644
 --- a/dist/RTMClient.d.ts
 +++ b/dist/RTMClient.d.ts
 @@ -2,6 +2,7 @@
@@ -36,11 +36,11 @@ index f479168386565d98e01d2a5030ca85d517223e54..fe1670b5185174b2796d6cc96111edcb
      slackApiUrl?: string;
      logger?: Logger;
      logLevel?: LogLevel;
-diff --git a/dist/RTMClient.js b/dist/RTMClient.js
-index f7a2521676e8b732c02342ba4e7ddcad000409cb..6738faf1ccb91a44ba6e7670131818d5eaf951ff 100644
+diff --git a/node_modules/@slack/rtm-api/dist/RTMClient.js b/node_modules/@slack/rtm-api/dist/RTMClient.js
+index 44e15b2..4296933 100644
 --- a/dist/RTMClient.js
 +++ b/dist/RTMClient.js
-@@ -33,7 +33,7 @@ var UnrecoverableRTMStartError;
+@@ -20,7 +20,7 @@ const packageJson = require('../package.json'); // tslint:disable-line:no-requir
   * messages.
   */
  class RTMClient extends eventemitter3_1.EventEmitter {
@@ -49,7 +49,7 @@ index f7a2521676e8b732c02342ba4e7ddcad000409cb..6738faf1ccb91a44ba6e7670131818d5
          super();
          /**
           * Whether or not the client is currently connected to the RTM API
-@@ -230,15 +230,7 @@ class RTMClient extends eventemitter3_1.EventEmitter {
+@@ -215,15 +215,7 @@ class RTMClient extends eventemitter3_1.EventEmitter {
           * The list is a sparse array, where the indexes are message IDs for the sent messages.
           */
          this.awaitingReplyList = [];
@@ -66,17 +66,3 @@ index f7a2521676e8b732c02342ba4e7ddcad000409cb..6738faf1ccb91a44ba6e7670131818d5
          this.agentConfig = agent;
          this.autoReconnect = autoReconnect;
          this.useRtmConnect = useRtmConnect;
-@@ -419,7 +411,12 @@ class RTMClient extends eventemitter3_1.EventEmitter {
-         if (this.agentConfig !== undefined) {
-             options.agent = this.agentConfig;
-         }
--        this.websocket = new ws_1.default(url, options);
-+        this.websocket = new ws_1.default(url, {
-+            ...options,
-+            headers: {
-+                ...(this.webClient.headers || {}),
-+            },
-+        });
-         // attach event listeners
-         this.websocket.addEventListener('open', (event) => this.stateMachine.handle('websocket open', event));
-         this.websocket.addEventListener('close', (event) => this.stateMachine.handle('websocket close', event));
