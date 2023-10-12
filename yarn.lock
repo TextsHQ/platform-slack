@@ -2077,7 +2077,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/rtm-api@npm:6.1.1":
+"@slack/rtm-api@npm:^6.1.1":
   version: 6.1.1
   resolution: "@slack/rtm-api@npm:6.1.1"
   dependencies:
@@ -2095,9 +2095,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/rtm-api@patch:@slack/rtm-api@npm%3A6.1.1#./.yarn/patches/@slack-rtm-api-npm-6.1.1-13c0993e53.patch::locator=%40textshq%2Fplatform-slack%40workspace%3A.":
+"@slack/rtm-api@patch:@slack/rtm-api@^6.1.1#patches/@slack+rtm-api+6.1.1.patch::locator=%40textshq%2Fplatform-slack%40workspace%3A.":
   version: 6.1.1
-  resolution: "@slack/rtm-api@patch:@slack/rtm-api@npm%3A6.1.1#./.yarn/patches/@slack-rtm-api-npm-6.1.1-13c0993e53.patch::version=6.1.1&hash=2b304d&locator=%40textshq%2Fplatform-slack%40workspace%3A."
+  resolution: "@slack/rtm-api@patch:@slack/rtm-api@npm%3A6.1.1#patches/@slack+rtm-api+6.1.1.patch::version=6.1.1&hash=1389db&locator=%40textshq%2Fplatform-slack%40workspace%3A."
   dependencies:
     "@slack/logger": ">=1.0.0 <3.0.0"
     "@slack/web-api": ^5.3.0
@@ -2109,14 +2109,7 @@ __metadata:
     p-cancelable: ^1.1.0
     p-queue: ^2.4.2
     ws: ^7.5.3
-  checksum: 80d7c478ed0cb582e6da456cc79ea4f74021ae98f0d4db238d504c80cd74e71be9f78d2422651718c6a3b0ad0d1e6734198279fae65b359bc1c7d65a37e8c847
-  languageName: node
-  linkType: hard
-
-"@slack/types@npm:^1.7.0":
-  version: 1.10.0
-  resolution: "@slack/types@npm:1.10.0"
-  checksum: 9dcf254ad4882146de7ed2db948e7ee56614c3aca47a1df7cbbf4faebe6f2672a704239c0c259b4825be140bd8bb97d994241f35dc432b9ca722333828dac666
+  checksum: 7efbfe4a664c07ee1176f74c169ad9387e8569ead406886599a610b9b36ad0f92aa2e34ddbd96bf4c68f3da40e8ff354434303ec14d39f3c90cd96506998e47b
   languageName: node
   linkType: hard
 
@@ -2146,27 +2139,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@slack/web-api@npm:^5.3.0":
-  version: 5.15.0
-  resolution: "@slack/web-api@npm:5.15.0"
-  dependencies:
-    "@slack/logger": ">=1.0.0 <3.0.0"
-    "@slack/types": ^1.7.0
-    "@types/is-stream": ^1.1.0
-    "@types/node": ">=8.9.0"
-    axios: ^0.21.1
-    eventemitter3: ^3.1.0
-    form-data: ^2.5.0
-    is-stream: ^1.1.0
-    p-queue: ^6.6.1
-    p-retry: ^4.0.0
-  checksum: c0500b88f9acd3c0581b1e7c51bc4edf013db93ec81f0fc7bed878be1a2710722ac9ccc35a4198e0d86ec64f4b733de0a622d759cfe7e1de493c46dcc41985b5
-  languageName: node
-  linkType: hard
-
 "@slack/web-api@patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch::locator=%40textshq%2Fplatform-slack%40workspace%3A.":
   version: 6.8.1
-  resolution: "@slack/web-api@patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch::version=6.8.1&hash=ac87df&locator=%40textshq%2Fplatform-slack%40workspace%3A."
+  resolution: "@slack/web-api@patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch::version=6.8.1&hash=4f6db3&locator=%40textshq%2Fplatform-slack%40workspace%3A."
   dependencies:
     "@slack/logger": ^3.0.0
     "@slack/types": ^2.0.0
@@ -2179,7 +2154,7 @@ __metadata:
     is-stream: ^1.1.0
     p-queue: ^6.6.1
     p-retry: ^4.0.0
-  checksum: 232049d09cc4cbad536412f144dc8373968863fc017d39ffe555df4d4fc05625fa5af140afabe289b40c93b491eea173b6116ba1bb8f01b18f40a00236fb1f94
+  checksum: e8d986529c5b53f98b390def794917adf9a9f7811d9f1daa57858a870255e0c8a92636814c4b9a4d044bfedbd2e04ba87fdd30745783cfabcbba605f07e7a2e2
   languageName: node
   linkType: hard
 
@@ -2215,7 +2190,7 @@ __metadata:
   resolution: "@textshq/platform-slack@workspace:."
   dependencies:
     "@slack/logger": ^3.0.0
-    "@slack/rtm-api": ^6.1.1
+    "@slack/rtm-api": "patch:@slack/rtm-api@^6.1.1#patches/@slack+rtm-api+6.1.1.patch"
     "@slack/web-api": ^6.8.1
     "@textshq/eslint-config": "https://github.com/TextsHQ/eslint-config#main"
     "@textshq/platform-sdk": "https://github.com/TextsHQ/platform-sdk#bb853b092ef989ef74d36576e01894d81a3c389a"
@@ -2880,15 +2855,6 @@ __metadata:
   version: 4.8.2
   resolution: "axe-core@npm:4.8.2"
   checksum: 8c19f507dabfcb8514e4280c7fc66e85143be303ddb57ec9f119338021228dc9b80560993938003837bda415fde7c07bba3a96560008ffa5f4145a248ed8f5fe
-  languageName: node
-  linkType: hard
-
-"axios@npm:^0.21.1":
-  version: 0.21.4
-  resolution: "axios@npm:0.21.4"
-  dependencies:
-    follow-redirects: ^1.14.0
-  checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
   languageName: node
   linkType: hard
 
@@ -4281,7 +4247,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.0, follow-redirects@npm:^1.14.9":
+"follow-redirects@npm:^1.14.9":
   version: 1.15.3
   resolution: "follow-redirects@npm:1.15.3"
   peerDependenciesMeta:
@@ -7678,18 +7644,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^7.5.3":
-  version: 7.5.9
-  resolution: "ws@npm:7.5.9"
+"ws@npm:8.14.2":
+  version: 8.14.2
+  resolution: "ws@npm:8.14.2"
   peerDependencies:
     bufferutil: ^4.0.1
-    utf-8-validate: ^5.0.2
+    utf-8-validate: ">=5.0.2"
   peerDependenciesMeta:
     bufferutil:
       optional: true
     utf-8-validate:
       optional: true
-  checksum: c3c100a181b731f40b7f2fddf004aa023f79d64f489706a28bc23ff88e87f6a64b3c6651fbec3a84a53960b75159574d7a7385709847a62ddb7ad6af76f49138
+  checksum: 3ca0dad26e8cc6515ff392b622a1467430814c463b3368b0258e33696b1d4bed7510bc7030f7b72838b9fdeb8dbd8839cbf808367d6aae2e1d668ce741d4308b
   languageName: node
   linkType: hard
 
