@@ -32,7 +32,6 @@ export default class SlackRealTime {
     this.rtm = new RTMClient({
       webClient: this.api.webClient,
       autoReconnect: true,
-      useRtmConnect: true,
       retryConfig: {
         maxTimeout: 30_000,
         minTimeout: 1_000,
@@ -256,11 +255,7 @@ export default class SlackRealTime {
 
     // This is added because Slack has changed their policies and now you'll need to subscribe for each user
     // @see https://api.slack.com/changelog/2017-10-making-rtm-presence-subscription-only
-    await this.rtm.start({
-      batch_presence_aware: true,
-      presence_sub: true,
-      simple_latest: true,
-    })
+    await this.rtm.start({ batch_presence_aware: true, presence_sub: true })
   }
 
   subscribeToPresence = async (users: string[]) => {
