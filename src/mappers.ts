@@ -347,10 +347,6 @@ const mapThread = (
     if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
     if (type === 'group' && participants.length > 0) return undefined
 
-    if (type === 'group' && channel.members?.length > 0 && (channel.name as string).startsWith('mpdm-') && channel.purpose?.value) {
-      return channel.purpose.value.split(': ').pop()
-    }
-
     return channel.name || participants[0]?.username || channel.user
   })()
 
@@ -362,7 +358,7 @@ const mapThread = (
     type,
     title,
     mutedUntil: isMuted ? 'forever' : undefined,
-    timestamp: messages[0]?.timestamp || channel.timestamp || new Date(channel.updated),
+    timestamp: messages[0]?.timestamp || channel.timestamp,
     isUnread: channel.unread || false,
     isReadOnly: channel.is_user_deleted || false,
     messages: { items: messages, hasMore: true },
