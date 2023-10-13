@@ -23,13 +23,20 @@ const mapAttachment = (slackAttachment: any): Attachment => {
     ? 'asset://$accountID/proxy/' + Buffer.from(slackAttachment.url_private).toString('hex')
     : slackAttachment.image_url
 
+  const size: { width: number, height: number } = (() => {
+    if (slackAttachment.original_h) return { width: slackAttachment.original_w, height: slackAttachment.original_h }
+    if (slackAttachment.thumb_video_h) return { width: slackAttachment.thumb_video_w, height: slackAttachment.thumb_video_h }
+    // fallback
+    return { width: 500, height: 500 }
+  })()
+
   return {
     id: `${slackAttachment.id}`,
     fileName: slackAttachment.name || 'image',
     type,
     mimeType,
     srcURL: url,
-    size: slackAttachment.original_h ? { width: slackAttachment.original_w, height: slackAttachment.original_h } : undefined,
+    size,
   }
 }
 
