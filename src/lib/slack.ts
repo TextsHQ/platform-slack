@@ -319,13 +319,15 @@ export default class SlackAPI {
         cursor = response_metadata?.next_cursor || null
         const mappedThreads = this.mapChannels(channels)
 
-        this.onEvent(mappedThreads.map(thread => ({
-          type: ServerEventType.STATE_SYNC,
-          mutationType: 'upsert',
-          objectIDs: {},
-          objectName: 'thread',
-          entries: [thread],
-        })))
+        if (mappedThreads.length) {
+          this.onEvent(mappedThreads.map(thread => ({
+            type: ServerEventType.STATE_SYNC,
+            mutationType: 'upsert',
+            objectIDs: {},
+            objectName: 'thread',
+            entries: [thread],
+          })))
+        }
 
         allThreads.push(...mappedThreads)
         this.threadsCallsCounter += 1
