@@ -1,5 +1,5 @@
 import { truncate } from 'lodash'
-import { CurrentUser, Message, MessageAction, MessageActionType, Attachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet } from '@textshq/platform-sdk'
+import { CurrentUser, Message, MessageAction, MessageActionType, Attachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet, Size } from '@textshq/platform-sdk'
 import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
@@ -23,11 +23,11 @@ const mapAttachment = (slackAttachment: any): Attachment => {
     ? 'asset://$accountID/proxy/' + Buffer.from(slackAttachment.url_private).toString('hex')
     : slackAttachment.image_url
 
-  const size: { width: number, height: number } = (() => {
+  const size: Size = (() => {
     if (slackAttachment.original_h) return { width: slackAttachment.original_w, height: slackAttachment.original_h }
     if (slackAttachment.thumb_video_h) return { width: slackAttachment.thumb_video_w, height: slackAttachment.thumb_video_h }
     // fallback
-    return { width: 500, height: 500 }
+    return { width: undefined, height: 200 }
   })()
 
   return {
