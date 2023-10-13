@@ -194,7 +194,7 @@ export default class SlackRealTime {
       const isOnline = presence === 'active'
       // sometime slacks sends `user: 'some-id'` and sometimes `users: UserIDs[]` so this way we
       // ensure an array of updates.
-      const usersToUpdate: string[] = [...users, ...(user ? [user] : [])]
+      const usersToUpdate: string[] = [...(users || []), ...(user ? [user] : [])]
 
       if (usersToUpdate.length) {
         this.onEvent(usersToUpdate.map((userID: string) => ({
@@ -209,11 +209,11 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('dnd_updated_user', async slackEvent => {
-      const { user, dnd_status, event_ts, users } = slackEvent
+      const { user, dnd_status, event_ts, users = [] } = slackEvent
       const { next_dnd_start_ts, next_dnd_end_ts } = dnd_status
       // The event timestamp it's between the do not disturb start and the do not disturb end
       const dndEnabled = next_dnd_start_ts < event_ts && next_dnd_end_ts > event_ts
-      const usersToUpdate: string[] = [...users, ...(user ? [user] : [])]
+      const usersToUpdate: string[] = [...(users || []), ...(user ? [user] : [])]
 
       if (dndEnabled) {
         if (usersToUpdate.length) {
