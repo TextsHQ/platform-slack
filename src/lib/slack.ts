@@ -320,16 +320,16 @@ export default class SlackAPI {
         const mappedThreads = this.mapChannels(channels)
 
         if (mappedThreads.length) {
-          this.onEvent(mappedThreads.map(thread => ({
+          this.onEvent([{
             type: ServerEventType.STATE_SYNC,
             mutationType: 'upsert',
             objectIDs: {},
             objectName: 'thread',
-            entries: [thread],
-          })))
+            entries: mappedThreads,
+          }])
+          allThreads.push(...mappedThreads)
         }
 
-        allThreads.push(...mappedThreads)
         this.threadsCallsCounter += 1
       } catch (error) {
         texts.error(error)
@@ -346,7 +346,7 @@ export default class SlackAPI {
     }
   }
 
-  getThreads = async ({ cursor, threadTypes = [] }: { cursor?: string, threadTypes: ThreadType[] }) => {
+  private getThreads = async ({ cursor, threadTypes = [] }: { cursor?: string, threadTypes: ThreadType[] }) => {
     let response: any = { channels: [] }
 
     const types = threadTypes.map(t => {
