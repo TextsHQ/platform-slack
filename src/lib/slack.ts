@@ -375,8 +375,16 @@ export default class SlackAPI {
       ...privateMessages.map(this.loadPrivateMessage),
     ])
 
-    response.channels = uniqBy([...privateMessages, ...publicChannels], 'id')
+    response.channels = [...privateMessages, ...publicChannels]
 
+    setImmediate(() => {
+      const deduped = uniqBy(response.channels, 'id')
+      if (deduped.length !== response.channels.length) {
+        const msg = 'slack deduped.length !== response.channels.length'
+        console.warn(msg)
+        texts.Sentry.captureMessage(msg)
+      }
+    })
     return response
   }
 
