@@ -26,8 +26,6 @@ const mapAttachment = (slackAttachment: any): Attachment => {
   const size: Size = (() => {
     if (slackAttachment.original_h) return { width: slackAttachment.original_w, height: slackAttachment.original_h }
     if (slackAttachment.thumb_video_h) return { width: slackAttachment.thumb_video_w, height: slackAttachment.thumb_video_h }
-    // fallback
-    return { width: undefined, height: 200 }
   })()
 
   return {
