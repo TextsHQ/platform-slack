@@ -335,7 +335,7 @@ export default class SlackAPI {
         texts.error(error)
         texts.Sentry.captureException(error)
 
-        if (tries < 20) tries += 1
+        if (tries < 5) tries += 1
         else cursor = null
       }
     } while (cursor)
