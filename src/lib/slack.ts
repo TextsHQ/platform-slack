@@ -56,8 +56,8 @@ export default class SlackAPI {
       headers: { cookie },
       maxRequestConcurrency: 20,
       retryConfig: {
-        maxTimeout: 30_000,
-        minTimeout: 1_000,
+        maxTimeout: 60_000,
+        minTimeout: 10_000,
         retries: 99000,
       },
     } as WebClientOptions
