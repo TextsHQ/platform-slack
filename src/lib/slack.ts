@@ -335,8 +335,13 @@ export default class SlackAPI {
         texts.error(error)
         texts.Sentry.captureException(error)
 
-        if (tries < 5) tries += 1
-        else cursor = null
+        if (tries < 5) {
+          tries += 1
+          // Wait 5 seconds before next try
+          await setTimeoutAsync(5_000)
+        } else {
+          cursor = null
+        }
       }
     } while (cursor)
 
