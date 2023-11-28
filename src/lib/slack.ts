@@ -160,7 +160,7 @@ export default class SlackAPI {
 
   private getConfig = async () => {
     const html = await this.fetchHTML('https://app.slack.com/auth?app=client')
-    const [, json] = html.match(/JSON.stringify\((.+?)\)/) || []
+    const [, json] = html.match(/JSON\.stringify\((\{.*?\})\)/) || []
     const config = JSON.parse(json)
     return config
   }
