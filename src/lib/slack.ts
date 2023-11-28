@@ -135,7 +135,6 @@ export default class SlackAPI {
     // TD.boot_data.team_url = "https:\/\/texts-co.slack.com\/";
     const [, domain] = html.match(/TD\.boot_data\.team_url = (.+?);/) || []
     if (domain) return JSON.parse(domain) // 'https://texts-co.slack.com/'
-    texts.Sentry.captureMessage('Could not find team URL: domain is undefined', { extra: { html } })
     throw Error('Could not find team URL')
   }
 
@@ -162,13 +161,8 @@ export default class SlackAPI {
   private getConfig = async () => {
     const html = await this.fetchHTML('https://app.slack.com/auth?app=client')
     const [, json] = html.match(/JSON.stringify\((.+?)\)/) || []
-    try {
-      const config = JSON.parse(json)
-      return config
-    } catch (error) {
-      texts.Sentry.captureException(error, { extra: { html, json } })
-      throw new Error('Unable to parse config')
-    }
+    const config = JSON.parse(json)
+    return config
   }
 
   private getClientToken = async () => {
