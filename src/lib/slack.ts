@@ -1,3 +1,5 @@
+import os from 'os'
+import path from 'path'
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
 import { WebClient, WebClientOptions } from '@slack/web-api'
 import { promises as fs } from 'fs'
@@ -116,6 +118,12 @@ export default class SlackAPI {
       followRedirect: true,
     })
 
+    await fs.writeFile(path.join(os.homedir(), 'Desktop', 'texts-slack-issue-fetch-html-' + Date.now() + '.json'), JSON.stringify(
+      { url, statusCode, html, cookieJar: this.cookieJar, headers: SlackAPI.htmlHeaders, timestamp: Date.now() },
+      null,
+      2,
+    ))
+
     if (statusCode >= 400) {
       throw Error(`${url} returned status code ${statusCode}`)
     }
@@ -140,6 +148,11 @@ export default class SlackAPI {
 
   private getFirstTeamURL = async () => {
     const res = await texts.fetch('https://my.slack.com/', { cookieJar: this.cookieJar, headers: SlackAPI.htmlHeaders, method: 'HEAD', followRedirect: false })
+    await fs.writeFile(path.join(os.homedir(), 'Desktop', 'texts-slack-issue-get-team-url-' + Date.now() + '.json'), JSON.stringify(
+      { res, cookieJar: this.cookieJar, headers: SlackAPI.htmlHeaders, timestamp: Date.now() },
+      null,
+      2,
+    ))
     const { location } = res.headers
     if (location && location !== 'https://slack.com/') return location
     return this.getFirstTeamURLOld()
