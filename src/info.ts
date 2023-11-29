@@ -135,6 +135,7 @@ const info: PlatformInfo = {
     show_channels: {
       label: 'Show channels',
       type: 'checkbox',
+      description: 'Experimental. Not everything will work as expected.',
       default: false,
     },
   },
