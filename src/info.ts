@@ -135,7 +135,7 @@ const info: PlatformInfo = {
     show_channels: {
       label: 'Show channels',
       type: 'checkbox',
-      description: 'Experimental. Not everything will work as expected.',
+      description: 'Experimental. All Slack features may not be present.',
       default: false,
     },
   },
