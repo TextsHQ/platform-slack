@@ -1,6 +1,6 @@
 import { truncate } from 'lodash'
 import { CurrentUser, Message, MessageAction, MessageActionType, Attachment, AttachmentType, MessageButton, MessageLink, MessageReaction, Participant, ServerEvent, ServerEventType, TextAttributes, Thread, ThreadType, Tweet, Size } from '@textshq/platform-sdk'
-import type { MessageElement as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
+import type { Message as CHRMessage } from '@slack/web-api/dist/response/ConversationsHistoryResponse'
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
 import { getEmojiUrl, getNativeShortcodeFromBlock, getEmojiUnicode } from './lib/emoji'
