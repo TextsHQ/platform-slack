@@ -36,7 +36,7 @@
   },
   "packageManager": "yarn@3.6.3",
   "resolutions": {
-    "@slack/web-api@^6.8.1": "patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch",
-    "@slack/rtm-api@^6.1.1": "patch:@slack/rtm-api@npm%3A6.1.1#./.yarn/patches/@slack-rtm-api-npm-6.1.1-13c0993e53.patch"
+    "@slack/web-api": "patch:@slack/web-api@npm%3A6.8.1#./.yarn/patches/@slack-web-api-npm-6.8.1-553b0045dc.patch",
+    "@slack/rtm-api": "patch:@slack/rtm-api@npm%3A6.1.1#./.yarn/patches/@slack-rtm-api-npm-6.1.1-13c0993e53.patch"
   }
 }
