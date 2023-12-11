@@ -1,0 +1,18 @@
+diff --git a/dist/RTMClient.js b/dist/RTMClient.js
+index 9a6715a20d5f8c688794d1b9057a64c266bc41ad..976b2bfdf9fed236f709050728e7001fb033a48f 100644
+--- a/dist/RTMClient.js
++++ b/dist/RTMClient.js
+@@ -419,7 +419,12 @@ class RTMClient extends eventemitter3_1.EventEmitter {
+         if (this.agentConfig !== undefined) {
+             options.agent = this.agentConfig;
+         }
+-        this.websocket = new ws_1.default(url, options);
++        this.websocket = new ws_1.default(url, {
++            ...options,
++            headers: {
++                ...(this.webClient.headers || {}),
++            },
++        });
+         // attach event listeners
+         this.websocket.addEventListener('open', (event) => this.stateMachine.handle('websocket open', event));
+         this.websocket.addEventListener('close', (event) => this.stateMachine.handle('websocket close', event));

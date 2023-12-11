@@ -550,7 +550,7 @@ export default class SlackAPI {
 
     if (content.fileBuffer || content.filePath) {
       const buffer = content.fileBuffer || await fs.readFile(content.filePath)
-      const file = await this.webClient.files.uploadV2({
+      const result = await this.webClient.files.uploadV2({
         file: buffer,
         channel_id: channel,
         thread_ts,
@@ -558,10 +558,11 @@ export default class SlackAPI {
         filename: content.fileName,
       })
 
-      const [firstFile] = (file as any).files || []
+      const [firstFile] = result.files as any[] || []
+      if (!firstFile) return false
 
       const promise = new Promise(resolve => {
-        this.attachmentsPromises.set(firstFile?.file?.id, resolve)
+        this.attachmentsPromises.set(firstFile.files[0].id, resolve)
       })
 
       return Promise.race([
