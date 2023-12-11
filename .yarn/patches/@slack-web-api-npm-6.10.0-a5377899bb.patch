@@ -1,5 +1,5 @@
 diff --git a/dist/WebClient.d.ts b/dist/WebClient.d.ts
-index 9f385903ccc125a9bebba116cf38ea39e3540cf3..086b69c0514682fe64334fd401d63e4d861194aa 100644
+index 83558d1babb51c664354f1da52cc513643702c0b..61739ac62b2cc024b78c8fe8008361007cb0d535 100644
 --- a/dist/WebClient.d.ts
 +++ b/dist/WebClient.d.ts
 @@ -52,6 +52,10 @@ export type PageAccumulator<R extends PageReducer> = R extends (accumulator: (in
@@ -14,7 +14,7 @@ index 9f385903ccc125a9bebba116cf38ea39e3540cf3..086b69c0514682fe64334fd401d63e4d
       * The base URL for reaching Slack's Web API. Consider changing this value for testing purposes.
       */
 diff --git a/dist/WebClient.js b/dist/WebClient.js
-index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..62536e951cd7d27a93df5db7006429e9fa9eba93 100644
+index 0acb328abc1d64d99b0165de542bda97610650e5..97a3fe62708dfcd7a6457caab3d6841c383b53f3 100644
 --- a/dist/WebClient.js
 +++ b/dist/WebClient.js
 @@ -63,6 +63,9 @@ const logger_1 = require("./logger");
@@ -35,25 +35,16 @@ index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..62536e951cd7d27a93df5db7006429e9
          // Logging
          if (typeof logger !== 'undefined') {
              this.logger = logger;
-@@ -108,6 +112,9 @@ class WebClient extends methods_1.Methods {
+@@ -108,6 +112,8 @@ class WebClient extends methods_1.Methods {
          // eslint-disable-next-line no-param-reassign
          if (this.token && !headers.Authorization)
              headers.Authorization = `Bearer ${this.token}`;
 +
 +        this.textsClient = texts.createHttpClient();
-+
          this.axios = axios_1.default.create({
              timeout,
              baseURL: slackApiUrl,
-@@ -123,6 +130,7 @@ class WebClient extends methods_1.Methods {
-             // protocols), users of this package should use the `agent` option to configure a proxy.
-             proxy: false,
-         });
-+
-         // serializeApiCallOptions will always determine the appropriate content-type
-         delete this.axios.defaults.headers.post['Content-Type'];
-         this.logger.debug('initialized');
-@@ -408,7 +416,39 @@ class WebClient extends methods_1.Methods {
+@@ -389,7 +395,39 @@ class WebClient extends methods_1.Methods {
                  if (url.endsWith('admin.analytics.getFile')) {
                      config.responseType = 'arraybuffer';
                  }
@@ -85,7 +76,7 @@ index 3a01bed1181c1cae2ebc9d003d764b09d5d7ffe4..62536e951cd7d27a93df5db7006429e9
 +                response.status = response.statusCode
 +                const stringifiedResponse = response.body.toString()
 +
-+                response.data = stringifiedResponse.startsWith('{') 
++                response.data = stringifiedResponse.startsWith('{')
 +                    ? JSON.stringify(JSON.parse(stringifiedResponse))
 +                    : stringifiedResponse
 +
