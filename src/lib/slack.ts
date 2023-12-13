@@ -362,7 +362,7 @@ export default class SlackAPI {
 
     response = await this.webClient.conversations.list({
       types,
-      limit: 200,
+      limit: 100,
       cursor: cursor || undefined,
       exclude_archived: true,
     })
