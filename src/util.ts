@@ -11,3 +11,7 @@ export const textsTime = (() =>
     }
   } : (_: string) => ({ timeEnd: () => {} }))
 )()
+
+export const isDM = (threadID: string) => (threadID || '').startsWith('D')
+
+export const isChannel = (threadID: string) => (threadID || '').startsWith('C')
