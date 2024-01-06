@@ -4,6 +4,7 @@ import { RTMClient } from '@slack/rtm-api'
 import { isEqual } from 'lodash'
 import { mapEmojiChangedEvent, mapMessage, mapReactionKey, shortcodeToEmoji } from '../mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from '../constants'
+import { isChannel } from '../util'
 
 import type SlackAPI from './slack'
 import type PAPI from '../api'
@@ -28,7 +29,9 @@ export default class SlackRealTime {
     private onEvent: OnServerEventCallback,
   ) {}
 
-  subscribeToEvents = async (): Promise<void> => {
+  subscribeToEvents = async (options: { ignoreChannels?: boolean } = {}): Promise<void> => {
+    const { ignoreChannels } = options
+
     // We pass an empty string as token because we're using the `webClient`, so the token here will be ignored
     this.rtm = new RTMClient('', {
       webClient: this.api.realTimeWebClient,
@@ -54,8 +57,9 @@ export default class SlackRealTime {
     // fixtures/message_rtm_event.json
     // fixtures/messase_changed_rtm_event.json
     /** https://api.slack.com/events/message */
-
     this.rtm.on('message', slackEvent => {
+      if (ignoreChannels && isChannel(slackEvent.channel)) return
+
       const threadID = getThreadID(slackEvent)
 
       switch (slackEvent.subtype) {
@@ -116,6 +120,8 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('user_typing', slackEvent => {
+      if (ignoreChannels && isChannel(slackEvent.channel)) return
+
       this.onEvent([{
         type: ServerEventType.USER_ACTIVITY,
         activityType: ActivityType.TYPING,
@@ -131,9 +137,12 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('reaction_added', slackEvent => {
+      if (ignoreChannels && isChannel(slackEvent.item.channel)) return
+
       const participantID = slackEvent.user
       const emoji = shortcodeToEmoji(slackEvent.reaction)
       const reactionKey = emoji || slackEvent.reaction
+
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
         objectIDs: {
@@ -153,7 +162,10 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('reaction_removed', slackEvent => {
+      if (ignoreChannels && isChannel(slackEvent.item.channel)) return
+
       const emoji = shortcodeToEmoji(slackEvent.reaction)
+
       this.onEvent([{
         type: ServerEventType.STATE_SYNC,
         objectIDs: {
