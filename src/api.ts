@@ -1,9 +1,9 @@
-import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName, ClientContext, PaginatedWithCursors } from '@textshq/platform-sdk'
+import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ClientContext, PaginatedWithCursors } from '@textshq/platform-sdk'
 import { ExpectedJSONGotHTMLError } from '@textshq/platform-sdk/dist/json'
 import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
-import { textsTime } from './util'
+import { isDM, textsTime } from './util'
 
 import SlackRealTime from './lib/real-time'
 import SlackAPI from './lib/slack'
@@ -128,7 +128,9 @@ export default class Slack implements PlatformAPI {
     this.api.onEvent = onEvent
     this.realTimeApi = new SlackRealTime(this.api, this, onEvent)
 
-    await this.realTimeApi?.subscribeToEvents()
+    await this.realTimeApi?.subscribeToEvents({
+      ignoreChannels: this.threadTypes.some(type => type === 'channel'),
+    })
   }
 
   searchUsers = (typed: string) =>
@@ -141,13 +143,13 @@ export default class Slack implements PlatformAPI {
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
 
-    // All DMs starts with D, and in that case we don't need to fetch participants
-    // but we will suscribe to presence (online/offline) changes only for those users
-    // this way we avoid suscribing to presence on channels with a lot of users.
-    if (threadID?.startsWith('D')) {
+    // We don't need to fetch participants for DMs, but we will suscribe to presence (online/offline)
+    // changes only for those users this way we avoid suscribing to presence on channels with a lot of users.
+    if (isDM(threadID)) {
       await this.realTimeApi?.subscribeToPresence(filteredIds)
       return
     }
+    // @notes
     // The slice is to get the first 5 users that are members of the channel / group.
     // Those first 5 members should be the "more active" ones, will need to double check
     // reading Slack's API code.
