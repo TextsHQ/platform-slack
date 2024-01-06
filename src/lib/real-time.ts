@@ -1,10 +1,10 @@
 import { ActivityType, OnServerEventCallback, PresenceMap, ServerEventType, texts } from '@textshq/platform-sdk'
 import { RTMClient } from '@slack/rtm-api'
-
 import { isEqual } from 'lodash'
+
 import { mapEmojiChangedEvent, mapMessage, mapReactionKey, shortcodeToEmoji } from '../mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from '../constants'
-import { isChannel } from '../util'
+import { isChannel, isDM } from '../util'
 
 import type SlackAPI from './slack'
 import type PAPI from '../api'
@@ -31,6 +31,20 @@ export default class SlackRealTime {
 
   subscribeToEvents = async (options: { ignoreChannels?: boolean } = {}): Promise<void> => {
     const { ignoreChannels } = options
+    /**
+     * @notes
+     *  we can't unsubsribe to events by channel type (DMs, groups or channels) so this function checks
+     *  if it should ignore a certain real-time event or not. This will check:
+     *    1. if the user has `channels` turned on
+     *    2. if the thread is a DM or Channel (groups are considered channels too)
+     *    3. if the channel is a `knownGroup` (from lib)
+     */
+    const shouldIgnoreEventFromChannel = (threadID: string) => {
+      if (!ignoreChannels || isDM(threadID) || !threadID) return false
+
+      const knownGroup = this.api.knownGroups.get(threadID)
+      return !knownGroup && isChannel(threadID)
+    }
 
     // We pass an empty string as token because we're using the `webClient`, so the token here will be ignored
     this.rtm = new RTMClient('', {
@@ -58,7 +72,7 @@ export default class SlackRealTime {
     // fixtures/messase_changed_rtm_event.json
     /** https://api.slack.com/events/message */
     this.rtm.on('message', slackEvent => {
-      if (ignoreChannels && isChannel(slackEvent.channel)) return
+      if (shouldIgnoreEventFromChannel(slackEvent.channel) && !slackEvent.subtype?.includes('group')) return
 
       const threadID = getThreadID(slackEvent)
 
@@ -120,7 +134,7 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('user_typing', slackEvent => {
-      if (ignoreChannels && isChannel(slackEvent.channel)) return
+      if (shouldIgnoreEventFromChannel(slackEvent.channel)) return
 
       this.onEvent([{
         type: ServerEventType.USER_ACTIVITY,
@@ -137,7 +151,7 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('reaction_added', slackEvent => {
-      if (ignoreChannels && isChannel(slackEvent.item.channel)) return
+      if (shouldIgnoreEventFromChannel(slackEvent.item.channel)) return
 
       const participantID = slackEvent.user
       const emoji = shortcodeToEmoji(slackEvent.reaction)
@@ -162,7 +176,7 @@ export default class SlackRealTime {
     })
 
     this.rtm.on('reaction_removed', slackEvent => {
-      if (ignoreChannels && isChannel(slackEvent.item.channel)) return
+      if (shouldIgnoreEventFromChannel(slackEvent.item.channel)) return
 
       const emoji = shortcodeToEmoji(slackEvent.reaction)
 
