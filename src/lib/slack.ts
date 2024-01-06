@@ -193,7 +193,7 @@ export default class SlackAPI {
   private getInitialThreads = async (): Promise<Thread[]> => {
     try {
       const now = Math.floor(Date.now() / 1000)
-      const { channels = [] } = await this.webClient.apiCall('client.boot', {
+      const { channels = [] } = await this.webClient.apiCall('client.userBoot', {
         token: this.webClient.token,
         version: 5,
         _x_reason: 'deferred-data',
@@ -327,6 +327,7 @@ export default class SlackAPI {
             objectName: 'thread',
             entries: mappedThreads,
           }])
+
           allThreads.push(...mappedThreads)
         }
 
@@ -335,7 +336,7 @@ export default class SlackAPI {
         texts.error(error)
         texts.Sentry.captureException(error)
 
-        if (tries < 5) {
+        if (tries < 3) {
           tries += 1
           // Wait 5 seconds before next try
           await setTimeoutAsync(5_000)
@@ -360,9 +361,12 @@ export default class SlackAPI {
       return undefined
     }).join(',')
 
-    response = await this.webClient.conversations.list({
+    // @notes
+    // instead of using `conversations.list` we will use `users.conversations` to avoid getting all
+    // workspace's conversations and then filtering them checking `is_member`.
+    response = await this.webClient.users.conversations({
       types,
-      limit: 100,
+      limit: 50,
       cursor: cursor || undefined,
       exclude_archived: true,
     })
@@ -372,7 +376,7 @@ export default class SlackAPI {
       : []
 
     const publicChannels = threadTypes.includes('channel')
-      ? (response.channels as { is_channel: boolean, is_member: boolean }[]).filter(({ is_channel, is_member }) => is_channel && is_member)
+      ? (response.channels as { is_channel: boolean, is_member: boolean }[]).filter(({ is_channel }) => is_channel)
       : []
 
     await Promise.all([
