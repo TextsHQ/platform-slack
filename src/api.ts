@@ -3,7 +3,7 @@ import { ExpectedJSONGotHTMLError } from '@textshq/platform-sdk/dist/json'
 import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
-import { isDM, textsTime } from './util'
+import { isDM, isMessageReply, textsTime } from './util'
 
 import SlackRealTime from './lib/real-time'
 import SlackAPI from './lib/slack'
@@ -11,7 +11,7 @@ import SlackAPI from './lib/slack'
 export type ThreadType = 'channel' | 'dm'
 
 function mapThreadID(threadID: string) {
-  if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) { // message replies
+  if (isMessageReply(threadID)) { // message replies
     const [, mainThreadID, messageID] = threadID.split('/')
     return { mainThreadID, messageID }
   }
@@ -19,7 +19,7 @@ function mapThreadID(threadID: string) {
 }
 
 function getIDs(_threadID: string) {
-  const isMessageReplyThread = _threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)
+  const isMessageReplyThread = isMessageReply(_threadID)
   const msgReplyThreadIDs = isMessageReplyThread ? mapThreadID(_threadID) : undefined
   return isMessageReplyThread ? {
     channel: msgReplyThreadIDs.mainThreadID,
@@ -138,7 +138,7 @@ export default class Slack implements PlatformAPI {
 
   onThreadSelected = async (threadID: string): Promise<void> => {
     // nothing needed for slack threads
-    if (threadID?.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) return
+    if (isMessageReply(threadID)) return
 
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
@@ -182,7 +182,7 @@ export default class Slack implements PlatformAPI {
     const { cursor } = pagination || { cursor: null }
     const timer = textsTime('getMessages')
 
-    if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) {
+    if (isMessageReply(threadID)) {
       const { mainThreadID, messageID } = mapThreadID(threadID)
       const { messages, response_metadata } = await this.api.messageReplies(mainThreadID, messageID)
       const items = messages.map(message => mapMessage(message, this.accountID, mainThreadID, this.currentUserID, this.api.customEmojis, true))

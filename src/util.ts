@@ -1,4 +1,5 @@
 import { texts } from '@textshq/platform-sdk'
+import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
 
 const timeLogEnabled = false
 
@@ -11,6 +12,8 @@ export const textsTime = (() =>
     }
   } : (_: string) => ({ timeEnd: () => {} }))
 )()
+
+export const isMessageReply = (threadID: string) => (threadID || '').startsWith(MESSAGE_REPLY_THREAD_PREFIX)
 
 export const isDM = (threadID: string) => (threadID || '').startsWith('D')
 
