@@ -129,7 +129,7 @@ export default class Slack implements PlatformAPI {
     this.realTimeApi = new SlackRealTime(this.api, this, onEvent)
 
     await this.realTimeApi?.subscribeToEvents({
-      ignoreChannels: this.threadTypes.some(type => type === 'channel'),
+      ignoreChannels: this.threadTypes.every(type => type !== 'channel'),
     })
   }
 
