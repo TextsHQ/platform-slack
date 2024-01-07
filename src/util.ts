@@ -15,6 +15,6 @@ export const textsTime = (() =>
 
 export const isMessageReply = (threadID: string) => (threadID || '').startsWith(MESSAGE_REPLY_THREAD_PREFIX)
 
+// @see https://api.slack.com/apis/conversations-api#shared_channels
 export const isDM = (threadID: string) => (threadID || '').startsWith('D')
-
 export const isChannel = (threadID: string) => (threadID || '').startsWith('C')
