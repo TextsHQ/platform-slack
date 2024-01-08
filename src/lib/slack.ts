@@ -41,8 +41,8 @@ export default class SlackAPI {
 
   private threadsCallsCounter = 0
 
-  // Map of groups the user is part of
-  public knownGroups: Set<string> = new Set()
+  // Set of known groups the user is part of
+  public knownGroups = new Set<string>()
 
   init = async ({
     clientToken,
