@@ -42,7 +42,7 @@ export default class SlackRealTime {
     const shouldIgnoreEventFromChannel = (threadID: string) => {
       if (!ignoreChannels || isDM(threadID) || !threadID) return false
 
-      const knownGroup = this.api.knownGroups.get(threadID)
+      const knownGroup = this.api.knownGroups.has(threadID)
       return !knownGroup && isChannel(threadID)
     }
 

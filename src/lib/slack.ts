@@ -42,7 +42,7 @@ export default class SlackAPI {
   private threadsCallsCounter = 0
 
   // Map of groups the user is part of
-  public knownGroups: Map<string, boolean> = new Map()
+  public knownGroups: Set<string> = new Set()
 
   init = async ({
     clientToken,
@@ -329,7 +329,7 @@ export default class SlackAPI {
           // not be ignored).
           mappedThreads.forEach(thread => {
             if (thread.type === 'group') {
-              this.knownGroups.set(thread.id, true)
+              this.knownGroups.add(thread.id)
             }
           })
 
