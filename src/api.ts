@@ -143,7 +143,7 @@ export default class Slack implements PlatformAPI {
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
 
-    // We don't need to fetch participants for DMs, but we will suscribe to presence (online/offline)
+    // We don't need to fetch participants for DMs, but we will subscribe to presence (online/offline)
     // changes only for those users this way we avoid suscribing to presence on channels with a lot of users.
     if (isDM(threadID)) {
       await this.realTimeApi?.subscribeToPresence(filteredIds)
