@@ -1,9 +1,9 @@
-import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ThreadFolderName, ClientContext, PaginatedWithCursors } from '@textshq/platform-sdk'
+import { PaginationArg, Paginated, Thread, Message, PlatformAPI, OnServerEventCallback, LoginResult, ReAuthError, ActivityType, MessageContent, CustomEmojiMap, ServerEventType, LoginCreds, texts, NotificationsInfo, MessageLink, ClientContext, PaginatedWithCursors } from '@textshq/platform-sdk'
 import { ExpectedJSONGotHTMLError } from '@textshq/platform-sdk/dist/json'
 import { CookieJar } from 'tough-cookie'
 import { mapCurrentUser, mapMessage, mapParticipant, mapLinkAttachment } from './mappers'
 import { MESSAGE_REPLY_THREAD_PREFIX } from './constants'
-import { textsTime } from './util'
+import { isDM, isMessageReply, textsTime } from './util'
 
 import SlackRealTime from './lib/real-time'
 import SlackAPI from './lib/slack'
@@ -11,7 +11,7 @@ import SlackAPI from './lib/slack'
 export type ThreadType = 'channel' | 'dm'
 
 function mapThreadID(threadID: string) {
-  if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) { // message replies
+  if (isMessageReply(threadID)) { // message replies
     const [, mainThreadID, messageID] = threadID.split('/')
     return { mainThreadID, messageID }
   }
@@ -19,7 +19,7 @@ function mapThreadID(threadID: string) {
 }
 
 function getIDs(_threadID: string) {
-  const isMessageReplyThread = _threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)
+  const isMessageReplyThread = isMessageReply(_threadID)
   const msgReplyThreadIDs = isMessageReplyThread ? mapThreadID(_threadID) : undefined
   return isMessageReplyThread ? {
     channel: msgReplyThreadIDs.mainThreadID,
@@ -128,7 +128,9 @@ export default class Slack implements PlatformAPI {
     this.api.onEvent = onEvent
     this.realTimeApi = new SlackRealTime(this.api, this, onEvent)
 
-    await this.realTimeApi?.subscribeToEvents()
+    await this.realTimeApi?.subscribeToEvents({
+      ignoreChannels: this.threadTypes.every(type => type !== 'channel'),
+    })
   }
 
   searchUsers = (typed: string) =>
@@ -136,18 +138,18 @@ export default class Slack implements PlatformAPI {
 
   onThreadSelected = async (threadID: string): Promise<void> => {
     // nothing needed for slack threads
-    if (threadID?.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) return
+    if (isMessageReply(threadID)) return
 
     const members = await this.api.getParticipants(threadID)
     const filteredIds = members.filter(id => id !== this.currentUserID)
 
-    // All DMs starts with D, and in that case we don't need to fetch participants
-    // but we will suscribe to presence (online/offline) changes only for those users
-    // this way we avoid suscribing to presence on channels with a lot of users.
-    if (threadID?.startsWith('D')) {
+    // We don't need to fetch participants for DMs, but we will subscribe to presence (online/offline)
+    // changes only for those users this way we avoid suscribing to presence on channels with a lot of users.
+    if (isDM(threadID)) {
       await this.realTimeApi?.subscribeToPresence(filteredIds)
       return
     }
+    // @notes
     // The slice is to get the first 5 users that are members of the channel / group.
     // Those first 5 members should be the "more active" ones, will need to double check
     // reading Slack's API code.
@@ -180,7 +182,7 @@ export default class Slack implements PlatformAPI {
     const { cursor } = pagination || { cursor: null }
     const timer = textsTime('getMessages')
 
-    if (threadID.startsWith(MESSAGE_REPLY_THREAD_PREFIX)) {
+    if (isMessageReply(threadID)) {
       const { mainThreadID, messageID } = mapThreadID(threadID)
       const { messages, response_metadata } = await this.api.messageReplies(mainThreadID, messageID)
       const items = messages.map(message => mapMessage(message, this.accountID, mainThreadID, this.currentUserID, this.api.customEmojis, true))

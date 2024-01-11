@@ -41,6 +41,9 @@ export default class SlackAPI {
 
   private threadsCallsCounter = 0
 
+  // Set of known groups the user is part of
+  public knownGroups = new Set<string>()
+
   init = async ({
     clientToken,
     accountID,
@@ -320,6 +323,16 @@ export default class SlackAPI {
         const mappedThreads = this.mapChannels(channels)
 
         if (mappedThreads.length) {
+          // @notes
+          // we'll keep a list of known groups so we can consider them when the user receives a real-time event
+          // and does not have channels on (groups are considered channels - so this way we know this event should
+          // not be ignored).
+          mappedThreads.forEach(thread => {
+            if (thread.type === 'group') {
+              this.knownGroups.add(thread.id)
+            }
+          })
+
           this.onEvent([{
             type: ServerEventType.STATE_SYNC,
             mutationType: 'upsert',
