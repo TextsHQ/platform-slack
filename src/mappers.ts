@@ -349,6 +349,7 @@ const mapThread = (
   })()
 
   const title = ((): string => {
+    if (type === 'single') return undefined
     if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
     if (type === 'group' && participants.length > 0) return undefined
 
