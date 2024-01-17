@@ -349,15 +349,12 @@ const mapThread = (
   })()
 
   const title = ((): string => {
-    if (type === 'single') return undefined
     if (type === 'channel') return `${teamName ? `${teamName} - ` : ''}#${channel.name}`
     if (type === 'group' && participants.length > 0) return undefined
-
     if (type === 'group' && channel.members?.length > 0 && (channel.name as string).startsWith('mpdm-') && channel.purpose?.value) {
       return channel.purpose.value.split(': ').pop()
     }
-
-    return channel.name || participants[0]?.username || channel.user
+    return channel.name
   })()
 
   const isMuted = mutedChannels.has(channel.id)
