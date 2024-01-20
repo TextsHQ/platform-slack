@@ -346,7 +346,7 @@ function mapBlock(block: Block, customEmojis: Record<string, string>, fallbackTe
     }
     case 'rich_text_list': {
       let i = 1
-      const indentation = Array.from({ length: block.indent || 0 }).reduce(prev => `${prev} `, '')
+      const indentation = Array.from({ length: block.indent || 0 }).reduce(prev => `${prev}  `, '')
 
       for (const element of block.elements) {
         const listStyle = block.style === 'ordered' ? `${indentation}${i}. ` : `${indentation}• `
