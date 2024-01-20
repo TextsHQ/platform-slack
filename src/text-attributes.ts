@@ -346,10 +346,10 @@ function mapBlock(block: Block, customEmojis: Record<string, string>, fallbackTe
     }
     case 'rich_text_list': {
       let i = 1
-      const intendation = Array.from({ length: block.indent || 0 }).reduce(prev => `${prev} `, '')
+      const indentation = Array.from({ length: block.indent || 0 }).reduce(prev => `${prev} `, '')
 
       for (const element of block.elements) {
-        const listStyle = block.style === 'ordered' ? `${intendation}${i}. ` : `${intendation}• `
+        const listStyle = block.style === 'ordered' ? `${indentation}${i}. ` : `${indentation}• `
         const mapped = mapBlock(element, customEmojis)
         const cursor = Array.from(output).length + listStyle.length
         const nestedEntities = offsetEntities(mapped.textAttributes.entities, cursor)
