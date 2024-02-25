@@ -1,5 +1,5 @@
 import { MessageContent, Thread, texts, FetchOptions, OnServerEventCallback, ServerEventType, Participant, ActivityType } from '@textshq/platform-sdk'
-import { WebClient, WebClientOptions } from '@slack/web-api'
+import { UsersConversationsResponse, WebClient, WebClientOptions } from '@slack/web-api'
 import { promises as fs } from 'fs'
 import { uniqBy, memoize } from 'lodash'
 import { setTimeout as setTimeoutAsync } from 'timers/promises'
@@ -7,12 +7,17 @@ import { setTimeout as setTimeoutAsync } from 'timers/promises'
 import type { Member } from '@slack/web-api/dist/response/UsersListResponse'
 import type { CookieJar } from 'tough-cookie'
 
+import type { Team } from '@slack/web-api/dist/response/TeamInfoResponse'
+import type { AuthTestResponse } from '@slack/web-api/dist/response/AuthTestResponse'
+import type { Profile } from '@slack/web-api/dist/response/UsersProfileGetResponse'
 import { extractRichElements, mapParticipant, mapProfile, mapThreads } from '../mappers'
 import { emojiToShortcode } from '../text-attributes'
 import { MENTION_REGEX } from '../constants'
 import { textsTime } from '../util'
 
 import type { ThreadType } from '../api'
+
+export type SlackCurrentUser = { auth: AuthTestResponse, user: Profile, team: Team }
 
 export default class SlackAPI {
   cookieJar: CookieJar
@@ -27,7 +32,7 @@ export default class SlackAPI {
 
   customEmojis: Record<string, string>
 
-  currentUser?: { auth: any, user: any, team: any }
+  currentUser?: SlackCurrentUser
 
   public attachmentsPromises: Map<string, Function> = new Map()
 
@@ -254,13 +259,13 @@ export default class SlackAPI {
 
   loadPublicChannel = async (channel: any) => {
     const timer = textsTime(`loadPublicChannel Id:${channel.id}`)
-    const { id } = channel
-    const threadInfo = await this.webClient.conversations.info({ channel: id })
+    const threadInfo = await this.webClient.conversations.info({ channel: channel.id })
 
-    const { channel: channelInfo } = threadInfo as any || {}
+    const { channel: channelInfo } = threadInfo
     if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo?.latest?.text)
     // As we don't have the latest activity, we can use different fields to get the thread timestamp
     const date = (Number(channelInfo?.last_read) || channelInfo?.created || 0) * 1000
+    // eslint-disable-next-line no-param-reassign
     channel.timestamp = date ? new Date(date) : undefined
     channel.unread = Boolean(channelInfo?.unread_count)
     channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
@@ -366,8 +371,6 @@ export default class SlackAPI {
   }
 
   private getThreads = async ({ cursor, threadTypes = [] }: { cursor?: string, threadTypes: ThreadType[] }) => {
-    let response: any = { channels: [] }
-
     const types = threadTypes.map(t => {
       if (t === 'dm') return ['mpim', 'im'].join(',')
       if (t === 'channel') return ['public_channel', 'private_channel'].join(',')
@@ -377,20 +380,28 @@ export default class SlackAPI {
     // @notes
     // instead of using `conversations.list` we will use `users.conversations` to avoid getting all
     // workspace's conversations and then filtering them checking `is_member`.
-    response = await this.webClient.users.conversations({
+    const response = await this.webClient.users.conversations({
       types,
       limit: 50,
       cursor: cursor || undefined,
       exclude_archived: true,
     })
 
-    const privateMessages = threadTypes.includes('dm')
-      ? (response.channels as { is_im: boolean, is_mpim?: boolean }[]).filter(({ is_im, is_mpim }) => is_im || is_mpim)
-      : []
-
-    const publicChannels = threadTypes.includes('channel')
-      ? (response.channels as { is_channel: boolean, is_member: boolean }[]).filter(({ is_channel }) => is_channel)
-      : []
+    const {
+      privateMessages,
+      publicChannels,
+    } = response.channels.reduce<{
+      privateMessages: UsersConversationsResponse['channels']
+      publicChannels: UsersConversationsResponse['channels']
+    }>((acc, channel) => {
+      if (threadTypes.includes('dm') && (channel.is_im || channel.is_mpim)) {
+        acc.privateMessages.push(channel)
+      }
+      if (threadTypes.includes('channel') && channel.is_channel) {
+        acc.publicChannels.push(channel)
+      }
+      return acc
+    }, { privateMessages: [], publicChannels: [] })
 
     await Promise.all([
       ...publicChannels.map(this.loadPublicChannel),

@@ -4,6 +4,7 @@ import type { MessageElement as CHRMessage } from '@slack/web-api/dist/response/
 
 import { mapTextAttributes, skinToneShortcodeToEmojiMap, mapBlocks, offsetEntities } from './text-attributes'
 import { getEmojiUrl, getNativeShortcodeFromBlock, getEmojiUnicode } from './lib/emoji'
+import type { SlackCurrentUser } from './lib/slack'
 
 const getAttachmentType = (mimeType: string): AttachmentType => {
   if (mimeType?.startsWith('image')) return AttachmentType.IMG
@@ -317,10 +318,10 @@ export const mapParticipant = ({ profile }: any): Participant => profile && {
   email: profile.email,
 }
 
-export const mapCurrentUser = ({ user, team, auth }: any): CurrentUser => ({
+export const mapCurrentUser = ({ user, team, auth }: SlackCurrentUser): CurrentUser => ({
   id: auth.enterprise_id ? `${auth.enterprise_id}-${team.id}-${auth.user_id}` : auth.user_id,
   fullName: user.real_name,
-  displayText: `${team?.name + ' - '}${user.display_name || user.real_name}`,
+  displayText: `${(team?.name ?? 'Unknown Team') + ' - '}${user.display_name || user.real_name}`,
   imgURL: user.image_192,
 })
 

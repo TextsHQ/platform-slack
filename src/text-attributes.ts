@@ -25,6 +25,7 @@ export function mapNativeEmojis(text: string): string {
   for (const shortcode of matches) {
     const emoji = getEmojiUnicode(shortcode) || skinToneShortcodeToEmojiMap[shortcode]
     if (emoji) {
+      // eslint-disable-next-line no-param-reassign
       text = text.replace(shortcode, emoji)
     }
   }
@@ -36,6 +37,7 @@ export const emojiToShortcode = (emoji: string) => {
   for (const [skinToneChar, skinToneCode] of Object.entries(skinToneEmojiToShortcodeMap)) {
     if (emoji.includes(skinToneChar)) {
       skinTone += '::' + skinToneCode
+      // eslint-disable-next-line no-param-reassign
       emoji = emoji.replace(skinToneChar, '')
     }
   }
@@ -166,6 +168,7 @@ export function mapTextAttributes(
             entity.code = true
             break
           case '<': {
+            // eslint-disable-next-line prefer-const
             let [link, title] = data
             title = title || link
             output += title
@@ -624,7 +627,7 @@ function mapBlock(block: Block, customEmojis: Record<string, string>, fallbackTe
   }
 }
 
-export function mapBlocks(blocks: Block[], customEmojis: Record<string, string>, fallbackText: string = ''): Pick<Message, 'text' | 'textAttributes' | 'buttons'> {
+export function mapBlocks(blocks: Block[], customEmojis: Record<string, string>, fallbackText = ''): Pick<Message, 'text' | 'textAttributes' | 'buttons'> {
   let output = ''
   const entities: TextEntity[] = []
   const buttons: MessageButton[] = []
