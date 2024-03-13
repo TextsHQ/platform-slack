@@ -258,12 +258,12 @@ export default class SlackAPI {
     const threadInfo = await this.webClient.conversations.info({ channel: id })
 
     const { channel: channelInfo } = threadInfo as any || {}
-    const messages = await this.getMessages(id, 1)
+    if (channelInfo?.latest?.text) channelInfo.latest.text = await this.loadMentions(channelInfo?.latest?.text)
     // As we don't have the latest activity, we can use different fields to get the thread timestamp
     const date = (Number(channelInfo?.last_read) || channelInfo?.created || 0) * 1000
     channel.timestamp = date ? new Date(date) : undefined
     channel.unread = Boolean(channelInfo?.unread_count)
-    channel.messages = messages?.messages || []
+    channel.messages = [channelInfo?.latest].filter(x => x?.ts) || []
     channel.participants = []
     timer.timeEnd()
   }
