@@ -333,14 +333,6 @@ export default class SlackAPI {
             }
           })
 
-          this.onEvent([{
-            type: ServerEventType.STATE_SYNC,
-            mutationType: 'upsert',
-            objectIDs: {},
-            objectName: 'thread',
-            entries: mappedThreads,
-          }])
-
           allThreads.push(...mappedThreads)
         }
 
