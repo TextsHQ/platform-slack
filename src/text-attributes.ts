@@ -611,6 +611,10 @@ function mapBlock(block: Block, customEmojis: Record<string, string>, fallbackTe
       output += `@${block.range}`
       break
     }
+    case 'date': {
+      output += `${block.fallback}`
+      break
+    }
     default:
       output += `\n---⚠️ Texts didn't render Slack ${block.type} block ⚠️---\n`
       texts.Sentry.captureMessage('slack unrecognized block: ' + block.type, { extra: { tags: Object.keys(block) } })
