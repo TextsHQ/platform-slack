@@ -512,7 +512,14 @@ export default class SlackAPI {
     const foundKey = keys.find(key => this.workspaceUsers[key]?.profile?.api_app_id === bot.bot.app_id)
     const user = this.workspaceUsers[foundKey] || {}
 
-    const participant = { profile: { ...bot.bot, ...(user?.profile || {}), id: bot.bot.app_id } }
+    const participant = {
+      profile: {
+        ...(user?.profile || {}),
+        ...bot.bot,
+        id: bot.bot.app_id,
+      }
+    }
+
     this.workspaceUsers[botId] = participant
     return participant
   }
