@@ -340,7 +340,7 @@ export const mapParticipant = ({ profile }: any): Participant => {
 export const mapCurrentUser = ({ user, team, auth }: any): CurrentUser => ({
   id: auth.enterprise_id ? `${auth.enterprise_id}-${team.id}-${auth.user_id}` : auth.user_id,
   fullName: user.real_name,
-  displayText: `${team?.name + ' - '}${user.display_name || user.real_name}`,
+  displayText: `${team?.name} - ${user.display_name || user.real_name}`,
   imgURL: user.image_192,
 })
 
