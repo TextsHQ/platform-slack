@@ -154,7 +154,7 @@ export default class SlackAPI {
     const teamURL = await this.getFirstTeamURL()
     for (const pathname of ['customize/emoji', 'home']) {
       const html = await this.fetchHTML(teamURL + pathname)
-      // "api_token":"xoxc-2837734959632-2807131363654-1044634777490-836bed83bf8aa7ebcaf06a70df3df6ec7153d219003a75f2dce10db1fc1db50f"
+      // "api_token":"xoxc-..."
       const [, token] = html.match(/"api_token":"(.+?)"/) || []
       if (token) return token
     }
