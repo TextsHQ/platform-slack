@@ -309,18 +309,38 @@ export const mapMessage = (
   }
 }
 
-export const mapParticipant = ({ profile }: any): Participant => profile && {
-  id: profile.user_id || profile.id || profile.bot_id || profile.api_app_id,
-  username: profile.display_name || profile.real_name || profile.name,
-  fullName: profile.real_name || profile.display_name,
-  imgURL: profile.image_192 || profile.image_72,
-  email: profile.email,
+export const mapAppOrBot = ({ profile }: {
+  profile: {
+    name: string
+    display_name: string
+    real_name: string
+    id: string
+    icons: Record<string, string>
+  }
+}): Participant => profile && {
+  id: profile.id,
+  username: profile.name || profile.display_name,
+  fullName: profile.name || profile.display_name,
+  imgURL: profile.icons?.image_72 || profile.icons?.image_48 || profile.icons?.image_32,
+}
+
+export const mapParticipant = ({ profile }: any): Participant => {
+  if (!profile) return
+  if (profile.app_id) return mapAppOrBot({ profile })
+
+  return {
+    id: profile.user_id || profile.id || profile.bot_id || profile.api_app_id,
+    username: profile.display_name || profile.real_name || profile.name,
+    fullName: profile.real_name || profile.display_name,
+    imgURL: profile.image_192 || profile.image_72,
+    email: profile.email,
+  }
 }
 
 export const mapCurrentUser = ({ user, team, auth }: any): CurrentUser => ({
   id: auth.enterprise_id ? `${auth.enterprise_id}-${team.id}-${auth.user_id}` : auth.user_id,
   fullName: user.real_name,
-  displayText: `${team?.name + ' - '}${user.display_name || user.real_name}`,
+  displayText: `${team?.name} - ${user.display_name || user.real_name}`,
   imgURL: user.image_192,
 })
 
